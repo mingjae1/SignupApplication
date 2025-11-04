@@ -5,7 +5,7 @@ package signup.model;
  * 이 객체는 MMain이 파일에서 읽어온 데이터를 CMain/VMain 등
  * 다른 MVC 컴포넌트로 전달할 때 사용됩니다.
  */
-public class Lecture {
+public class MLecture {
     
     private String id;        // 과목 코드
     private String name;      // 과목명
@@ -22,7 +22,7 @@ public class Lecture {
      * @param credits   학점 (e.g., 3)
      * @param schedule  시간표 (e.g., "목12:00-14:45")
      */
-    public Lecture(String id, String name, String professor, int credits, String schedule) {
+    public MLecture(String id, String name, String professor, int credits, String schedule) {
         this.id = id;
         this.name = name;
         this.professor = professor;

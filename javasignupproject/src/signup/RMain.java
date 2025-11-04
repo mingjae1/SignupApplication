@@ -1,47 +1,77 @@
 package signup;
 
-
+// 컨트롤러
 import signup.controller.CLogin;
 import signup.controller.CMain;
 import signup.controller.CSignup;
+import signup.controller.CSearch;
+// 모델 (DTO 및 상태)
 import signup.model.MMain;
+// DAO (데이터 접근)
+import signup.dao.LectureDAO;
+import signup.dao.SaveDAO;
+import signup.dao.UserDAO;
+// 뷰 (GUI)
 import signup.view.VLogin;
 import signup.view.VMain;
 import signup.view.VSignup;
+import signup.view.VSearch;
 
 /**
  * 프로그램을 시작하고 모든 MVC 구성 요소를 조립(Assembly)하는 메인 클래스입니다.
- * (Model, View, Controller 객체를 생성하고 서로 연결합니다.)
+ * Model, View, Controller, DAO 객체를 생성하고 서로 의존성을 주입합니다.
  */
 public class RMain {
 
-    // 1. 뷰 (프레임과 패널)
+    // --- 1. 뷰 (프레임과 패널) ---
     private VMain vMain;
     private VLogin vLogin;
     private VSignup vSignup;
-    
-    // 2. 모델 (데이터)
+    private VSearch vSearch;
+
+    // --- 2. 모델 (전역 상태) ---
     private MMain mMain;
 
+    // --- 3. DAO (데이터 접근 객체) ---
+    // (RMain이 생성하여 각 컨트롤러에 전달해줍니다)
+    private LectureDAO lectureDAO;
+    private SaveDAO saveDAO;
+    private UserDAO userDAO;
+    
     /**
      * RMain 생성자:
      * 모든 핵심 MVC 컴포넌트를 생성하고 의존성을 주입합니다.
      */
     public RMain() {
-        // 모델과 뷰 객체 생성
+        // --- 1. 모델과 DAO 생성 ---
         this.mMain = new MMain();
+        this.lectureDAO = new LectureDAO();
+        this.saveDAO = new SaveDAO();
+        this.userDAO = new UserDAO();
+        
+        // --- 2. 뷰 생성 ---
         this.vMain = new VMain();
         this.vLogin = new VLogin();
         this.vSignup = new VSignup();
+        this.vSearch = new VSearch(); 
         
-        // VMain(메인 프레임)에 뷰 패널들 추가 (CardLayout으로 관리)
+        // --- 3. 뷰 조립 ---
+        // VMain(메인 프레임)의 메인 CardLayout에 패널 추가
         this.vMain.addPanel(this.vLogin, "loginPanel");
         this.vMain.addPanel(this.vSignup, "signupPanel");
+        
+        // VMain 내부의 컨텐츠 CardLayout에 패널 추가
+        // (VMain.java에 getPanelForRegisterAndBasket() Getter가 필요합니다)
+        this.vMain.getPanelForRegisterAndBasket().add(this.vSearch, "searchPanel");
+        // (참고: vRegisterPanel, vBasketPanel은 VMain이 자체적으로 생성함)
+        
 
-        // 컨트롤러 생성 및 의존성 주입 (필요한 객체 전달)
-        new CLogin(this.vMain, this.vLogin, this.mMain);
-        new CSignup(this.vMain, this.vSignup);
-        new CMain(this.vMain, this.mMain);
+        // --- 4. 컨트롤러 생성 (의존성 주입) ---
+        // 각 컨트롤러에 필요한 뷰, 모델, DAO를 생성자의 인자로 전달합니다.
+        new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO);
+        new CSignup(this.vMain, this.vSignup, this.lectureDAO, this.userDAO);
+        new CMain(this.vMain, this.mMain, this.saveDAO);
+        new CSearch(this.vSearch, this.mMain, this.lectureDAO, this.saveDAO, this.userDAO);
     }
     
     /**
@@ -54,14 +84,7 @@ public class RMain {
         // 메인 프레임을 화면에 표시
         this.vMain.setVisible(true);
     }
-    
-    /**
-     * 프로그램을 종료합니다.
-     */
-    public void finish() {
-        System.exit(0);
-    }
-    
+       
     /**
      * 프로그램의 메인 진입점입니다.
      * @param args (사용되지 않음)
@@ -69,6 +92,5 @@ public class RMain {
     public static void main(String[] args) {
     	RMain rMain = new RMain();
         rMain.initialize();
-        
     }
 }

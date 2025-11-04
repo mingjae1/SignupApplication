@@ -1,6 +1,6 @@
 package signup.view;
 
-// (수정) java.awt.*, javax.swing.* 대신 사용하는 클래스들을 명시
+
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -11,7 +11,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-// (수정) ActionListener는 CLogin이 처리하므로 View에서 import할 필요 없음
 
 /**
  * 로그인 화면을 구성하는 JPanel입니다.

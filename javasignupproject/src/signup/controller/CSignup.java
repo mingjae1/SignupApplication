@@ -124,7 +124,7 @@ public class CSignup {
             
             // 비밀번호 필수 포함 요소 검사 (영어, 숫자, 특수문자)
             boolean hasLetter = password.matches(".*[a-zA-Z]+.*");
-            boolean hasDigit = password.matches(".*[0-9]+.*");
+            boolean hasDigit = password.matches(".*[\\d]+.*");
             boolean hasSpecial = password.matches(".*[^a-zA-Z0-9]+.*"); 
 
             if (!hasLetter || !hasDigit || !hasSpecial) {

@@ -6,13 +6,14 @@ import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.WindowConstants;
 
 import signup.model.Lecture;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 프로그램의 메인 프레임(JFrame)입니다.
@@ -48,7 +49,7 @@ public class VMain extends JFrame {
         // JFrame 기본 설정
         setTitle("수강신청 프로그램");
         setSize(800, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // 프레임을 화면 중앙에 배치
         
         // RMain이 사용할 메인 CardLayout 패널 초기화
@@ -134,7 +135,7 @@ public class VMain extends JFrame {
      * CMain이 '수강신청 패널'의 테이블을 새로고침할 때 호출합니다.
      * @param registeredData MMain에서 가져온 최신 수강신청 목록
      */
-    public void updateRegisterPanel(ArrayList<Lecture> registeredData) {
+    public void updateRegisterPanel(List<Lecture> registeredData) {
         DefaultTableModel model = (DefaultTableModel) registerTable.getModel();
         model.setRowCount(0); // 테이블 비우기
         
@@ -154,7 +155,7 @@ public class VMain extends JFrame {
      * CMain이 '미리담기 패널'의 테이블을 새로고침할 때 호출합니다.
      * @param basketData MMain에서 가져온 최신 미리담기 목록
      */
-    public void updateBasketPanel(ArrayList<Lecture> basketData) {
+    public void updateBasketPanel(List<Lecture> basketData) {
         DefaultTableModel model = (DefaultTableModel) basketTable.getModel();
         model.setRowCount(0); // 테이블 비우기
         

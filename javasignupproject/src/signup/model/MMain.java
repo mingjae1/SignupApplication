@@ -1,6 +1,7 @@
 package signup.model;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileNotFoundException;
@@ -43,7 +44,7 @@ public class MMain {
      * (경로: data/user/Pre/userID_PreList.txt)
      * @return '미리담기' 강의 목록 (ArrayList<Lecture>)
      */
-    public ArrayList<Lecture> getBasketLectures() {
+    public List<Lecture> getBasketLectures() {
         String fileName = this.currentUserId + "_PreList.txt";
         String filePath = "data/user/Pre/" + fileName;
 
@@ -57,7 +58,7 @@ public class MMain {
      * (경로: data/user/Register/userID_RegisterList.txt)
      * @return '수강신청' 강의 목록 (ArrayList<Lecture>)
      */
-    public ArrayList<Lecture> getRegisteredLectures() {
+    public List<Lecture> getRegisteredLectures() {
         String fileName = this.currentUserId + "_RegisterList.txt";
         String filePath = "data/user/Register/" + fileName;
 
@@ -72,7 +73,7 @@ public class MMain {
      * @param filePath 읽어올 파일의 전체 경로
      * @return 파일에서 파싱된 강의 목록 (ArrayList<Lecture>)
      */
-    private ArrayList<Lecture> loadLecturesFromFile(String filePath) {
+    private List<Lecture> loadLecturesFromFile(String filePath) {
         ArrayList<Lecture> lectures = new ArrayList<>();
         
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {

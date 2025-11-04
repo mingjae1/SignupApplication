@@ -23,11 +23,6 @@ public class RMain {
     // 2. 모델 (데이터)
     private MMain mMain;
 
-    // 3. 컨트롤러 (로직)
-    private CLogin cLogin;
-    private CSignup cSignup;
-    private CMain cMain;
-
     /**
      * RMain 생성자:
      * 모든 핵심 MVC 컴포넌트를 생성하고 의존성을 주입합니다.
@@ -44,9 +39,9 @@ public class RMain {
         this.vMain.addPanel(this.vSignup, "signupPanel");
 
         // 컨트롤러 생성 및 의존성 주입 (필요한 객체 전달)
-        cLogin = new CLogin(this.vMain, this.vLogin, this.mMain);
-        cSignup = new CSignup(this.vMain, this.vSignup);
-        cMain = new CMain(this.vMain, this.mMain);
+        new CLogin(this.vMain, this.vLogin, this.mMain);
+        new CSignup(this.vMain, this.vSignup);
+        new CMain(this.vMain, this.mMain);
     }
     
     /**

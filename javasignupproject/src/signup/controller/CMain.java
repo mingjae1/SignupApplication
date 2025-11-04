@@ -6,8 +6,9 @@ import signup.model.Lecture;
 import signup.model.MMain;
 import signup.view.VMain;
 
-import java.util.Stack;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
 
 /**
  * VMain(메인 뷰)의 툴바 기능(이전, 다음, 새로고침, 패널 전환)을 제어하는 컨트롤러입니다.
@@ -19,8 +20,8 @@ public class CMain {
     private MMain mMain; // MMain 모델 (데이터 접근용)
 
     // --- 네비게이션 히스토리 관리 ---
-    private Stack<String> previousStack; // '이전' 패널 이름 스택
-    private Stack<String> forwardStack;  // '다음' 패널 이름 스택
+    private Deque<String> previousStack; // '이전' 패널 이름 스택
+    private Deque<String> forwardStack;  // '다음' 패널 이름 스택
     private String currentPanel;         // 현재 활성화된 패널 이름
 
     /**
@@ -33,8 +34,8 @@ public class CMain {
         this.vMain = vMain;
         this.mMain = mMain;
 
-        this.previousStack = new Stack<>();
-        this.forwardStack = new Stack<>();
+        this.previousStack = new ArrayDeque<>();
+        this.forwardStack = new ArrayDeque<>();
         
         // (주의) VMain의 초기 패널 이름과 일치해야 함
         this.currentPanel = "registerPanel"; 
@@ -110,12 +111,12 @@ public class CMain {
     private void handleRefresh() {
         switch (currentPanel) {
             case "registerPanel":
-                ArrayList<Lecture> registeredData = mMain.getRegisteredLectures(); 
+                List<Lecture> registeredData = mMain.getRegisteredLectures(); 
                 vMain.updateRegisterPanel(registeredData);
                 break;
                 
             case "basketPanel":
-                ArrayList<Lecture> basketData = mMain.getBasketLectures();
+                List<Lecture> basketData = mMain.getBasketLectures();
                 vMain.updateBasketPanel(basketData);
                 break;
                 

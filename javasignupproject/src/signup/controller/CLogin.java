@@ -35,17 +35,10 @@ public class CLogin {
 
         // 버튼 리스너 연결
         this.vLogin.getLoginButton().addActionListener(new LoginActionListener());
-        this.vLogin.getSignupButton().addActionListener(new SignupActionListener());
-
+        this.vLogin.getSignupButton().addActionListener(e -> vMain.contentPanel("signupPanel"));
+        	
         // ID/PW 필드에서 엔터 키를 누르면 로그인을 시도하는 리스너
-        ActionListener enterKeyListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 로그인 버튼을 프로그래밍적으로 클릭
-                vLogin.getLoginButton().doClick();
-            }
-        };
-        
+        ActionListener enterKeyListener = e -> vLogin.getLoginButton().doClick();
         this.vLogin.getIdField().addActionListener(enterKeyListener);
         this.vLogin.getPasswordField().addActionListener(enterKeyListener);
     }
@@ -83,17 +76,6 @@ public class CLogin {
                 JOptionPane.showMessageDialog(vLogin, "아이디 또는 비밀번호가 일치하지 않습니다.", "로그인 실패", JOptionPane.ERROR_MESSAGE);
                 vLogin.getPasswordField().setText(""); // 비밀번호 필드만 초기화
             }
-        }
-    }
-
-    /**
-     * "회원가입" 버튼 클릭을 처리하는 내부 클래스입니다.
-     */
-    class SignupActionListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            // VMain에 "signupPanel"을 보여달라고 요청
-            vMain.contentPanel("signupPanel");
         }
     }
 }

@@ -89,12 +89,12 @@ public class VLogin extends JPanel {
        // 회원가입 버튼
         signupButton = new JButton("회원가입");
         // (삭제) 뷰(VLogin)는 리스너를 직접 처리하지 않으므로 addActionListener 제거
-        GridBagConstraints gbc_signupButton = new GridBagConstraints();
-        gbc_signupButton.insets = new Insets(10, 5, 5, 0);
-        gbc_signupButton.anchor = GridBagConstraints.WEST;
-        gbc_signupButton.gridx = 3;
-        gbc_signupButton.gridy = 2;
-        add(signupButton, gbc_signupButton);
+        GridBagConstraints gbcsignupbt = new GridBagConstraints();
+        gbcsignupbt.insets = new Insets(10, 5, 5, 0);
+        gbcsignupbt.anchor = GridBagConstraints.WEST;
+        gbcsignupbt.gridx = 3;
+        gbcsignupbt.gridy = 2;
+        add(signupButton, gbcsignupbt);
     }	
         
     // --- Getters for CLogin (컨트롤러 접근용) ---

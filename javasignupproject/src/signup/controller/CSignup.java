@@ -76,9 +76,9 @@ public class CSignup {
      * '캠퍼스' 콤보박스 선택 이벤트를 처리하고 '단과대학' 목록을 로드합니다.
      */
     private void handleCampusSelect(ActionEvent e) {
-        JComboBox<Object> comboCampus = vSignup.getComboCampus();
-        JComboBox<Object> comboCollege = vSignup.getComboCollege();
-        JComboBox<Object> comboDepartment = vSignup.getComboDepartment();
+        JComboBox<Object> comboCampus = (JComboBox<Object>) vSignup.getComboCampus();
+        JComboBox<Object> comboCollege = (JComboBox<Object>) vSignup.getComboCollege();
+        JComboBox<Object> comboDepartment = (JComboBox<Object>) vSignup.getComboDepartment();
         
         // 콤보박스가 아이템을 로드 중일 때는 이벤트 처리 무시
         if (comboCampus.getSelectedItem() == null || !(comboCampus.getSelectedItem() instanceof ComboboxItem)) {
@@ -92,7 +92,7 @@ public class CSignup {
         ComboboxItem selectedCampus = (ComboboxItem) comboCampus.getSelectedItem();
         
         // LectureDAO에 캠퍼스 ID를 넘겨 대학 목록을 요청해야 합니다. (이름 대신 ID)
-        List<ComboboxItem> colleges = this.lectureDAO.getCollegesByCampus(selectedCampus.getName()); 
+        List<ComboboxItem> colleges = this.lectureDAO.getCollegesByCampus(selectedCampus.getName());
         
         // 단과대학 콤보박스 초기화 및 활성화
         comboCollege.removeAllItems();

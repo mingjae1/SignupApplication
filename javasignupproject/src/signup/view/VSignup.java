@@ -288,9 +288,9 @@ public class VSignup extends JPanel {
     public JPasswordField getPasswordConfirmField() { return passwordConfirmField; }
     public JTextField getEmailField() { return emailField; }
     
-    public JComboBox<Object> getComboCampus() { return comboCampus; }
-    public JComboBox<Object> getComboCollege() { return comboCollege; }
-    public JComboBox<Object> getComboDepartment() { return comboDepartment; }
+    public JComboBox<Object> getComboCampus() { return (JComboBox<Object>) comboCampus; }
+    public JComboBox<Object> getComboCollege() { return (JComboBox<Object>) comboCollege; }
+    public JComboBox<Object> getComboDepartment() { return (JComboBox<Object>) comboDepartment; }
     
     public JButton getSignupButton() { return signupButton; }
     public JButton getCancelButton() { return cancelButton; }

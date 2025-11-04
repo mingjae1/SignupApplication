@@ -34,18 +34,19 @@ public class LectureDAO {
      * @return 캠퍼스 이름의 리스트 (List<String>)
      */
     public List<ComboboxItem> getAllCampuses() {
-        List<ComboboxItem> campuses = new ArrayList<>();
+        List<ComboboxItem> campus = new ArrayList<>();
         conn = dao.getConnection();
         // 쿼리 수정: ID도 함께 가져옴
+        
         String sql = "SELECT id, name FROM root ORDER BY id"; 
-
+        
         try {
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
                 // ComboboxItem 객체 생성
-                campuses.add(new ComboboxItem(
+                campus.add(new ComboboxItem(
                     rs.getString("name"),
                     rs.getInt("id") // ID도 가져와서 DTO에 저장
                 ));
@@ -55,29 +56,30 @@ public class LectureDAO {
         } finally {
             DAO.close(rs, pstmt, conn);
         }
-        return campuses;
+        return campus;
     }
 
     /**
      * VSignup에서 선택한 '캠퍼스'에 소속된 '단과대학' 목록을 가져옵니다.
-     * @param campusName 사용자가 선택한 캠퍼스 이름 (예: "용인", "서울")
+     * @param campusName 사용자가 선택한 캠퍼스 이름 (예: "자연캠퍼스", "인문캠퍼스")
      * @return 해당 캠퍼스의 단과대학 이름 리스트
      */
     public List<ComboboxItem> getCollegesByCampus(String campusName) {
         List<ComboboxItem> colleges = new ArrayList<>();
         conn = dao.getConnection();
-        // root(r) 테이블과 college(c) 테이블을 JOIN
-        String sql = "SELECT c.name FROM college c " +
-                     "JOIN root r ON c.root_id = r.id " +
-                     "WHERE r.name = ?";
-
+        // campus(p) 테이블과 college(c) 테이블을 JOIN
+        String sql = "SELECT c.id, c.name FROM college c " +
+        			 "JOIN root r ON c.root_id = r.id " +
+        			 "WHERE r.name = ? ORDER BY c.id";
+        
         try {
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, campusName);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
-                rs.getString("name");
+            	rs.getString("name");
+                
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "캠퍼스별 단과대학 조회 SQL 오류", e);
@@ -96,9 +98,9 @@ public class LectureDAO {
         List<ComboboxItem> departments = new ArrayList<>();
         conn = dao.getConnection();
         // college(c) 테이블과 department(d) 테이블을 JOIN
-        String sql = "SELECT d.name FROM department d " +
-                     "JOIN college c ON d.college_id = c.id " +
-                     "WHERE c.name = ?";
+        String sql = "SELECT d.id, d.name FROM department d " +
+        			 "JOIN college c ON d.college_id = c.id " +
+        			 "WHERE c.name = ? ORDER BY d.id";
 
         try {
             pstmt = conn.prepareStatement(sql);

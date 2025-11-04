@@ -82,7 +82,7 @@ public class CSearch {
     private void handleCollegeSelect(ActionEvent e) {
         // JComboBox<Object>를 사용
         JComboBox<Object> comboCollege = (JComboBox<Object>) vSearch.getComboCollege();
-        JComboBox<Object> comboDept = (JComboBox<Object>) vSearch.getComboDept();
+        JComboBox<Object> comboDept =  (JComboBox<Object>) vSearch.getComboDept();
 
         // 선택된 항목이 ComboboxItem 객체인지 확인 ("- 대학 전체 -" 등 프롬프트 제외)
         if (comboCollege.getSelectedItem() == null || !(comboCollege.getSelectedItem() instanceof ComboboxItem)) {

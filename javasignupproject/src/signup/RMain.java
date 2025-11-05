@@ -38,6 +38,9 @@ public class RMain {
     private SaveDAO saveDAO;
     private UserDAO userDAO;
     
+    // --- 4. 컨트롤러 (이벤트 처리) ---
+    private CSearch cSearch;
+    
     /**
      * RMain 생성자:
      * 모든 핵심 MVC 컴포넌트를 생성하고 의존성을 주입합니다.
@@ -68,10 +71,11 @@ public class RMain {
 
         // --- 4. 컨트롤러 생성 (의존성 주입) ---
         // 각 컨트롤러에 필요한 뷰, 모델, DAO를 생성자의 인자로 전달합니다.
-        new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO);
+        this.cSearch = new CSearch(this.vSearch, this.mMain, this.lectureDAO, this.saveDAO, this.userDAO);
+        new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO, this.cSearch);
         new CSignup(this.vMain, this.vSignup, this.lectureDAO, this.userDAO);
-        new CMain(this.vMain, this.mMain, this.saveDAO);
-        new CSearch(this.vSearch, this.mMain, this.lectureDAO, this.saveDAO, this.userDAO);
+        new CMain(this.vMain, this.mMain, this.saveDAO, cSearch);
+        
     }
     
     /**

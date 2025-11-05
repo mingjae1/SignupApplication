@@ -2,6 +2,9 @@ package signup.controller;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -21,6 +24,9 @@ import signup.model.ComboboxItem; // ComboboxItem DTO 임포트
  */
 public class CSearch {
     
+	// 로거 설정
+	private static final Logger logger = Logger.getLogger(CSearch.class.getName());
+	
     // MVC 컴포넌트
     private VSearch vSearch;
     private MMain mMain;
@@ -48,41 +54,49 @@ public class CSearch {
         // 콤보박스 연쇄 동작 리스너 연결
         this.vSearch.getComboCollege().addActionListener(this::handleCollegeSelect);
 
-        // 2. 컨트롤러 생성 시, 콤보박스 초기 데이터 로드
-        loadInitialCollegeData();
     }
 
     /**
      * 현재 로그인한 사용자의 캠퍼스에 맞는 '단과대학' 목록을 뷰에 채웁니다.
      * (LectureDAO는 List<ComboboxItem>을 반환해야 함)
      */
-    private void loadInitialCollegeData() {
+    public void loadInitialCollegeData() {
         String userId = mMain.getCurrentUserId();
-        if (userId == null) return;
+        // 1. 로그인이 안 되어 있으면(userId=null) 중단
+        if (userId == null) { 
+            logger.log(Level.WARNING, "loadInitialCollegeData: userId가 null입니다. (로그인 전)");
+            return; 
+        }
 
-        // 1. UserDAO로부터 현재 유저의 캠퍼스 이름을 가져옴 (필터링 기준)
-        String campusName = userDAO.getCampusByUserId(userId);
-        if (campusName == null) return;
-
-        // 2. LectureDAO에 캠퍼스 이름을 넘겨 대학 목록을 가져옴 (List<ComboboxItem>)
-        List<ComboboxItem> colleges = lectureDAO.getCollegesByCampus(campusName);
+        // 2. UserDAO로부터 'String 이름' 대신 'int ID'를 가져옵니다.
+        int campusId = userDAO.getCampusIdByUserId(userId);
         
-        // JComboBox<String> 대신 JComboBox<Object>를 사용 (Item DTO 때문)
+        // 3. 유효한 ID인지 확인합니다. (DAO가 실패 시 -1을 반환한다고 가정)
+        if (campusId == -1) {
+            logger.log(Level.SEVERE, "loadInitialCollegeData: 유효한 campusId를 찾지 못했습니다.");
+            return; 
+        }
+
+        // 4. LectureDAO에 'String 이름' 대신 'int ID'를 넘깁니다.
+        List<ComboboxItem> colleges = lectureDAO.getCollegesByCampus(campusId);
+        
+        // JComboBox<Object>를 사용하여 ComboboxItem 객체를 채웁니다.
         JComboBox<Object> comboCollege = (JComboBox<Object>) vSearch.getComboCollege(); 
         comboCollege.removeAllItems();
-        comboCollege.addItem("- 대학 전체 -"); // String 프롬프트 추가
+        comboCollege.addItem("- 대학 전체 -"); // "모두" 옵션
         for (ComboboxItem item : colleges) {
-            comboCollege.addItem(item); // ComboboxItem 객체 추가
+            comboCollege.addItem(item); 
         }
     }
     
+ // CSearch.java의 handleCollegeSelect 메서드
+
     /**
      * '단과대학' 콤보박스 선택 시 '학과' 목록을 DB에서 로드합니다.
      */
     private void handleCollegeSelect(ActionEvent e) {
-        // JComboBox<Object>를 사용
         JComboBox<Object> comboCollege = (JComboBox<Object>) vSearch.getComboCollege();
-        JComboBox<Object> comboDept =  (JComboBox<Object>) vSearch.getComboDept();
+        JComboBox<Object> comboDept = (JComboBox<Object>) vSearch.getComboDept();
 
         // 선택된 항목이 ComboboxItem 객체인지 확인 ("- 대학 전체 -" 등 프롬프트 제외)
         if (comboCollege.getSelectedItem() == null || !(comboCollege.getSelectedItem() instanceof ComboboxItem)) {
@@ -93,11 +107,11 @@ public class CSearch {
             return;
         }
 
-        // ComboboxItem에서 대학 이름 추출 (DB 쿼리용)
+        // ComboboxItem에서 대학 ID 추출 (DB 쿼리용)
         ComboboxItem selectedCollege = (ComboboxItem) comboCollege.getSelectedItem();
         
-        // LectureDAO에 대학 이름을 넘겨 학과 목록을 가져옴
-        List<ComboboxItem> departments = lectureDAO.getDepartmentsByCollege(selectedCollege.getName());
+        // [수정!] LectureDAO에 String 이름 대신 int ID를 전달합니다.
+        List<ComboboxItem> departments = lectureDAO.getDepartmentsByCollege(selectedCollege.getId());
         
         comboDept.removeAllItems();
         comboDept.addItem("- 학과 전체 -");
@@ -191,4 +205,14 @@ public class CSearch {
             JOptionPane.showMessageDialog(vSearch, "처리 중 오류 발생: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
-}
+        /**
+         * CMain(툴바)의 '새로고침' 버튼에 의해 호출됩니다.
+         * VSearch(뷰)의 '조회' 버튼을 프로그래밍 방식으로 클릭하여
+         * 현재 검색 조건으로 테이블을 새로고침합니다.
+         */
+        public void refreshSearch() {
+            // CSearch는 vSearch(뷰)를 알고 있으므로, 
+            // 뷰의 '조회' 버튼을 대신 클릭해 줍니다.
+            this.vSearch.getSearchButton().doClick();
+        }
+    }

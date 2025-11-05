@@ -197,10 +197,10 @@ public class UserDAO {
      * @param userId 현재 로그인한 사용자 ID
      * @return 사용자의 캠퍼스 이름 (예: "용인", "서울"), 실패 시 null
      */
-    public String getCampusByUserId(String userId) {
+    public int getCampusIdByUserId(String userId) {
         conn = dao.getConnection();
-        String sql = "SELECT campus FROM user WHERE userid = ?";
-        String campusName = null;
+        String sql = "SELECT campus_id FROM user WHERE userid = ?";
+        int campusId = -1; // 실패 시 -1 반환
         
         try {
             pstmt = conn.prepareStatement(sql);
@@ -209,15 +209,16 @@ public class UserDAO {
             rs = pstmt.executeQuery();
             
             if (rs.next()) {
-                campusName = rs.getString("campus");
+                campusId = rs.getInt("campus_id");
             }
         } catch (SQLException e) {
-            logger.log(Level.WARNING, "사용자 캠퍼스 조회 SQL 오류", e);
+            logger.log(Level.WARNING, "사용자 캠퍼스 ID 조회 SQL 오류", e);
         } catch (NullPointerException e) {
             logger.log(Level.SEVERE, "DB 연결 실패. DAO의 getConnection()을 확인하세요.", e);
         } finally {
             DAO.close(rs, pstmt, conn);
         }
-        return campusName;
+        return campusId;
     }
+    
 }

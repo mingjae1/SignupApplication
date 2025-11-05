@@ -73,17 +73,15 @@ public class CSignup {
     }
     
     /**
-     * '캠퍼스' 콤보박스 선택 이벤트를 처리하고 '단과대학' 목록을 로드합니다.
+     * '캠퍼스' 콤보박스 선택 시 '단과대학' 목록을 로드합니다.
      */
     private void handleCampusSelect(ActionEvent e) {
-        JComboBox<Object> comboCampus = (JComboBox<Object>) vSignup.getComboCampus();
-        JComboBox<Object> comboCollege = (JComboBox<Object>) vSignup.getComboCollege();
-        JComboBox<Object> comboDepartment = (JComboBox<Object>) vSignup.getComboDepartment();
-        
-        // 콤보박스가 아이템을 로드 중일 때는 이벤트 처리 무시
+        JComboBox<Object> comboCampus = vSignup.getComboCampus();
+        JComboBox<Object> comboCollege = vSignup.getComboCollege();
+        JComboBox<Object> comboDepartment = vSignup.getComboDepartment();
+
         if (comboCampus.getSelectedItem() == null || !(comboCampus.getSelectedItem() instanceof ComboboxItem)) {
-            if (comboCampus.getSelectedIndex() <= 0) { // 기본 프롬프트 선택 시
-                // 하위 콤보박스 초기화
+            if (comboCampus.getSelectedIndex() <= 0) { 
                 resetSubCombos(comboCollege, comboDepartment);
             }
             return;
@@ -91,10 +89,10 @@ public class CSignup {
 
         ComboboxItem selectedCampus = (ComboboxItem) comboCampus.getSelectedItem();
         
-        // LectureDAO에 캠퍼스 ID를 넘겨 대학 목록을 요청해야 합니다. (이름 대신 ID)
-        List<ComboboxItem> colleges = this.lectureDAO.getCollegesByCampus(selectedCampus.getName());
+        // [수정!] DAO에 String 이름 대신 int ID를 전달합니다.
+        List<ComboboxItem> colleges = this.lectureDAO.getCollegesByCampus(selectedCampus.getId()); 
         
-        // 단과대학 콤보박스 초기화 및 활성화
+        // --- (이하 콤보박스 채우는 로직은 동일) ---
         comboCollege.removeAllItems();
         comboCollege.addItem(DEFAULT_COLLEGE);
         for (ComboboxItem item : colleges) {
@@ -102,14 +100,13 @@ public class CSignup {
         }
         comboCollege.setEnabled(true);
         
-        // 학과 콤보박스는 초기화 및 비활성화
         comboDepartment.removeAllItems();
         comboDepartment.addItem(DEFAULT_DEPT);
         comboDepartment.setEnabled(false);
     }
 
     /**
-     * '단과대학' 콤보박스 선택 이벤트를 처리하고 '학과' 목록을 로드합니다.
+     * '단과대학' 콤보박스 선택 시 '학과' 목록을 로드합니다.
      */
     private void handleCollegeSelect(ActionEvent e) {
         JComboBox<Object> comboCollege = vSignup.getComboCollege();
@@ -124,10 +121,10 @@ public class CSignup {
 
         ComboboxItem selectedCollege = (ComboboxItem) comboCollege.getSelectedItem();
         
-        // LectureDAO에 단과대학 ID를 넘겨 학과 목록을 요청해야 합니다. (이름 대신 ID)
-        List<ComboboxItem> departments = this.lectureDAO.getDepartmentsByCollege(selectedCollege.getName());
+        // [수정!] DAO에 String 이름 대신 int ID를 전달합니다.
+        List<ComboboxItem> departments = this.lectureDAO.getDepartmentsByCollege(selectedCollege.getId());
         
-        // 학과 콤보박스 초기화 및 활성화
+        // --- (이하 콤보박스 채우는 로직은 동일) ---
         comboDepartment.removeAllItems();
         comboDepartment.addItem(DEFAULT_DEPT);
         for (ComboboxItem item : departments) {

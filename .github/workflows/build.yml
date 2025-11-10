@@ -28,7 +28,7 @@ jobs:
       # This creates the 'bin' folder that SonarCloud needs
       - name: Compile Java project
         run: |
-          mkdir bin
+          mkdir -p bin
           javac -d bin -cp "lib/*" $(find src -name "*.java")
           
       # 4. [UPDATED ACTION] Run SonarCloud Scan

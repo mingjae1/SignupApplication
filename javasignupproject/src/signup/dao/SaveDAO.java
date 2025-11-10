@@ -63,11 +63,9 @@ public class SaveDAO {
                 );
                 lectures.add(lecture);
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "상태별 강의 조회 SQL 오류", e);
-        } finally {
-        	DAO.close(rs, pstmt, conn);
-        }
+        } 
+        catch (SQLException e) { logger.log(Level.SEVERE, "상태별 강의 조회 SQL 오류", e); } 
+        finally { DAO.close(rs, pstmt, conn); }
         return lectures;
     }
     
@@ -99,15 +97,9 @@ public class SaveDAO {
             // 1개 이상의 행이 삽입되었다면 성공
             return insertedRows > 0; 
             
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "강의 저장(save) SQL 오류", e);
-            return false;
-        } catch (NullPointerException e) {
-            logger.log(Level.SEVERE, "DB 연결 실패. DAO의 getConnection()을 확인하세요.", e);
-            return false;
-        } finally {
-            DAO.close(null, pstmt, conn); // rs가 없으므로 null 전달
-        }
+        } catch (SQLException e) { logger.log(Level.WARNING, "강의 저장(save) SQL 오류", e); return false; } 
+        catch (NullPointerException e) { logger.log(Level.SEVERE, "DB 연결 실패. DAO의 getConnection()을 확인하세요.", e); return false; } 
+        finally { DAO.close(null, pstmt, conn); }
     }
     
     

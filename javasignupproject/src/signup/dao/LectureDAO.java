@@ -47,14 +47,10 @@ public class LectureDAO {
                     rs.getString("name"),
                     rs.getInt("id") 
                 ));
-            }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "모든 캠퍼스 조회 중 SQL 오류", e);
-        } catch (NullPointerException e) {
-            logger.log(Level.SEVERE, "DB 연결 실패. DAO의 getConnection()을 확인하세요.", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
-        }
+            } } 
+        catch (SQLException e) { logger.log(Level.SEVERE, "모든 캠퍼스 조회 중 SQL 오류", e); } 
+        catch (NullPointerException e) { logger.log(Level.SEVERE, "DB 연결 실패. DAO의 getConnection()을 확인하세요.", e); }
+        finally { DAO.close(rs, pstmt, conn); }
         return campuses;
     }
 
@@ -82,11 +78,9 @@ public class LectureDAO {
                     rs.getInt("id")
                 ));
             }
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "캠퍼스별 단과대학 조회 SQL 오류", e);
-        } finally {
-        	DAO.close(rs, pstmt, conn);
-        }
+        } 
+        catch (SQLException e) { logger.log(Level.WARNING, "캠퍼스별 단과대학 조회 SQL 오류", e); }
+        finally { DAO.close(rs, pstmt, conn); }
         return colleges;
     }
 
@@ -112,12 +106,9 @@ public class LectureDAO {
                     rs.getString("name"),
                     rs.getInt("id")
                 ));
-            }
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "단과대학별 학과 조회 SQL 오류", e);
-        } finally {
-        	DAO.close(rs, pstmt, conn);
-        }
+            } } 
+        catch (SQLException e) { logger.log(Level.WARNING, "단과대학별 학과 조회 SQL 오류", e); }
+        finally { DAO.close(rs, pstmt, conn); }
         return departments;
     }
     
@@ -177,14 +168,10 @@ public class LectureDAO {
                     rs.getString("time")
                 );
                 lectures.add(lecture);
-            }
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "강의 검색 SQL 오류", e);
-        } catch (NullPointerException e) {
-            logger.log(Level.SEVERE, "DB 연결 실패. DAO의 getConnection()을 확인하세요.", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
-        }
+            } } 
+        catch (SQLException e) { logger.log(Level.WARNING, "강의 검색 SQL 오류", e); } 
+        catch (NullPointerException e) { logger.log(Level.SEVERE, "DB 연결 실패. DAO의 getConnection()을 확인하세요.", e); } 
+        finally { DAO.close(rs, pstmt, conn); }
         return lectures;
     }
 }

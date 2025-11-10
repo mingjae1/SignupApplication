@@ -32,21 +32,13 @@ public class DAO {
             props.load(fis);
             password = props.getProperty("db.password"); 
             dbpassword = password;} 
-    	catch (FileNotFoundException e) { logger.log(Level.SEVERE, "config.properties 파일을 찾을 수 없습니다.", e);e.printStackTrace(); }
-    	catch (IOException e) { logger.log(Level.SEVERE, "config.properties 파일을 읽는 중 오류가 발생했습니다.", e);e.printStackTrace(); }
-    	
-    	
-    	
-        try { Class.forName("com.mysql.cj.jdbc.Driver"); } 
-        catch (ClassNotFoundException e) { logger.log(Level.SEVERE, "MySQL JDBC 드라이버 로드 실패", e); }
-    }
+    	catch (FileNotFoundException e) { logger.log(Level.SEVERE, "config.properties 파일을 찾을 수 없습니다.", e); }
+    	catch (IOException e) { logger.log(Level.SEVERE, "config.properties 파일을 읽는 중 오류가 발생했습니다.", e); }
+    
+        try { Class.forName("com.mysql.cj.jdbc.Driver"); }  catch (ClassNotFoundException e) { logger.log(Level.SEVERE, "MySQL JDBC 드라이버 로드 실패", e); } }
 
     // 3. 다른 DAO 클래스(예: LectureDAO)가 호출할 연결 메서드
-    public Connection getConnection() {
-        try { return DriverManager.getConnection(DBURL, DBID, dbpassword); } 
-        catch (SQLException e) { logger.log(Level.SEVERE, "DB 연결 실패", e);
-            return null; }
-    }
+    public Connection getConnection() { try { return DriverManager.getConnection(DBURL, DBID, dbpassword); }  catch (SQLException e) { logger.log(Level.SEVERE, "DB 연결 실패", e); return null; } }
 
     /**
      * (공용) 사용한 DB 자원(Connection, PreparedStatement, ResultSet)을 
@@ -58,33 +50,12 @@ public class DAO {
     public static void close(ResultSet rs, PreparedStatement pstmt, Connection conn) {
         
         // 1. ResultSet 닫기
-        try {
-            if (rs != null && !rs.isClosed()) {
-                rs.close();
-            }
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "ResultSet 닫기 실패", e);
-            e.printStackTrace(); // 개발 중 확인을 위해 남겨둠
-        }
+        try { if (rs != null && !rs.isClosed()) { rs.close(); } } catch (SQLException e) { logger.log(Level.WARNING, "ResultSet 닫기 실패", e); }
 
         // 2. PreparedStatement 닫기 (ResultSet 다음에 닫는 것이 좋음)
-        try {
-            if (pstmt != null && !pstmt.isClosed()) {
-                pstmt.close();
-            }
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "PreparedStatement 닫기 실패", e);
-            e.printStackTrace();
-        }
+        try { if (pstmt != null && !pstmt.isClosed()) { pstmt.close(); } } catch (SQLException e) { logger.log(Level.WARNING, "PreparedStatement 닫기 실패", e); }
 
         // 3. Connection 닫기 (가장 마지막에 닫음)
-        try {
-            if (conn != null && !conn.isClosed()) {
-                conn.close();
-            }
-        } catch (SQLException e) {
-            logger.log(Level.WARNING, "Connection 닫기 실패", e);
-            e.printStackTrace();
-        }
+        try { if (conn != null && !conn.isClosed()) { conn.close(); } } catch (SQLException e) { logger.log(Level.WARNING, "Connection 닫기 실패", e); }
     }
 }

@@ -48,17 +48,10 @@ public class UserDAO {
             if (rs.next()) {
                 // 4. 로그인 성공: user 테이블의 'name' 컬럼 값을 반환
                 return rs.getString("name"); 
-            } else {
-                // 5. 로그인 실패: 일치하는 사용자가 없음
-                return null; 
-            }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "로그인 인증 중 SQL 오류 발생", e);
-            return null;
-        } finally {
-            // 6. (중요) 사용한 자원(ResultSet, PreparedStatement, Connection)을 닫습니다.
-        	DAO.close(rs, pstmt, conn);
-        }
+            } else { return null; } // 5. 로그인 실패: null 반환
+        } 
+        catch (SQLException e) { logger.log(Level.SEVERE, "로그인 인증 중 SQL 오류 발생", e); return null; } 
+        finally { DAO.close(rs, pstmt, conn); }
     }
     
     /**
@@ -78,10 +71,7 @@ public class UserDAO {
         
         conn = dao.getConnection();
         
-        if (conn == null) {
-            logger.log(Level.SEVERE, "addUser: DB 연결 실패. Connection이 null입니다.");
-            return false;
-        }
+        if (conn == null) { logger.log(Level.SEVERE, "addUser: DB 연결 실패. Connection이 null입니다."); return false; }
 
         PreparedStatement addprsmt = null;
 
@@ -108,28 +98,16 @@ public class UserDAO {
             int userResult = addprsmt.executeUpdate();
 
             // 3. 커밋/롤백 로직
-            if (loginResult > 0 && userResult > 0) {
-                conn.commit();
-                return true;
-            } else {
-                conn.rollback();
-                return false;
-            }
+            if (loginResult > 0 && userResult > 0) { conn.commit(); return true; } 
+            else { conn.rollback(); return false; }
 
-        } catch (SQLException e) { 
-            logger.log(Level.WARNING, "회원가입 트랜잭션 오류 (ID/학번 중복 등)", e);
-            try {
-               conn.rollback(); 
-            } catch (SQLException ex) {
-                logger.log(Level.SEVERE, "롤백 실패", ex);
-            }
-            return false;
-        } finally {
-            try {
-               conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                logger.log(Level.WARNING, "AutoCommit 원상복구 실패", e);
-            }
+        }
+        catch (SQLException e) { logger.log(Level.WARNING, "회원가입 트랜잭션 오류 (ID/학번 중복 등)", e);
+            try { conn.rollback();  } 
+            catch (SQLException ex) { logger.log(Level.SEVERE, "롤백 실패", ex); } return false; } 
+        finally {
+            try { conn.setAutoCommit(true); } 
+            catch (SQLException e) { logger.log(Level.WARNING, "AutoCommit 원상복구 실패", e); }
             DAO.close(null, addprsmt, conn); 
         }
     }

@@ -35,6 +35,7 @@ public class CSignup {
     private static final Pattern HAS_LETTER_PATTERN = Pattern.compile("[a-zA-Z]");
     private static final Pattern HAS_DIGIT_PATTERN = Pattern.compile("\\d");
     private static final Pattern HAS_SPECIAL_PATTERN = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]");
+    private static final Pattern HAS_KOREAN_PATTERN = Pattern.compile("[ㄱ-ㅎㅏ-ㅣ가-힣]");
     
     
     /**
@@ -280,7 +281,7 @@ public class CSignup {
             }
 
             // 7. 비밀번호 내용 (한글) 검사
-            if (password.matches(".*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*")) {
+            if (HAS_KOREAN_PATTERN.matcher(password).find()) {
                 JOptionPane.showMessageDialog(vSignup, "비밀번호에 한글을 포함할 수 없습니다.", "비번한글", JOptionPane.ERROR_MESSAGE);
                 return false;
             }

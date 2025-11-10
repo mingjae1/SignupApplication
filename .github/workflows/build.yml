@@ -1,22 +1,41 @@
-name: Build and
+name: Build
+
 on:
   push:
     branches: [ main ]
   pull_request:
     types: [ opened, synchronize, reopened ]
+
 jobs:
-  build:
+  sonarcloud:
+    name: SonarCloud Scan
     runs-on: ubuntu-latest
+    
     steps:
+      # 1. Checkout your code
       - uses: actions/checkout@v3
-      - name: Set up JDK
+        with:
+          fetch-depth: 0 
+
+      # 2. Set up Java (change '17' if you use a different version)
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          java-version: '17' # 님의 자바 버전
+          java-version: '21'
           distribution: 'temurin'
-      # (Maven/Gradle 빌드 단계가 있다면 여기에 추가)
+
+      # 3. [NEW STEP] Manually compile your Java code
+      # This creates the 'bin' folder that SonarCloud needs
+      - name: Compile Java project
+        run: |
+          mkdir bin
+          javac -d bin -cp "lib/*" $(find src -name "*.java")
+          
+      # 4. [UPDATED ACTION] Run SonarCloud Scan
+      # This now uses the 'sonarqube-scan-action' as your log suggested
+      # It will automatically read your new 'sonar-project.properties' file
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # SonarCloud에서 발급받은 토큰
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

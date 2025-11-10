@@ -3,6 +3,8 @@ package signup.controller;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 
@@ -28,6 +30,11 @@ public class CSignup {
     private static final String DEFAULT_CAMPUS = "- 캠퍼스 선택 -";
     private static final String DEFAULT_COLLEGE = "- 대학 선택 -";
     private static final String DEFAULT_DEPT = "- 학과 선택 -";
+    
+ // 미리 컴파일된 정규식 패턴 (Pattern)입니다.
+    private static final Pattern HAS_LETTER_PATTERN = Pattern.compile("[a-zA-Z]");
+    private static final Pattern HAS_DIGIT_PATTERN = Pattern.compile("\\d");
+    private static final Pattern HAS_SPECIAL_PATTERN = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]");
     
     
     /**
@@ -285,9 +292,9 @@ public class CSignup {
             }
             
             // 9. 비밀번호 필수 포함 요소 검사
-            boolean hasLetter = password.matches(".*[a-zA-Z]+.*");
-            boolean hasDigit = password.matches(".*\\d+.*");
-            boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]+.*"); 
+            boolean hasLetter = HAS_LETTER_PATTERN.matcher(password).find();
+            boolean hasDigit = HAS_DIGIT_PATTERN.matcher(password).find();
+            boolean hasSpecial = HAS_SPECIAL_PATTERN.matcher(password).find();
 
             if (!hasLetter || !hasDigit || !hasSpecial) {
                 JOptionPane.showMessageDialog(vSignup, 

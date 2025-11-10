@@ -8,7 +8,7 @@ import signup.dao.UserDAO;
 import signup.model.MMain;
 import signup.view.VLogin;
 import signup.view.VMain;
-import signup.controller.CSearch; // [추가] CSearch 임포트
+
 
 /**
  * VLogin(로그인 뷰)의 이벤트를 처리하는 컨트롤러입니다.

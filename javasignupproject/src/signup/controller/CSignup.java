@@ -64,7 +64,7 @@ public class CSignup {
     private void loadInitialCampusData() {
         List<ComboboxItem> campuses = this.lectureDAO.getAllCampuses(); 
         
-        JComboBox<Object> comboCampus = (JComboBox<Object>) vSignup.getComboCampus();
+        JComboBox<Object> comboCampus = vSignup.getComboCampus();
         comboCampus.removeAllItems(); 
         comboCampus.addItem(DEFAULT_CAMPUS); 
         for (ComboboxItem item : campuses) {
@@ -80,7 +80,7 @@ public class CSignup {
         JComboBox<Object> comboCollege = vSignup.getComboCollege();
         JComboBox<Object> comboDepartment = vSignup.getComboDepartment();
 
-        if (comboCampus.getSelectedItem() == null || !(comboCampus.getSelectedItem() instanceof ComboboxItem)) {
+        if (!(comboCampus.getSelectedItem() instanceof ComboboxItem)) {
             if (comboCampus.getSelectedIndex() <= 0) { 
                 resetSubCombos(comboCollege, comboDepartment);
             }
@@ -112,7 +112,7 @@ public class CSignup {
         JComboBox<Object> comboCollege = vSignup.getComboCollege();
         JComboBox<Object> comboDepartment = vSignup.getComboDepartment();
 
-        if (comboCollege.getSelectedItem() == null || !(comboCollege.getSelectedItem() instanceof ComboboxItem)) {
+        if (!(comboCollege.getSelectedItem() instanceof ComboboxItem)) {
             comboDepartment.removeAllItems();
             comboDepartment.addItem(DEFAULT_DEPT);
             comboDepartment.setEnabled(false);
@@ -166,45 +166,45 @@ public class CSignup {
         Object collegeObj = vSignup.getComboCollege().getSelectedItem();
         Object departmentObj = vSignup.getComboDepartment().getSelectedItem();
         
-        // 콤보박스 선택값(ID) 추출
-        String campusName = (campusObj instanceof ComboboxItem) ? ((ComboboxItem)campusObj).getName() : "";
-        String collegeName = (collegeObj instanceof ComboboxItem) ? ((ComboboxItem)collegeObj).getName() : "";
-        String departmentName = (departmentObj instanceof ComboboxItem) ? ((ComboboxItem)departmentObj).getName() : "";
-
+        MUser user = new MUser();
+        user.setUserid(id);
+        user.setName(name);
+        user.setEmail(email);
+        
+     // 콤보박스 값(ID와 이름)을 DTO에 저장
+        if (campusObj instanceof ComboboxItem item) {
+            user.setCampusId(item.getId());
+            user.setCampus(item.getName()); // 유효성 검사용 String 이름
+        }
+        if (collegeObj instanceof ComboboxItem item) {
+            user.setCollegeId(item.getId());
+            user.setCollege(item.getName()); // 유효성 검사용 String 이름
+        }
+        if (departmentObj instanceof ComboboxItem item) {
+            user.setDepartmentId(item.getId());
+            user.setDepartment(item.getName()); // 유효성 검사용 String 이름
+        }
+        
         // 2. 유효성 검사 (여전히 String 이름을 사용)
-        if (!validateInput(name, studentIdStr, id, password, passwordConfirm, email, campusName, collegeName, departmentName)) {
+        if (!validateInput(user, studentIdStr, password, passwordConfirm)) {
             return; 
         }
 
         // 3. DTO 생성 및 ID 값 추출
-        int studentId = Integer.parseInt(studentIdStr); // 유효성 검사를 통과했으므로 안전함
+        int studentId = Integer.parseInt(studentIdStr);
+        user.setCode(studentId);// 유효성 검사를 통과했으므로 안전함
         
-        // 🚨 DB에 저장할 ID 값 추출 🚨
-        int campusId = (campusObj instanceof ComboboxItem) ? ((ComboboxItem)campusObj).getId() : 0;
-        int collegeId = (collegeObj instanceof ComboboxItem) ? ((ComboboxItem)collegeObj).getId() : 0;
-        int departmentId = (departmentObj instanceof ComboboxItem) ? ((ComboboxItem)departmentObj).getId() : 0;
-        
-        MUser user = new MUser();
-        user.setUserid(id);
-        user.setName(name);
-        user.setCode(studentId);
-        user.setEmail(email);
-        user.setCampusId(campusId); // DTO에 ID 저장
-        user.setCollegeId(collegeId);
-        user.setDepartmentId(departmentId);
-        
-        // 4. DAO 중복 검사 (int 학번 전달)
-        if (userDAO.isUserIdDuplicate(id)) {
+        if (userDAO.isUserIdDuplicate(user.getUserid())) {
             JOptionPane.showMessageDialog(vSignup, "이미 사용 중인 아이디입니다.", "가입 오류", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        if (userDAO.isStudentIdDuplicate(studentId)) { 
+        if (userDAO.isStudentIdDuplicate(user.getCode())) { 
             JOptionPane.showMessageDialog(vSignup, "이미 가입된 학번입니다.", "가입 오류", JOptionPane.ERROR_MESSAGE);
             return; 
         }
 
-        // 5. DAO에게 MUser DTO와 비밀번호 전달
+        // 6. DAO에게 MUser DTO와 비밀번호 전달 (매개변수 2개)
         boolean isSuccess = userDAO.addUser(user, password);
 
         if (isSuccess) {
@@ -232,60 +232,72 @@ public class CSignup {
      * 입력 필드와 콤보박스의 유효성을 단계별로 검사하는 헬퍼(Helper) 메서드입니다.
      * (validation은 이름(String)을 기반으로 수행합니다.)
      */
-    private boolean validateInput(String name, String studentId, String id, String password, String passwordConfirm, 
-                                String email, String campusName, String collegeName, String departmentName) {
+    private boolean validateInput(MUser user,String studentId, String password, String passwordConfirm) {
         
         // 빈 필드 검사 (콤보박스에서 추출된 이름이 비어있으면 선택 안 한 것임)
-        if (name.isEmpty() || studentId.isEmpty() || id.isEmpty() || password.isEmpty() || email.isEmpty() ||
-            campusName.isEmpty() || collegeName.isEmpty() || departmentName.isEmpty()) {
-            JOptionPane.showMessageDialog(vSignup, "모든 정보를 입력/선택해주세요.", "정보누락", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        
-        // ... (이하 유효성 검사 로직 동일) ...
-        if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
-            JOptionPane.showMessageDialog(vSignup, "올바른 이메일 형식이 아닙니다.", "이메일 오류", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+    	if (user.getName().isEmpty() || studentId.isEmpty() || user.getUserid().isEmpty() || 
+                password.isEmpty() || user.getEmail().isEmpty() ||
+                user.getCampus() == null || user.getCollege() == null || user.getDepartment() == null) {
+                JOptionPane.showMessageDialog(vSignup, "모든 정보를 입력/선택해주세요.", "정보누락", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            
+            // 2. 이메일 형식 검사
+            if (!user.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+                JOptionPane.showMessageDialog(vSignup, "올바른 이메일 형식이 아닙니다.", "이메일 오류", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
 
-        if (!studentId.matches("\\d{8}")) {
-            JOptionPane.showMessageDialog(vSignup, "올바르지 않은 학번입니다. (숫자 8자리)", "학번오류", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        if (!password.equals(passwordConfirm)) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호가 일치하지 않습니다.", "비번확인불일치", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        if (id.length() < 3 || id.length() > 15) {
-            JOptionPane.showMessageDialog(vSignup, "아이디는 3~15자 이내여야 합니다.", "아이디수제한", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        if (password.length() < 8 || password.length() > 20) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호는 8~20자 이내여야 합니다.", "비번수제한", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        if (password.matches(".*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*")) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호에 한글을 포함할 수 없습니다.", "비번한글", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        if (password.contains(" ")) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호에 공백을 포함할 수 없습니다.", "비번공백", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-        
-        boolean hasLetter = password.matches(".*[a-zA-Z]+.*");
-        boolean hasDigit = password.matches(".*\\d+.*");
-        boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]+.*"); 
+            // 3. 학번 검사 (숫자 8자리)
+            if (!studentId.matches("\\d{8}")) {
+                JOptionPane.showMessageDialog(vSignup, "올바르지 않은 학번입니다. (숫자 8자리)", "학번오류", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            
+            // 4. 아이디 길이 검사
+            if (user.getUserid().length() < 3 || user.getUserid().length() > 15) {
+                JOptionPane.showMessageDialog(vSignup, "아이디는 3~15자 이내여야 합니다.", "아이디수제한", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            
+            // 5. 비밀번호 일치 검사
+            if (!password.equals(passwordConfirm)) {
+                JOptionPane.showMessageDialog(vSignup, "비밀번호가 일치하지 않습니다.", "비번확인불일치", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            
+            // 6. 비밀번호 길이 검사 (8~20자)
+            if (password.length() < 8 || password.length() > 20) {
+                JOptionPane.showMessageDialog(vSignup, "비밀번호는 8~20자 이내여야 합니다.", "비번수제한", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
 
-        if (!hasLetter || !hasDigit || !hasSpecial) {
-            JOptionPane.showMessageDialog(vSignup, 
-                "비밀번호는 영어, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.", 
-                "조건불충족", 
-                JOptionPane.ERROR_MESSAGE);
-            return false;
+            // 7. 비밀번호 내용 (한글) 검사
+            if (password.matches(".*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*")) {
+                JOptionPane.showMessageDialog(vSignup, "비밀번호에 한글을 포함할 수 없습니다.", "비번한글", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            // 8. 비밀번호 내용 (공백) 검사
+            if (password.contains(" ")) {
+                JOptionPane.showMessageDialog(vSignup, "비밀번호에 공백을 포함할 수 없습니다.", "비번공백", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            
+            // 9. 비밀번호 필수 포함 요소 검사
+            boolean hasLetter = password.matches(".*[a-zA-Z]+.*");
+            boolean hasDigit = password.matches(".*\\d+.*");
+            boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]+.*"); 
+
+            if (!hasLetter || !hasDigit || !hasSpecial) {
+                JOptionPane.showMessageDialog(vSignup, 
+                    "비밀번호는 영어, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.", 
+                    "조건불충족", 
+                    JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            
+            return true; // 모든 검사 통과
         }
-        
-        return true; // 모든 검사 통과
-    }
     
     }

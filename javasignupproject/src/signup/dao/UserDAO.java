@@ -83,29 +83,29 @@ public class UserDAO {
             return false;
         }
 
-        PreparedStatement pstmt = null;
+        PreparedStatement addprsmt = null;
 
         try {
             conn.setAutoCommit(false); 
 
             // 1. login 테이블
-            pstmt = conn.prepareStatement(sqlLogin);
-            pstmt.setString(1, user.getUserid());
-            pstmt.setString(2, password);
-            int loginResult = pstmt.executeUpdate();
+            addprsmt = conn.prepareStatement(sqlLogin);
+            addprsmt.setString(1, user.getUserid());
+            addprsmt.setString(2, password);
+            int loginResult = addprsmt.executeUpdate();
             
-            DAO.close(null, pstmt, null);
+            DAO.close(null, addprsmt, null);
             
             // 2. user 테이블 (DTO에서 ID를 추출)
-            pstmt = conn.prepareStatement(sqlUser);
-            pstmt.setString(1, user.getUserid());
-            pstmt.setString(2, user.getName());
-            pstmt.setInt(3, user.getCode());
-            pstmt.setString(4, user.getEmail());
-            pstmt.setInt(5, user.getCampusId()); // [수정됨] DTO에서 ID 추출
-            pstmt.setInt(6, user.getCollegeId()); // [수정됨] DTO에서 ID 추출
-            pstmt.setInt(7, user.getDepartmentId()); // [수정됨] DTO에서 ID 추출
-            int userResult = pstmt.executeUpdate();
+            addprsmt = conn.prepareStatement(sqlUser);
+            addprsmt.setString(1, user.getUserid());
+            addprsmt.setString(2, user.getName());
+            addprsmt.setInt(3, user.getCode());
+            addprsmt.setString(4, user.getEmail());
+            addprsmt.setInt(5, user.getCampusId()); // [수정됨] DTO에서 ID 추출
+            addprsmt.setInt(6, user.getCollegeId()); // [수정됨] DTO에서 ID 추출
+            addprsmt.setInt(7, user.getDepartmentId()); // [수정됨] DTO에서 ID 추출
+            int userResult = addprsmt.executeUpdate();
 
             // 3. 커밋/롤백 로직
             if (loginResult > 0 && userResult > 0) {
@@ -119,18 +119,18 @@ public class UserDAO {
         } catch (SQLException e) { 
             logger.log(Level.WARNING, "회원가입 트랜잭션 오류 (ID/학번 중복 등)", e);
             try {
-                if (conn != null) conn.rollback(); 
+               conn.rollback(); 
             } catch (SQLException ex) {
                 logger.log(Level.SEVERE, "롤백 실패", ex);
             }
             return false;
         } finally {
             try {
-                if (conn != null) conn.setAutoCommit(true);
+               conn.setAutoCommit(true);
             } catch (SQLException e) {
                 logger.log(Level.WARNING, "AutoCommit 원상복구 실패", e);
             }
-            DAO.close(null, pstmt, conn); 
+            DAO.close(null, addprsmt, conn); 
         }
     }
     

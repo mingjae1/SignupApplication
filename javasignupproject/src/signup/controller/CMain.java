@@ -93,7 +93,7 @@ public class CMain {
             case PANEL_BASKET:
                 refreshBasketPanel();
                 break;
-            case PANEL_SEARCH:
+            default :	
                 // VSearch는 자체 '조회' 버튼이 있으므로, 툴바 버튼 클릭 시
                 // 강제로 새로고침하지 않고 화면만 보여줍니다.
                 break;

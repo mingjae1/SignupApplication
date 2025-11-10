@@ -14,7 +14,11 @@ public class MUser {
     private int campusId;
     private int collegeId;
     private int departmentId;
-
+    
+    private String campus;      // 캠퍼스 이름
+    private String college;     // 단과대학 이름
+    private String department;  // 학과 이름
+    
     // 기본 생성자
     public MUser() {}
     
@@ -52,4 +56,13 @@ public class MUser {
     public int getDepartmentId() { return departmentId; }
     public void setDepartmentId(int departmentId) { this.departmentId = departmentId; }
     
+    public String getCampus() { return campus; }
+    public void setCampus(String campus) { this.campus = campus; }
+
+    public String getCollege() { return college; }
+    public void setCollege(String college) { this.college = college; }
+
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+
 }

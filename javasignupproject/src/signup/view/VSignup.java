@@ -263,17 +263,17 @@ public class VSignup extends JPanel {
      * ID 필드에 영어(대소문자)와 숫자만 입력되도록 강제하는 DocumentFilter입니다.
      */
     public class EnglishOnlyFilter extends DocumentFilter {
-        private final static String REGEX = "^[a-zA-Z0-9]*$";
+        private static final String PWREGEX = "^[a-zA-Z0-9]*$";
 
         @Override
         public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
-            if (string != null && string.matches(REGEX)) {
+            if (string != null && string.matches(PWREGEX)) {
                 super.insertString(fb, offset, string, attr);
             }
         }
         @Override
         public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-            if (text != null && text.matches(REGEX)) {
+            if (text != null && text.matches(PWREGEX)) {
                 super.replace(fb, offset, length, text, attrs);
             }
         }
@@ -288,9 +288,9 @@ public class VSignup extends JPanel {
     public JPasswordField getPasswordConfirmField() { return passwordConfirmField; }
     public JTextField getEmailField() { return emailField; }
     
-    public JComboBox<Object> getComboCampus() { return (JComboBox<Object>) comboCampus; }
-    public JComboBox<Object> getComboCollege() { return (JComboBox<Object>) comboCollege; }
-    public JComboBox<Object> getComboDepartment() { return (JComboBox<Object>) comboDepartment; }
+    public JComboBox<Object> getComboCampus() { return comboCampus; }
+    public JComboBox<Object> getComboCollege() { return comboCollege; }
+    public JComboBox<Object> getComboDepartment() { return comboDepartment; }
     
     public JButton getSignupButton() { return signupButton; }
     public JButton getCancelButton() { return cancelButton; }

@@ -81,7 +81,7 @@ public class CSearch {
         List<ComboboxItem> colleges = lectureDAO.getCollegesByCampus(campusId);
         
         // JComboBox<Object>를 사용하여 ComboboxItem 객체를 채웁니다.
-        JComboBox<Object> comboCollege = (JComboBox<Object>) vSearch.getComboCollege(); 
+        JComboBox<Object> comboCollege = vSearch.getComboCollege(); 
         comboCollege.removeAllItems();
         comboCollege.addItem("- 대학 전체 -"); // "모두" 옵션
         for (ComboboxItem item : colleges) {
@@ -95,11 +95,11 @@ public class CSearch {
      * '단과대학' 콤보박스 선택 시 '학과' 목록을 DB에서 로드합니다.
      */
     private void handleCollegeSelect(ActionEvent e) {
-        JComboBox<Object> comboCollege = (JComboBox<Object>) vSearch.getComboCollege();
-        JComboBox<Object> comboDept = (JComboBox<Object>) vSearch.getComboDept();
+        JComboBox<Object> comboCollege = vSearch.getComboCollege();
+        JComboBox<Object> comboDept = vSearch.getComboDept();
 
         // 선택된 항목이 ComboboxItem 객체인지 확인 ("- 대학 전체 -" 등 프롬프트 제외)
-        if (comboCollege.getSelectedItem() == null || !(comboCollege.getSelectedItem() instanceof ComboboxItem)) {
+        if (!(comboCollege.getSelectedItem() instanceof ComboboxItem)) {
             // "대학 전체"를 선택하거나 초기 상태일 때 학과 콤보박스 비활성화
             comboDept.removeAllItems();
             comboDept.addItem("- 학과 선택 -"); 
@@ -134,12 +134,12 @@ public class CSearch {
 
         // 2. 뷰(View)에서 검색 조건 가져오기
         String collegeName = "";
-        if (vSearch.getComboCollege().getSelectedIndex() > 0 && vSearch.getComboCollege().getSelectedItem() instanceof ComboboxItem) {
+        if (vSearch.getComboCollege().getSelectedIndex() > 0) {
             collegeName = ((ComboboxItem) vSearch.getComboCollege().getSelectedItem()).getName();
         }
         
         String deptName = "";
-        if (vSearch.getComboDept().isEnabled() && vSearch.getComboDept().getSelectedIndex() > 0 && vSearch.getComboDept().getSelectedItem() instanceof ComboboxItem) {
+        if (vSearch.getComboDept().isEnabled() && vSearch.getComboDept().getSelectedIndex() > 0) {
             deptName = ((ComboboxItem) vSearch.getComboDept().getSelectedItem()).getName();
         }
         

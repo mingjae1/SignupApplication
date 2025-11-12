@@ -35,7 +35,10 @@ public class CSearch {
     private LectureDAO lectureDAO;
     private SaveDAO saveDAO;
     private UserDAO userDAO;
-
+    
+    // 학점 한도 상수 (18학점)
+    private static final int MAX_CREDITS = 18;
+    
     /**
      * CSearch 컨트롤러를 생성하고 DAO를 주입받아 뷰에 리스너를 연결합니다.
      */
@@ -77,7 +80,7 @@ public class CSearch {
             return; 
         }
 
-        // 4. LectureDAO에 'String 이름' 대신 'int ID'를 넘깁니다.
+        // 4. LectureDAO에 'int ID'를 넘깁니다.
         List<ComboboxItem> colleges = lectureDAO.getCollegesByCampus(campusId);
         
         // JComboBox<Object>를 사용하여 ComboboxItem 객체를 채웁니다.
@@ -179,32 +182,49 @@ public class CSearch {
             return;
         }
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(vSearch, "먼저 테이블에서 강의를 선택하세요.", "알림", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(vSearch, "먼저 강의를 선택하세요.", "알림", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
         try {
-            // 2. 테이블에서 과목코드(ID)와 '과목명'을 가져옵니다.
+        	// 1. 테이블에서 신청할 강의의 정보(ID, 이름, '학점')를 가져옵니다.
             String lectureIdStr = (String) table.getModel().getValueAt(selectedRow, 0);
-            String lectureName = (String) table.getModel().getValueAt(selectedRow, 1); 
+            String lectureName = (String) table.getModel().getValueAt(selectedRow, 1);
+            int newCredits = (int) table.getModel().getValueAt(selectedRow, 3); // 학점
             int lectureId = Integer.parseInt(lectureIdStr);
             
-            // 3. SaveDAO로 저장 요청
-            boolean success = saveDAO.addLecture(userId, lectureId, status);
+            // 2. [핵심 로직] 최대 학점 검사
+            // SaveDAO에 현재 총 학점을 물어봅니다.
+            int resultCode = saveDAO.addLecture(userId, lectureId, status, newCredits);
+            
+            // 3. DAO로 저장 요청 (검사 통과 시)
+            String messageType = status.equals("reg") ? "수강신청" : "미리담기";
             
             // 4. 결과 피드백
-            if (success) {
-                String message = status.equals("reg") ? "수강신청" : "미리담기";
-                JOptionPane.showMessageDialog(vSearch, "[" + lectureName + "]\n" + message + " 되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(vSearch, "이미 신청(또는 미리담기)한 과목입니다.", "알림", JOptionPane.WARNING_MESSAGE);
-            }
+            switch (resultCode) {
+            case 0: // 성공
+                JOptionPane.showMessageDialog(vSearch, "[" + lectureName + "]\n" + messageType + " 되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
+                break;
+            case 1: // 학점 초과
+                JOptionPane.showMessageDialog(vSearch, 
+                    "최대 " + messageType + " 학점(" + MAX_CREDITS + "학점)을 초과할 수 없습니다.",
+                    "학점 초과", JOptionPane.ERROR_MESSAGE);
+                break;
+            case 2: // 중복
+                JOptionPane.showMessageDialog(vSearch, "이미 " + messageType + " 내역에 존재하는 과목입니다.", "알림", JOptionPane.WARNING_MESSAGE);
+                break;
+            case -1: // DB 오류
+                JOptionPane.showMessageDialog(vSearch, messageType + " 중 DB 오류가 발생했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                break;
+            default: // 기타오류
+                JOptionPane.showMessageDialog(vSearch, messageType + " 중 알 수 없는 오류가 발생했습니다. (Code: " + resultCode + ")", "오류", JOptionPane.ERROR_MESSAGE);
+                break;
+            }	
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(vSearch, "강의 코드를 숫자로 변환하는 데 실패했습니다.", "시스템 오류", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(vSearch, "처리 중 오류 발생: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
-        }
+			JOptionPane.showMessageDialog(vSearch, "강의 코드를 숫자로 변환하는 데 실패했습니다.", "시스템 오류", JOptionPane.ERROR_MESSAGE);
+		}
     }
+    
         /**
          * CMain(툴바)의 '새로고침' 버튼에 의해 호출됩니다.
          * VSearch(뷰)의 '조회' 버튼을 프로그래밍 방식으로 클릭하여
@@ -215,4 +235,13 @@ public class CSearch {
             // 뷰의 '조회' 버튼을 대신 클릭해 줍니다.
             this.vSearch.getSearchButton().doClick();
         }
+        
+        /*CMain(툴바 컨트롤러)으로부터 '모드'를 전달받습니다.
+        * 뷰(VSearch)의 버튼 상태를 변경합니다.
+        * @param mode "REGISTER" (모두 활성화) 또는 "BASKET" (미리담기만 활성화)
+        */
+       public void setMode(String mode) {
+           this.vSearch.setMode(mode);
+       }
+        
     }

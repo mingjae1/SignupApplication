@@ -38,7 +38,6 @@ public class VSearch extends JPanel {
     /**
      * VSearch 패널의 GUI 컴포넌트를 생성하고 배치합니다.
      */
-    @SuppressWarnings("serial")
 	public VSearch() {
         setLayout(new BorderLayout(10, 10));
         setBorder(new TitledBorder("강좌 검색"));
@@ -137,8 +136,28 @@ public class VSearch extends JPanel {
         actionPanel.add(registerButton, gbcAction); // 수강신청 나중
         
         add(actionPanel, BorderLayout.SOUTH);
+        
     }
     
+	/**
+     * CSearch 컨트롤러로부터 모드를 전달받아,
+     * "수강신청" 버튼의 활성화/비활성화 상태를 제어합니다.
+     * @param mode "REGISTER" (모두 활성화) 또는 "BASKET" (미리담기만 활성화)
+     */
+    public void setMode(String mode) {
+        if (mode.equals("PREREGISTER")) {
+            // "미리담기" 모드일 경우, '수강신청' 버튼을 비활성화
+            this.registerButton.setEnabled(false);
+            this.preRegisterButton.setEnabled(true);
+        } else {
+            // "수강신청" (기본) 모드일 경우, 모든 버튼을 활성화
+            this.registerButton.setEnabled(true);
+            this.preRegisterButton.setEnabled(true);
+        }
+    }
+	
+	
+	
     // --- CSearch 컨트롤러가 접근할 Getter들 ---
     
     public JComboBox<Object> getComboCollege() { return comboCollege; }

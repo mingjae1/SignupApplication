@@ -2,15 +2,12 @@ package signup.controller;
 
 import javax.swing.JOptionPane;
 
-import signup.model.MLecture; // 강의 DTO
 import signup.model.MMain;
 import signup.view.VMain;
-import signup.dao.SaveDAO;
 
 import java.awt.event.ActionEvent;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
 
 /**
  * VMain(메인 뷰)의 툴바 기능(이전, 다음, 새로고침, 패널 전환)을 제어하는 컨트롤러입니다.
@@ -18,15 +15,17 @@ import java.util.List;
  */
 public class CMain {
 
-    // 뷰(View)와 모델(Model)
-    private VMain vMain; 
-    private MMain mMain; 
+    // 뷰
+    private VMain vMain;
     
-    // DAO
-    private SaveDAO saveDAO; 
+    // 모델
+    private MMain mMain;
+    
     
     // CMain이 제어해야 할 다른 컨트롤러
     private CSearch cSearch; 
+    private CRegister cRegister;
+    private CPreRegister cPreRegister;
 
     // 네비게이션 히스토리 관리용 스택
     private Deque<String> previousStack;
@@ -35,7 +34,7 @@ public class CMain {
     
     // CardLayout 패널 이름 상수
     private static final String PANEL_REGISTER = "registerPanel";
-    private static final String PANEL_BASKET = "basketPanel";
+    private static final String PANEL_PREREGISTER = "preregisterPanel";
     private static final String PANEL_SEARCH = "searchPanel"; 
 
     /**
@@ -45,12 +44,15 @@ public class CMain {
      * @param mMain 현재 로그인한 사용자 ID를 가져올 메인 모델 (MMain)
      * @param saveDAO 수강/미리담기 내역을 처리할 SaveDAO
      * @param cSearch '새로고침' 시 제어할 CSearch 컨트롤러
+     * @param vPreRegister 수강신청 목록화면
+     * @param vRegister 미리담기 목록화면
      */
-    public CMain(VMain vMain, MMain mMain, SaveDAO saveDAO, CSearch cSearch) {
+    public CMain(VMain vMain, MMain mMain, CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister) {
         this.vMain = vMain;
         this.mMain = mMain;
-        this.saveDAO = saveDAO;
-        this.cSearch = cSearch; 
+        this.cSearch = cSearch;
+        this.cRegister = cRegister;
+        this.cPreRegister = cPreRegister;
 
         this.previousStack = new ArrayDeque<>();
         this.forwardStack = new ArrayDeque<>();
@@ -59,13 +61,13 @@ public class CMain {
         this.currentPanel = PANEL_SEARCH; 
 
         // 툴바 버튼 리스너 연결
-        this.vMain.getSearchbt().addActionListener(e -> navigateTo(PANEL_SEARCH));
+        this.vMain.getSearchbt().addActionListener(e -> { cSearch.setMode("REGISTER"); navigateTo(PANEL_SEARCH); });
         this.vMain.getRegisterbt().addActionListener(e -> navigateTo(PANEL_REGISTER));
-        this.vMain.getBasketbt().addActionListener(e -> navigateTo(PANEL_BASKET));
+        this.vMain.getPreRegisterbt().addActionListener(e -> navigateTo(PANEL_PREREGISTER));
         
         this.vMain.getBeforeButton().addActionListener(this::handlePrevious);
         this.vMain.getAfterButton().addActionListener(this::handleNext);
-        this.vMain.getRefreshButton().addActionListener(this::handleRefresh);
+		this.vMain.getRefreshButton().addActionListener(this::handleRefresh);
 
         updateNavigationButtons();
     }
@@ -90,8 +92,8 @@ public class CMain {
             case PANEL_REGISTER:
                 refreshRegisterPanel();
                 break;
-            case PANEL_BASKET:
-                refreshBasketPanel();
+            case PANEL_PREREGISTER:
+                refreshPreRegisterPanel();
                 break;
             default :	
                 // VSearch는 자체 '조회' 버튼이 있으므로, 툴바 버튼 클릭 시
@@ -133,8 +135,8 @@ public class CMain {
             case PANEL_REGISTER:
                 refreshRegisterPanel();
                 break;
-            case PANEL_BASKET:
-                refreshBasketPanel();
+            case PANEL_PREREGISTER:
+                refreshPreRegisterPanel();
                 break;
             case PANEL_SEARCH:
                 // VSearch의 "조회" 버튼을 프로그래밍적으로 클릭하여 새로고침
@@ -149,7 +151,7 @@ public class CMain {
     // --- 데이터 로딩 헬퍼(Helper) 메서드 ---
 
     /**
-     * '수강신청 내역' 패널의 데이터를 DB에서 새로고침합니다.
+     * '수강신청 내역' 패널의 데이터를 새로고침합니다.
      */
     private void refreshRegisterPanel() {
         String currentUserId = mMain.getCurrentUserId();
@@ -157,23 +159,21 @@ public class CMain {
             JOptionPane.showMessageDialog(vMain, "로그인이 필요합니다.", "오류", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        // SaveDAO에 "reg" 상태의 목록을 요청
-        List<MLecture> registeredData = this.saveDAO.getLecturesByStatus(currentUserId, "reg"); 
-        vMain.updateRegisterPanel(registeredData);
+        // CRegister에게 새로고침을 '요청'합니다.
+        this.cRegister.refreshTable();
     }
 
     /**
-     * '미리담기 내역' 패널의 데이터를 DB에서 새로고침합니다.
+     * '미리담기 내역' 패널의 데이터를 새로고침합니다.
      */
-    private void refreshBasketPanel() {
+    private void refreshPreRegisterPanel() {
         String currentUserId = mMain.getCurrentUserId();
         if (currentUserId == null) {
             JOptionPane.showMessageDialog(vMain, "로그인이 필요합니다.", "오류", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        // SaveDAO에 "pre" 상태의 목록을 요청
-        List<MLecture> basketData = this.saveDAO.getLecturesByStatus(currentUserId, "pre");
-        vMain.updateBasketPanel(basketData);
+        // CPreRegister에게 새로고침을 '요청'합니다.
+        this.cPreRegister.refreshTable();
     }
 
     /**

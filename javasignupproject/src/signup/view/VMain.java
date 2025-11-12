@@ -3,17 +3,11 @@ package signup.view;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JButton;
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.WindowConstants;
-
-import signup.model.MLecture; // 님의 DTO 클래스
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
-import java.util.List;
 
 /**
  * 프로그램의 메인 프레임(JFrame)입니다.
@@ -29,19 +23,12 @@ public class VMain extends JFrame {
     
     private JPanel mainContentPanel; // 로그인 후 보여줄 메인 화면 (툴바 + 하위 패널)
     private CardLayout contentCardLayout; // 메인 화면 내부의 카드 레이아웃
-    private JPanel panelForRegisterAndBasket; // VSearch, VRegister, VBasket이 들어갈 패널
-
-    private JPanel vRegisterPanel;
-    private JPanel vBasketPanel;
-    // (VSearch 패널은 RMain에서 생성 후 여기에 추가됨)
-    
-    private JTable registerTable;
-    private JTable basketTable;
+    private JPanel controlpanel; // VSearch, VRegister, VBasket이 들어갈 패널
 
     // --- 툴바 버튼 ---
     private JButton searchbt; // [추가됨] 강좌 검색 버튼
     private JButton registerbt;
-    private JButton basketbt;
+    private JButton preregisterbt;
     private JButton beforeButton;
     private JButton afterButton;
     private JButton refreshButton;
@@ -66,14 +53,14 @@ public class VMain extends JFrame {
         
         searchbt = new JButton("강좌 검색"); // [추가됨]
         registerbt = new JButton("수강신청 내역"); // (이름 명확하게 변경)
-        basketbt = new JButton("미리담기 내역"); // (이름 명확하게 변경)
+        preregisterbt = new JButton("미리담기 내역"); // (이름 명확하게 변경)
         beforeButton = new JButton("이전");
         afterButton = new JButton("다음");
         refreshButton = new JButton("새로고침");
         
         toolbarPanel.add(searchbt); // [추가됨]
         toolbarPanel.add(registerbt);
-        toolbarPanel.add(basketbt);
+        toolbarPanel.add(preregisterbt);
         toolbarPanel.add(beforeButton);
         toolbarPanel.add(afterButton);
         toolbarPanel.add(refreshButton);
@@ -82,28 +69,9 @@ public class VMain extends JFrame {
 
         // --- 메인 컨텐츠 하위 CardLayout 패널 ---
         contentCardLayout = new CardLayout();
-        panelForRegisterAndBasket = new JPanel(contentCardLayout);
-
-        // 수강신청 패널 (vRegisterPanel) 생성
-        vRegisterPanel = new JPanel(new BorderLayout()); 
-        registerTable = new JTable(new DefaultTableModel(
-            new Object[]{"과목코드", "과목명", "교수명", "학점", "시간표"}, 0
-        ));
-        vRegisterPanel.add(new JScrollPane(registerTable), BorderLayout.CENTER);
+        controlpanel = new JPanel(contentCardLayout);
         
-        // 미리담기 패널 (vBasketPanel) 생성
-        vBasketPanel = new JPanel(new BorderLayout());
-        basketTable = new JTable(new DefaultTableModel(
-            new Object[]{"과목코드", "과목명", "교수명", "학점", "시간표"}, 0
-        ));
-        vBasketPanel.add(new JScrollPane(basketTable), BorderLayout.CENTER);
-
-        // 메인 컨텐츠 하위 CardLayout에 두 패널 추가
-        // (VSearch 패널은 RMain에서 "searchPanel"이라는 이름으로 이곳에 추가될 것임)
-        panelForRegisterAndBasket.add(vRegisterPanel, "registerPanel");
-        panelForRegisterAndBasket.add(vBasketPanel, "basketPanel");
-        
-        mainContentPanel.add(panelForRegisterAndBasket, BorderLayout.CENTER);
+        mainContentPanel.add(controlpanel, BorderLayout.CENTER);
 
         // RMain이 사용할 메인 CardLayout에 "mainContentPanel" 추가
         mainCardPanel.add(mainContentPanel, "mainContentPanel");
@@ -123,7 +91,7 @@ public class VMain extends JFrame {
      * @return VSearch, VRegister 등이 추가될 내부 CardLayout 패널
      */
     public JPanel getPanelForRegisterAndBasket() {
-        return panelForRegisterAndBasket;
+        return controlpanel;
     }
 
     /**
@@ -131,60 +99,23 @@ public class VMain extends JFrame {
      */
     public void contentPanel(String panelName) {
         // "registerPanel", "basketPanel", "searchPanel"은 내부 CardLayout을 사용
-        if (panelName.equals("registerPanel") || panelName.equals("basketPanel") || panelName.equals("searchPanel")) {
+        if (panelName.equals("registerPanel") || panelName.equals("preregisterPanel") || panelName.equals("searchPanel")) {
             // 1. 메인 CardLayout을 "mainContentPanel"로 먼저 바꾼다.
             cardLayout.show(mainCardPanel, "mainContentPanel");
             // 2. 그 *후*에, 내부 CardLayout을 요청된 패널로 바꾼다.
-            contentCardLayout.show(panelForRegisterAndBasket, panelName);
+            contentCardLayout.show(controlpanel, panelName);
         } else {
             // "loginPanel", "signupPanel" 등은 메인 CardLayout을 사용
             cardLayout.show(mainCardPanel, panelName);
         }
     }
-
-    /**
-     * CMain이 '수강신청 패널'의 테이블을 새로고침할 때 호출합니다.
-     */
-    public void updateRegisterPanel(List<MLecture> registeredData) {
-        DefaultTableModel model = (DefaultTableModel) registerTable.getModel();
-        model.setRowCount(0); // 테이블 비우기
-        
-        for (MLecture lecture : registeredData) {
-            Object[] row = {
-                lecture.getId(), 
-                lecture.getName(), 
-                lecture.getProfessor(),
-                lecture.getCredits(),
-                lecture.getSchedule()
-            };
-            model.addRow(row);
-        }
-    }
-
-    /**
-     * CMain이 '미리담기 패널'의 테이블을 새로고침할 때 호출합니다.
-     */
-    public void updateBasketPanel(List<MLecture> basketData) {
-        DefaultTableModel model = (DefaultTableModel) basketTable.getModel();
-        model.setRowCount(0); // 테이블 비우기
-        
-        for (MLecture lecture : basketData) {
-            Object[] row = {
-                lecture.getId(), 
-                lecture.getName(), 
-                lecture.getProfessor(),
-                lecture.getCredits(),
-                lecture.getSchedule()
-            };
-            model.addRow(row);
-        }
-    }
+ 
 
     // --- Getters for Controller ---
     
     public JButton getSearchbt() { return searchbt; } // [추가됨]
     public JButton getRegisterbt() { return registerbt; }
-    public JButton getBasketbt() { return basketbt; }
+    public JButton getPreRegisterbt() { return preregisterbt; }
     public JButton getBeforeButton() { return beforeButton; }
     public JButton getAfterButton() { return afterButton; }
     public JButton getRefreshButton() { return refreshButton; }

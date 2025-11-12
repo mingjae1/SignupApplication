@@ -1,3 +1,4 @@
+CREATE DATABASE IF NOT EXISTS lms_data;
 USE lms_data;
 
 CREATE TABLE IF NOT EXISTS root (

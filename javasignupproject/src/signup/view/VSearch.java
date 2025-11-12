@@ -129,11 +129,14 @@ public class VSearch extends JPanel {
         
         gbcAction = new GridBagConstraints(); // GBC 리셋
         gbcAction.insets = new Insets(5, 5, 5, 5);
+        
         gbcAction.gridx = 1;
-        actionPanel.add(preRegisterButton, gbcAction); // 미리담기 먼저
+        actionPanel.add(registerButton, gbcAction); // 수강신청
         
         gbcAction.gridx = 2;
-        actionPanel.add(registerButton, gbcAction); // 수강신청 나중
+        actionPanel.add(preRegisterButton, gbcAction); // 미리담기
+        
+        
         
         add(actionPanel, BorderLayout.SOUTH);
         

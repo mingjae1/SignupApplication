@@ -1,5 +1,7 @@
 package signup;
 
+import javax.swing.UIManager;
+
 // 컨트롤러
 import signup.controller.CLogin;
 import signup.controller.CMain;
@@ -110,6 +112,18 @@ public class RMain {
      * @param args (사용되지 않음)
      */
     public static void main(String[] args) {
+    	
+    	try {
+            // "FlatLaf 라이트 모드" 스킨을 적용합니다.
+            //UIManager.setLookAndFeel( new FlatLightLaf() );
+            
+            // (다크 모드를 원하시면 위의 줄 대신 아래 줄을 사용하세요)
+            UIManager.setLookAndFeel( new com.formdev.flatlaf.FlatDarkLaf() );
+            
+        } catch( Exception ex ) {
+            System.err.println( "Failed to initialize LaF (Look and Feel)." );
+        }
+    	
     	RMain rMain = new RMain();
         rMain.initialize();
     }

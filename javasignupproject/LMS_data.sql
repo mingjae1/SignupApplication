@@ -32,9 +32,7 @@ CREATE TABLE IF NOT EXISTS lecture (
    department_id INT,
    FOREIGN KEY (department_id) REFERENCES department(id)
 );
-SELECT * FROM root;  
-SELECT * FROM college WHERE root_id = ?;
-SELECT * FROM department WHERE college_id = ?;  
+
 CREATE TABLE IF NOT EXISTS user (
    userid VARCHAR(50) PRIMARY KEY,
    name VARCHAR(50),
@@ -49,7 +47,7 @@ CREATE TABLE IF NOT EXISTS login (
     userId VARCHAR(50) PRIMARY KEY,
     password VARCHAR(50)
 );
-SELECT * FROM user;
+
 CREATE TABLE IF NOT EXISTS save (
    userid VARCHAR(50),
    lecture_id INT,
@@ -58,12 +56,11 @@ CREATE TABLE IF NOT EXISTS save (
    FOREIGN KEY (userid) REFERENCES user(userid),
    FOREIGN KEY (lecture_id) REFERENCES lecture(id)
 );
-select*from lecture;
-SELECT * FROM save WHERE userid = 'park';
+
 INSERT IGNORE INTO root VALUES
 (1, '용인', 'yongin'),
 (2, '서울', 'seoul');
-select*from login;
+
 INSERT IGNORE INTO college VALUES
 (10, '교양', 'generalY', 1),
 (11, '공과대학', 'engineering', 1),

@@ -28,30 +28,41 @@ public class UserDAO {
      * @param password 사용자가 입력한 Password
      * @return 로그인 성공 시 사용자의 이름(name), 실패 시 null
      */
-    public String validateUser(String id, String password) {
-        // 3. DAO로부터 DB 연결(Connection)을 받아옵니다.
-        conn = dao.getConnection(); 
+    public String validateUser(String id, String password) throws SQLException {
+        conn = dao.getConnection();
         
-        // (참고) SQL 파일에 login 테이블과 user 테이블이 둘 다 있습니다.
-        // 이 쿼리는 login 테이블에서 비번을 확인하고, user 테이블에서 이름을 가져옵니다.
+        // 1. DB 연결 자체를 실패하면 예외를 컨트롤러로 던짐
+        if (conn == null) {
+            // CLogin의 catch 블록이 이 예외를 잡을 것입니다.
+            throw new SQLException("데이터베이스 연결에 실패했습니다. (conn is null)");
+        }
+        
         String sql = "SELECT u.name FROM login l " +
                      "JOIN user u ON l.userId = u.userid " +
                      "WHERE l.userId = ? AND l.password = ?";
 
-        try {
-            pstmt = conn.prepareStatement(sql);
+        // PreparedStatement와 ResultSet은 try-with-resources로 자동 관리
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
             pstmt.setString(1, id);
             pstmt.setString(2, password);
 
-            rs = pstmt.executeQuery();
-
-            if (rs.next()) {
-                // 4. 로그인 성공: user 테이블의 'name' 컬럼 값을 반환
-                return rs.getString("name"); 
-            } else { return null; } // 5. 로그인 실패: null 반환
-        } 
-        catch (SQLException e) { logger.log(Level.SEVERE, "로그인 인증 중 SQL 오류 발생", e); return null; } 
-        finally { DAO.close(rs, pstmt, conn); }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name"); // 1. 로그인 성공
+                } else {
+                    return null; // 2. 아이디 또는 비밀번호 틀림
+                }
+            }
+        } catch (SQLException e) {
+            // 3. 쿼리 실행 중 DB 오류 발생 시, 예외를 컨트롤러로 '다시 던짐'
+            logger.log(Level.SEVERE, "로그인 인증 중 SQL 오류 발생", e);
+            throw e; 
+        } finally {
+            // 4. Connection은 닫아야 함
+            // (try-with-resources가 pstmt, rs를 닫아주므로 conn만 닫습니다)
+            DAO.close(null, null, conn);
+        }
     }
     
     /**
@@ -120,7 +131,7 @@ public class UserDAO {
     public boolean isUserIdDuplicate(String id) {
         conn = dao.getConnection();
         // login 테이블의 PK인 userId를 count해서 0보다 크면 중복임
-        String sql = "SELECT COUNT(*) FROM login WHERE userId = ?";
+        String sql = "SELECT COUNT(*) FROM user WHERE userid = ?";
         
         try {
             pstmt = conn.prepareStatement(sql);

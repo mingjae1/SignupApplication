@@ -37,7 +37,7 @@ public class MMain {
 		}
         else {
         	this.currentUserId = userId;
-        	logger.log(Level.INFO, "MMain: {0}로 로그인 되었습니다..", userId);
+        	logger.log(Level.INFO, "MMain: {0}로 로그인 되었습니다.", userId);
         }
     }
 }

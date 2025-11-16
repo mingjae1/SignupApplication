@@ -43,7 +43,7 @@ public class CLogin {
         // 리스너 연결 (동일)
         this.vLogin.getLoginButton().addActionListener(this::handleLogin);
         this.vLogin.getSignupButton().addActionListener(e -> {
-            vMain.setSize(800, 400);
+            vMain.setSize(800, 600);
             vMain.setLocationRelativeTo(null); // (선택사항) 크기 변경 후 중앙 정렬
             vMain.contentPanel("signupPanel");
         });

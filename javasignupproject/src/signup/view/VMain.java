@@ -41,7 +41,7 @@ public class VMain extends JFrame {
         // JFrame 기본 설정
         setTitle("수강신청 프로그램");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
-        setSize(380, 280);
+        setSize(440, 280);
         setLocationRelativeTo(null);
         
         cardLayout = new CardLayout();
@@ -79,7 +79,7 @@ public class VMain extends JFrame {
         // RMain이 사용할 메인 CardLayout에 "mainContentPanel" 추가
         mainCardPanel.add(mainContentPanel, "mainContentPanel");
         
-        getContentPane().add(mainCardPanel);
+        getContentPane().add(mainCardPanel, BorderLayout.CENTER);
     }
 
     /**

@@ -154,7 +154,7 @@ public class CMain {
         mMain.setCurrentUserId(null);
         
         // 2. VMain(프레임)의 창 크기를 원래 로그인 창 크기로 복구
-        vMain.setSize(380, 280);
+        vMain.setSize(450, 280);
         vMain.setLocationRelativeTo(null); // 화면 중앙 정렬
         
         // 3. 메인 뷰(CardLayout)를 "loginPanel"로 전환

@@ -1,5 +1,5 @@
 CREATE DATABASE IF NOT EXISTS lms_data;
-USE lms_data;
+USE lms_data; 
 
 CREATE TABLE IF NOT EXISTS root (
    id INT PRIMARY KEY,
@@ -36,16 +36,24 @@ CREATE TABLE IF NOT EXISTS lecture (
 CREATE TABLE IF NOT EXISTS user (
    userid VARCHAR(50) PRIMARY KEY,
    name VARCHAR(50),
-   code int,
+   code INT,
    email VARCHAR(50),
-   campus VARCHAR(50),
-   college VARCHAR(50),
-   department VARCHAR(50)
+   campus_id INT,
+   college_id INT,
+   department_id INT,
+   
+   FOREIGN KEY (campus_id) REFERENCES root(id),
+   FOREIGN KEY (college_id) REFERENCES college(id),
+   FOREIGN KEY (department_id) REFERENCES department(id)
 );
 
 CREATE TABLE IF NOT EXISTS login (
     userId VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(50)
+    password VARCHAR(50),
+    
+    FOREIGN KEY (userId) REFERENCES user(userid)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS save (
@@ -63,8 +71,8 @@ INSERT IGNORE INTO login (userId, password) VALUES
 ('test', '1234');
 
 INSERT IGNORE INTO root VALUES
-(1, '용인', 'yongin'),
-(2, '서울', 'seoul');
+(1, '자연캠퍼스', 'yongin'),
+(2, '인문캠퍼스', 'seoul');
 
 INSERT IGNORE INTO college VALUES
 (10, '교양', 'generalY', 1),
@@ -351,5 +359,3 @@ INSERT IGNORE INTO lecture VALUES
 (7051, '부동산자산관리론', '순희자', 3, '토1300-1550', 223),
 (7052, '부동산개발사례연구', '조인창', 3, '토1300-1550', 223),
 (7069, '부동산입지론', '김준형', 3, '수2020-2245', 223);
-
-

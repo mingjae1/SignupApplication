@@ -8,7 +8,6 @@ import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
-import javax.swing.SwingConstants;
 
 /**
  * 프로그램의 메인 프레임(JFrame)입니다.
@@ -41,8 +40,8 @@ public class VMain extends JFrame {
     public VMain() {
         // JFrame 기본 설정
         setTitle("수강신청 프로그램");
-        setSize(800, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setSize(800, 600);
         setLocationRelativeTo(null);
         
         cardLayout = new CardLayout();
@@ -59,17 +58,17 @@ public class VMain extends JFrame {
         beforeButton = new JButton("이전");
         afterButton = new JButton("다음");
         refreshButton = new JButton("새로고침");
-        logoutButton = new JButton("로그아웃");
         
-        toolbarPanel.add(searchbt); // [추가됨]
+        toolbarPanel.add(searchbt);
         toolbarPanel.add(registerbt);
         toolbarPanel.add(preregisterbt);
         toolbarPanel.add(beforeButton);
         toolbarPanel.add(afterButton);
         toolbarPanel.add(refreshButton);
-        toolbarPanel.add(logoutButton);
         
         mainContentPanel.add(toolbarPanel, BorderLayout.NORTH);
+        logoutButton = new JButton("로그아웃");
+        toolbarPanel.add(logoutButton);
 
         // --- 메인 컨텐츠 하위 CardLayout 패널 ---
         contentCardLayout = new CardLayout();

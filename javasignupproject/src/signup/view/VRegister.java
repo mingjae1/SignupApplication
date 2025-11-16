@@ -33,7 +33,9 @@ public class VRegister extends JPanel {
         tableModel = new DefaultTableModel(
             new Object[]{"과목코드", "과목명", "교수명", "학점", "시간표"}, 0
         ) {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isCellEditable(int row, int column) {
                return false;
             }

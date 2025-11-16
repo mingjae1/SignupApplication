@@ -46,6 +46,7 @@ public class VSignup extends JPanel {
     	// 메인 패널은 GridBagLayout 사용
         setLayout(new GridBagLayout());
         setBorder(new EmptyBorder(10, 10, 10, 10));
+        setSize(800,600);
         
         // --- 제목 (y=0, 2열에 걸쳐 배치) ---
         JLabel titleLabel = new JLabel("회원가입");

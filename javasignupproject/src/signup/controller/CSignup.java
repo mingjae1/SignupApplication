@@ -24,8 +24,8 @@ public class CSignup {
     private VMain vMain;
     private VSignup vSignup;
     
-    private UserDAO userDAO;     // [수정됨] DAO를 필드로 선언
-    private LectureDAO lectureDAO; // [수정됨] DAO를 필드로 선언
+    private UserDAO userDAO;     
+    private LectureDAO lectureDAO; 
     
     private static final String DEFAULT_CAMPUS = "- 캠퍼스 선택 -";
     private static final String DEFAULT_COLLEGE = "- 대학 선택 -";
@@ -53,8 +53,8 @@ public class CSignup {
         // [수정됨] RMain으로부터 DAO를 주입받음
         this.userDAO = userDAO;
         this.lectureDAO = lectureDAO; 
-
-        // 1. 버튼 리스너 연결
+        
+        // 1. 버튼 리스너 연결     
         this.vSignup.getSignupButton().addActionListener(this::handleSignup);
         this.vSignup.getCancelButton().addActionListener(this::handleCancel);
         
@@ -65,6 +65,9 @@ public class CSignup {
         // 3. 컨트롤러가 생성될 때 뷰에 초기 캠퍼스 목록을 로드
         loadInitialCampusData();
     }
+    
+    
+    
     
     /**
      * 컨트롤러 생성 시, DB에서 '캠퍼스' 목록을 가져와 콤보박스에 채웁니다.
@@ -158,6 +161,8 @@ public class CSignup {
      */
     private void handleSignup(ActionEvent e) {
         
+       
+    	
         // 1. 뷰(VSignup)에서 모든 입력 값을 가져옵니다.
         String name = vSignup.getNameField().getText().trim();
         String studentIdStr = vSignup.getStudentIdField().getText().trim();
@@ -233,6 +238,8 @@ public class CSignup {
      */
     private void handleCancel(ActionEvent e) {
         vSignup.clearFields();
+        vMain.setSize(380, 280);
+        vMain.setLocationRelativeTo(null);
         vMain.contentPanel("loginPanel");
     }
     

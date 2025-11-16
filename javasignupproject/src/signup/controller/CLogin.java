@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
@@ -23,25 +24,29 @@ public class CLogin {
     private MMain mMain;
     private UserDAO userDAO;
     
-    private CSearch cSearch; // [추가] CSearch 컨트롤러 필드
+    private CSearch cSearch; 
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CLogin.class.getName());
+    private static final Logger logger = Logger.getLogger(CLogin.class.getName());
     
     /**
      * CLogin 컨트롤러를 생성합니다.
      * RMain으로부터 뷰, 모델, DAO, CSearch 객체를 주입받습니다.
      * @param cSearch [추가] 로그인 성공 시 데이터를 로드할 CSearch 컨트롤러
      */
-    public CLogin(VMain vMain, VLogin vLogin, MMain mMain, UserDAO userDAO, CSearch cSearch) { // [수정]
+    public CLogin(VMain vMain, VLogin vLogin, MMain mMain, UserDAO userDAO, CSearch cSearch) {
         this.vMain = vMain;
         this.vLogin = vLogin;
         this.mMain = mMain; 
         this.userDAO = userDAO;
-        this.cSearch = cSearch; // [추가]
+        this.cSearch = cSearch; 
 
         // 리스너 연결 (동일)
         this.vLogin.getLoginButton().addActionListener(this::handleLogin);
-        this.vLogin.getSignupButton().addActionListener(e -> vMain.contentPanel("signupPanel"));
+        this.vLogin.getSignupButton().addActionListener(e -> {
+            vMain.setSize(800, 400);
+            vMain.setLocationRelativeTo(null); // (선택사항) 크기 변경 후 중앙 정렬
+            vMain.contentPanel("signupPanel");
+        });
         	
         ActionListener enterKeyListener = e -> vLogin.getLoginButton().doClick();
         this.vLogin.getIdField().addActionListener(enterKeyListener);

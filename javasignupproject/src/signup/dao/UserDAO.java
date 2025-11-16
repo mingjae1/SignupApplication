@@ -89,11 +89,7 @@ public class UserDAO {
         try {
             conn.setAutoCommit(false); 
 
-            // 1. login 테이블
-            addprsmt = conn.prepareStatement(sqlLogin);
-            addprsmt.setString(1, user.getUserid());
-            addprsmt.setString(2, password);
-            int loginResult = addprsmt.executeUpdate();
+           
             
             DAO.close(null, addprsmt, null);
             
@@ -107,6 +103,13 @@ public class UserDAO {
             addprsmt.setInt(6, user.getCollegeId()); // [수정됨] DTO에서 ID 추출
             addprsmt.setInt(7, user.getDepartmentId()); // [수정됨] DTO에서 ID 추출
             int userResult = addprsmt.executeUpdate();
+            
+            // 1. login 테이블
+            addprsmt = conn.prepareStatement(sqlLogin);
+            addprsmt.setString(1, user.getUserid());
+            addprsmt.setString(2, password);
+            int loginResult = addprsmt.executeUpdate();
+            
 
             // 3. 커밋/롤백 로직
             if (loginResult > 0 && userResult > 0) { conn.commit(); return true; } 

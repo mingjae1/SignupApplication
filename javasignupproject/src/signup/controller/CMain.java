@@ -78,6 +78,7 @@ public class CMain {
      * @param panelName VMain에 보여줄 패널의 이름
      */
     private void navigateTo(String panelName) {
+    	if (panelName.equals("loginPanel")) return;
         // 1. 패널 이동 로직 (현재 패널과 다른 패널을 눌렀을 때만 히스토리 기록)
         if (!panelName.equals(currentPanel)) {
             previousStack.push(currentPanel);

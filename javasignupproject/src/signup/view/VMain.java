@@ -41,7 +41,7 @@ public class VMain extends JFrame {
         // JFrame 기본 설정
         setTitle("수강신청 프로그램");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
-        setSize(440, 280);
+        setSize(450, 280);
         setLocationRelativeTo(null);
         
         cardLayout = new CardLayout();

@@ -68,11 +68,11 @@ public class UserDAO {
     /**
      * MUser DTO와 password를 받아 새 사용자를 등록합니다.
      * (매개변수 초과, NullPointerException, 롤백 버그 수정됨)
-     * @param user      모든 사용자 정보가 담긴 MUser DTO
+     * @param mUser      모든 사용자 정보가 담긴 MUser DTO
      * @param password  login 테이블에 저장할 비밀번호
      * @return 회원가입 성공 시 true, 실패(DB 오류) 시 false
      */
-    public boolean addUser(MUser user, String password) { 
+    public boolean addUser(MUser mUser, String password) { 
         
         String sqlLogin = "INSERT INTO login (userId, password) VALUES (?, ?)";
         
@@ -87,29 +87,26 @@ public class UserDAO {
         PreparedStatement addprsmt = null;
 
         try {
-            conn.setAutoCommit(false); 
-
-           
-            
-            DAO.close(null, addprsmt, null);
+            conn.setAutoCommit(false); // 수동 커밋 모드
             
             // 2. user 테이블 (DTO에서 ID를 추출)
             addprsmt = conn.prepareStatement(sqlUser);
-            addprsmt.setString(1, user.getUserid());
-            addprsmt.setString(2, user.getName());
-            addprsmt.setInt(3, user.getCode());
-            addprsmt.setString(4, user.getEmail());
-            addprsmt.setInt(5, user.getCampusId()); // [수정됨] DTO에서 ID 추출
-            addprsmt.setInt(6, user.getCollegeId()); // [수정됨] DTO에서 ID 추출
-            addprsmt.setInt(7, user.getDepartmentId()); // [수정됨] DTO에서 ID 추출
+            addprsmt.setString(1, mUser.getUserid());
+            addprsmt.setString(2, mUser.getName());
+            addprsmt.setInt(3, mUser.getCode());
+            addprsmt.setString(4, mUser.getEmail());
+            addprsmt.setInt(5, mUser.getCampusId()); // [수정됨] DTO에서 ID 추출
+            addprsmt.setInt(6, mUser.getCollegeId()); // [수정됨] DTO에서 ID 추출
+            addprsmt.setInt(7, mUser.getDepartmentId()); // [수정됨] DTO에서 ID 추출
             int userResult = addprsmt.executeUpdate();
             
             // 1. login 테이블
             addprsmt = conn.prepareStatement(sqlLogin);
-            addprsmt.setString(1, user.getUserid());
+            addprsmt.setString(1, mUser.getUserid());
             addprsmt.setString(2, password);
             int loginResult = addprsmt.executeUpdate();
             
+            DAO.close(null, addprsmt, null);
 
             // 3. 커밋/롤백 로직
             if (loginResult > 0 && userResult > 0) { conn.commit(); return true; } 

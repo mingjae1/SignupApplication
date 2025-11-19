@@ -1,7 +1,7 @@
 plugins {
     java
     eclipse
-    id("org.sonarqube") version "5.1.0.4882"
+    id("org.sonarqube") version "7.0.1.6134"
 }
 
 sourceSets {
@@ -20,11 +20,11 @@ java {
 }
 
 // SonarCloud 설정 (프로젝트 키와 조직 이름)
-sonarqube {
-    properties {
-        property("sonar.projectKey", "mingjae1_SignupApplication")
-        property("sonar.organization", "mingjae1")
-    }
+sonar {
+  properties {
+    property("sonar.projectKey", "mingjae1_SignupApplication")
+    property("sonar.organization", "mingjae1")
+  }
 }
 
 // .jar 파일들을 다운로드할 저장소 (Maven Central)

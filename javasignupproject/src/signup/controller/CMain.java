@@ -1,6 +1,12 @@
 package signup.controller;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import signup.model.MMain;
 import signup.view.VMain;
@@ -26,6 +32,7 @@ public class CMain {
     private CSearch cSearch; 
     private CRegister cRegister;
     private CPreRegister cPreRegister;
+    private CSchedule cSchedule;
 
     // 네비게이션 히스토리 관리용 스택
     private Deque<String> previousStack;
@@ -47,12 +54,13 @@ public class CMain {
      * @param vPreRegister 수강신청 목록화면
      * @param vRegister 미리담기 목록화면
      */
-    public CMain(VMain vMain, MMain mMain, CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister) {
+    public CMain(VMain vMain, MMain mMain, CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule) {
         this.vMain = vMain;
         this.mMain = mMain;
         this.cSearch = cSearch;
         this.cRegister = cRegister;
         this.cPreRegister = cPreRegister;
+        this.cSchedule = cSchedule;
 
         this.previousStack = new ArrayDeque<>();
         this.forwardStack = new ArrayDeque<>();
@@ -64,12 +72,12 @@ public class CMain {
         this.vMain.getSearchbt().addActionListener(e -> { cSearch.setMode("REGISTER"); navigateTo(PANEL_SEARCH); });
         this.vMain.getRegisterbt().addActionListener(e -> navigateTo(PANEL_REGISTER));
         this.vMain.getPreRegisterbt().addActionListener(e -> navigateTo(PANEL_PREREGISTER));
-        
+        this.vMain.getScheduleButton().addActionListener(e -> this.cSchedule.showSchedule());
         this.vMain.getBeforeButton().addActionListener(this::handlePrevious);
         this.vMain.getAfterButton().addActionListener(this::handleNext);
 		this.vMain.getRefreshButton().addActionListener(this::handleRefresh);
 		this.vMain.getLogoutButton().addActionListener(this::handleLogout);
-		
+		this.vMain.getThemeCombo().addActionListener(this::handleThemeChange);
         updateNavigationButtons();
     }
 
@@ -89,7 +97,6 @@ public class CMain {
         }
         
         // 2. 패널 이동 후 즉시 데이터 로드
-        // (같은 패널 버튼을 다시 눌러도 새로고침되도록 if문 밖에 위치)
         switch (panelName) {
             case PANEL_REGISTER:
                 refreshRegisterPanel();
@@ -98,15 +105,11 @@ public class CMain {
                 refreshPreRegisterPanel();
                 break;
             default :	
-                // VSearch는 자체 '조회' 버튼이 있으므로, 툴바 버튼 클릭 시
-                // 강제로 새로고침하지 않고 화면만 보여줍니다.
                 break;
         }
     }
 
-    /**
-     * '이전' 버튼 클릭을 처리합니다. (데이터 로드 없이 화면만 전환)
-     */
+    // 이전버튼 핸들러
     private void handlePrevious(ActionEvent e) {
         if (!previousStack.isEmpty()) {
             forwardStack.push(currentPanel); // 현재 패널을 '다음' 스택에 추가
@@ -116,9 +119,7 @@ public class CMain {
         }
     }
 
-    /**
-     * '다음' 버튼 클릭을 처리합니다. (데이터 로드 없이 화면만 전환)
-     */
+    // 다음버튼 핸들러
     private void handleNext(ActionEvent e) {
         if (!forwardStack.isEmpty()) {
             previousStack.push(currentPanel); // 현재 패널을 '이전' 스택에 추가
@@ -128,10 +129,7 @@ public class CMain {
         }
     }
 
-    /**
-     * '새로고침' 버튼 클릭을 처리합니다.
-     * 현재 활성화된 패널에 따라 적절한 데이터 로드 메서드를 호출합니다.
-     */
+    // 새로고침 핸들러
     private void handleRefresh(ActionEvent e) {
         switch (currentPanel) {
             case PANEL_REGISTER:
@@ -145,11 +143,11 @@ public class CMain {
             	this.cSearch.refreshSearch(); 
                 break;
             default:
-                JOptionPane.showMessageDialog(vMain, "'" + currentPanel + "' 패널 새로고침 (미구현)");
+                
                 break;
         }
     }
-    
+    // 로그아웃 핸들러
     public void handleLogout(ActionEvent e) {
     	// 1. MMain 모델의 현재 사용자 ID를 null로 초기화
         mMain.setCurrentUserId(null);
@@ -167,14 +165,10 @@ public class CMain {
         updateNavigationButtons();
         currentPanel = "loginPanel"; // 현재 패널 상태도 업데이트
 	}
-    
-    
-    
-    // --- 데이터 로딩 헬퍼(Helper) 메서드 ---
 
-    /**
-     * '수강신청 내역' 패널의 데이터를 새로고침합니다.
-     */
+    // --- 데이터 로딩 헬퍼(Helper) 메서드 ---
+    
+    // '수강신청 내역' 패널의 데이터를 새로고침합니다.
     private void refreshRegisterPanel() {
         String currentUserId = mMain.getCurrentUserId();
         if (currentUserId == null) {
@@ -185,9 +179,7 @@ public class CMain {
         this.cRegister.refreshTable();
     }
 
-    /**
-     * '미리담기 내역' 패널의 데이터를 새로고침합니다.
-     */
+    //'미리담기 내역' 패널의 데이터를 새로고침합니다.
     private void refreshPreRegisterPanel() {
         String currentUserId = mMain.getCurrentUserId();
         if (currentUserId == null) {
@@ -198,11 +190,27 @@ public class CMain {
         this.cPreRegister.refreshTable();
     }
 
-    /**
-     * '이전' 및 '다음' 버튼의 활성화/비활성화 상태를 스택 크기에 따라 업데이트합니다.
-     */
+    // '이전' 및 '다음' 버튼의 활성화/비활성화 상태를 스택 크기에 따라 업데이트합니다.
     private void updateNavigationButtons() {
         vMain.getBeforeButton().setEnabled(!previousStack.isEmpty());
         vMain.getAfterButton().setEnabled(!forwardStack.isEmpty());
+        
+    }
+    
+    private void handleThemeChange(ActionEvent e) {
+        String selectedTheme = (String) vMain.getThemeCombo().getSelectedItem();
+        
+        try {
+            if ("다크 테마".equals(selectedTheme)) {
+                UIManager.setLookAndFeel(new FlatDarkLaf());
+            } else {
+                UIManager.setLookAndFeel(new FlatLightLaf());
+            }
+
+            FlatLaf.updateUI(); 
+            SwingUtilities.updateComponentTreeUI(vMain); 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

@@ -70,7 +70,7 @@ public class CLogin {
                 JOptionPane.showMessageDialog(vLogin, userName + "님, 환영합니다!", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
                 
                 vLogin.clearFields();
-                vMain.setSize(1600, 900);
+                vMain.setSize(1280, 800);
                 vMain.setLocationRelativeTo(null);
                 
                 this.cSearch.loadInitialCollegeData(); 
@@ -92,8 +92,6 @@ public class CLogin {
                 "로그인 오류", 
                 JOptionPane.ERROR_MESSAGE);
             vLogin.getPasswordField().setText(""); // 비밀번호 필드 초기화
-
-			// (개발자 확인용 로그 - CLogin에도 Logger가 선언되어 있다고 가정)
             logger.log(Level.SEVERE, "로그인 DB 오류", ex);
         }
     }

@@ -11,8 +11,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  * 강좌 검색, 수강신청, 미리담기 기능을 수행하는 메인 패널(View)입니다.
@@ -134,10 +137,38 @@ public class VSearch extends JPanel {
         };
         
         resultTable = new JTable(tableModel);
-        resultTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION); // 단일 선택만 허용
+        resultTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // 단일 선택만 허용
+        resultTable.getTableHeader().setResizingAllowed(false);
+        resultTable.getTableHeader().setReorderingAllowed(false);
+        
+        //  정렬을 끄고 싶은 컬럼의 인덱스(순서)를 지정합니다.
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(resultTable.getModel());
+        sorter.setSortable(3, false); // 3번(학점) 정렬 끄기
+        sorter.setSortable(4, false); // 4번(시간표) 정렬 끄기
+        resultTable.setRowSorter(sorter);
+             
+        // 2-1. 줄무늬(Zebra) 스타일 적용 (한 줄 건너 색상 변경)
+        resultTable.putClientProperty("JTable.stripe", true);
+        
+        // 2-2. 가로/세로 그리드 라인 표시
+        resultTable.setShowGrid(true); // 그리드 켜기
+        resultTable.setShowHorizontalLines(true); // 가로선
+        resultTable.setShowVerticalLines(true);   // 세로선
+        
+        // 2,3. 행 높이 및 열 너비 설정
+        resultTable.setRowHeight(25);
+        resultTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        resultTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        resultTable.getColumnModel().getColumn(2).setPreferredWidth(50);
+        resultTable.getColumnModel().getColumn(3).setPreferredWidth(20);
+        resultTable.getColumnModel().getColumn(4).setPreferredWidth(200);
+        
+        // 2-4. 테이블 아래 빈 공간도 배경색 채우기
+        resultTable.setFillsViewportHeight(true);
+        
         JScrollPane resultScrollPane = new JScrollPane(resultTable);
-
         add(resultScrollPane, BorderLayout.CENTER);
+        
         
         // --- 3. SOUTH: 동작 버튼 ---
         JPanel actionPanel = new JPanel(new GridBagLayout()); 
@@ -160,9 +191,7 @@ public class VSearch extends JPanel {
         gbc_registerButton.insets = new Insets(5, 5, 5, 5);
         gbc_registerButton.gridx = 1; // (수정) 2 -> 1
         actionPanel.add(registerButton, gbc_registerButton);
-        
-        
-        
+
         add(actionPanel, BorderLayout.SOUTH);
         
     }

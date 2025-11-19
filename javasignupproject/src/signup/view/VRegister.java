@@ -8,7 +8,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.border.EmptyBorder;
 import signup.model.MLecture; // 님의 DTO 클래스
 
@@ -22,7 +25,7 @@ public class VRegister extends JPanel {
     
     private JTable registerTable;
     private DefaultTableModel tableModel;
-    private JButton btnCancel; // 신청 취소 버튼
+    private JButton cancelButton; // 신청 취소 버튼
     private JLabel lblTotalCredits; // 총 학점 라벨
 
     public VRegister() {
@@ -42,7 +45,35 @@ public class VRegister extends JPanel {
         };
         
         registerTable = new JTable(tableModel);
-        registerTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        registerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // 단일 선택만 허용
+        registerTable.getTableHeader().setResizingAllowed(false);
+        registerTable.getTableHeader().setReorderingAllowed(false);
+        
+        //  정렬을 끄고 싶은 컬럼의 인덱스(순서)를 지정합니다.
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(registerTable.getModel());
+        sorter.setSortable(3, false); // 3번(학점) 정렬 끄기
+        sorter.setSortable(4, false); // 4번(시간표) 정렬 끄기
+        registerTable.setRowSorter(sorter);
+             
+        // 2-1. 줄무늬(Zebra) 스타일 적용 (한 줄 건너 색상 변경)
+        registerTable.putClientProperty("JTable.stripe", true);
+        
+        // 2-2. 가로/세로 그리드 라인 표시
+        registerTable.setShowGrid(true); // 그리드 켜기
+        registerTable.setShowHorizontalLines(true); // 가로선
+        registerTable.setShowVerticalLines(true);   // 세로선
+        
+        // 2,3. 행 높이 및 열 너비 설정
+        registerTable.setRowHeight(25);
+        registerTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        registerTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        registerTable.getColumnModel().getColumn(2).setPreferredWidth(50);
+        registerTable.getColumnModel().getColumn(3).setPreferredWidth(20);
+        registerTable.getColumnModel().getColumn(4).setPreferredWidth(200);
+        
+        // 2-4. 테이블 아래 빈 공간도 배경색 채우기
+        registerTable.setFillsViewportHeight(true);
+        
         
         add(new JScrollPane(registerTable), BorderLayout.CENTER);
         
@@ -52,11 +83,10 @@ public class VRegister extends JPanel {
         lblTotalCredits = new JLabel("총 신청 학점: 0 학점");
         lblTotalCredits.setBorder(new EmptyBorder(0, 5, 0, 0)); // 왼쪽 여백
         
-        btnCancel = new JButton("신청 취소");
-        btnCancel.setForeground(Color.RED); // 강조색
+        cancelButton = new JButton("신청 취소");
         
         southPanel.add(lblTotalCredits, BorderLayout.WEST);
-        southPanel.add(btnCancel, BorderLayout.EAST);
+        southPanel.add(cancelButton, BorderLayout.EAST);
         
         add(southPanel, BorderLayout.SOUTH);
     }
@@ -94,6 +124,6 @@ public class VRegister extends JPanel {
     }
     
     public JButton getCancelButton() {
-        return btnCancel;
+        return cancelButton;
     }
 }

@@ -9,7 +9,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.border.EmptyBorder;
 import signup.model.MLecture; // 님의 DTO 클래스
 
@@ -23,8 +26,8 @@ public class VPreRegister extends JPanel {
     
     private JTable preRegisterTable;
     private DefaultTableModel tableModel;
-    private JButton btnApply;  // "수강신청" 버튼
-    private JButton btnDelete; // "목록 삭제" 버튼
+    private JButton registerButton;  // "수강신청" 버튼
+    private JButton deleteButton; // "목록 삭제" 버튼
     private JLabel lblTotalCredits; // 총 학점 라벨
 
     public VPreRegister() {
@@ -44,7 +47,34 @@ public class VPreRegister extends JPanel {
         };
         
         preRegisterTable = new JTable(tableModel);
-        preRegisterTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        preRegisterTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // 단일 선택만 허용
+        preRegisterTable.getTableHeader().setResizingAllowed(false);
+        preRegisterTable.getTableHeader().setReorderingAllowed(false);
+        
+        //  정렬을 끄고 싶은 컬럼의 인덱스(순서)를 지정합니다.
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(preRegisterTable.getModel());
+        sorter.setSortable(3, false); // 3번(학점) 정렬 끄기
+        sorter.setSortable(4, false); // 4번(시간표) 정렬 끄기
+        preRegisterTable.setRowSorter(sorter);
+             
+        // 2-1. 줄무늬(Zebra) 스타일 적용 (한 줄 건너 색상 변경)
+        preRegisterTable.putClientProperty("JTable.stripe", true);
+        
+        // 2-2. 가로/세로 그리드 라인 표시
+        preRegisterTable.setShowGrid(true); // 그리드 켜기
+        preRegisterTable.setShowHorizontalLines(true); // 가로선
+        preRegisterTable.setShowVerticalLines(true);   // 세로선
+        
+        // 2,3. 행 높이 및 열 너비 설정
+        preRegisterTable.setRowHeight(25);
+        preRegisterTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        preRegisterTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        preRegisterTable.getColumnModel().getColumn(2).setPreferredWidth(50);
+        preRegisterTable.getColumnModel().getColumn(3).setPreferredWidth(20);
+        preRegisterTable.getColumnModel().getColumn(4).setPreferredWidth(200);
+        
+        // 2-4. 테이블 아래 빈 공간도 배경색 채우기
+        preRegisterTable.setFillsViewportHeight(true);
         
         add(new JScrollPane(preRegisterTable), BorderLayout.CENTER);
         
@@ -56,14 +86,11 @@ public class VPreRegister extends JPanel {
         
         // [수정] 버튼 2개를 담을 별도의 패널 (FlowLayout.RIGHT)
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-        btnApply = new JButton("수강신청");
-        btnApply.setForeground(new Color(0, 102, 204)); // 파란색 계열
+        registerButton = new JButton("수강신청");
+        deleteButton = new JButton("목록 삭제");
         
-        btnDelete = new JButton("목록 삭제");
-        btnDelete.setForeground(Color.RED);
-        
-        buttonPanel.add(btnApply);
-        buttonPanel.add(btnDelete);
+        buttonPanel.add(registerButton);
+        buttonPanel.add(deleteButton);
         
         southPanel.add(lblTotalCredits, BorderLayout.WEST);
         southPanel.add(buttonPanel, BorderLayout.EAST); // 버튼 패널을 오른쪽에 배치
@@ -104,10 +131,10 @@ public class VPreRegister extends JPanel {
     }
     
     public JButton getApplyButton() {
-        return btnApply;
+        return registerButton;
     }
     
     public JButton getDeleteButton() {
-        return btnDelete;
+        return deleteButton;
     }
 }

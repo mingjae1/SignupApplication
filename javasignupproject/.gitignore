@@ -1,0 +1,12 @@
+# Gradle
+.gradle/
+build/
+bin/
+
+# IDE
+.settings/
+.classpath
+.project
+
+# Local config
+config.properties

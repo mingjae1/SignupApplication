@@ -1,7 +1,6 @@
 package signup.view;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JLabel;

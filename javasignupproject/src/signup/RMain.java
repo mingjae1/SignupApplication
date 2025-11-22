@@ -123,10 +123,6 @@ public class RMain {
     public static void main(String[] args) {
     	System.setProperty("flatlaf.uiScale", "1.2");
     	try {
-            // "FlatLaf 라이트 모드" 스킨을 적용합니다.
-            // UIManager.setLookAndFeel( new FlatLightLaf() );
-            
-            // (다크 모드를 원하시면 위의 줄 대신 아래 줄을 사용하세요)
             UIManager.setLookAndFeel( new FlatDarkLaf() );
         } catch( Exception ex ) { Logger.getLogger(RMain.class.getName()).severe("Failed to initialize LaF"); }
     	

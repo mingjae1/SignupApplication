@@ -66,7 +66,7 @@ public class SaveDAO {
                 );
                 lectures.add(lecture);
             }
-        } 
+        }
         catch (SQLException e) { logger.log(Level.SEVERE, "상태별 강의 조회 SQL 오류", e); } 
         finally { DAO.close(rs, pstmt, conn); }
         return lectures;
@@ -93,7 +93,7 @@ public class SaveDAO {
                 return 1; 
             }
         }
-
+        
     	conn = dao.getConnection();
         
         // INSERT IGNORE: PK(userid, lecture_id, status)가 중복되면 오류 대신 무시
@@ -129,7 +129,7 @@ public class SaveDAO {
             logger.log(Level.SEVERE, "removeLecture: DB 연결 실패 (conn=null)");
             return false;
         }
-
+        
         String sql = "DELETE FROM save WHERE userid = ? AND lecture_id = ? AND status = ?";
         
         try {
@@ -191,6 +191,5 @@ public class SaveDAO {
         }
         return totalCredits;
     }
-    
     
 }

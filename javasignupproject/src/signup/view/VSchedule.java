@@ -15,7 +15,6 @@ import java.util.List;
 import javax.swing.ButtonGroup;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -34,7 +33,6 @@ public class VSchedule extends JDialog {
     private TimetablePanel timetablePanel; // 시간표를 직접 그릴 패널
     private String FONT = "SansSerif";
 
-	private VSchedule vSchedule;
 
     
     public VSchedule(JFrame owner) {
@@ -249,7 +247,7 @@ public class VSchedule extends JDialog {
                     }
                 }
             } catch (Exception e) {
-            	JOptionPane.showMessageDialog(vSchedule, "시간표를 불러올 수 없습니다.", "오류", JOptionPane.WARNING_MESSAGE);
+            	
             }
         }
         

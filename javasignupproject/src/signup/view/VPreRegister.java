@@ -1,7 +1,6 @@
 package signup.view;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.FlowLayout; // [추가] 버튼 2개를 배치하기 위해
 import java.util.List;
 import javax.swing.JButton;
@@ -29,7 +28,7 @@ public class VPreRegister extends JPanel {
     private JButton registerButton;  // "수강신청" 버튼
     private JButton deleteButton; // "목록 삭제" 버튼
     private JLabel lblTotalCredits; // 총 학점 라벨
-
+    
     public VPreRegister() {
         setLayout(new BorderLayout(5, 5));
         setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -39,7 +38,7 @@ public class VPreRegister extends JPanel {
             new Object[]{"과목코드", "과목명", "교수명", "학점", "시간표"}, 0
         ) {
 			private static final long serialVersionUID = 1L;
-
+			
 			@Override
             public boolean isCellEditable(int row, int column) {
                return false;
@@ -122,6 +121,7 @@ public class VPreRegister extends JPanel {
         }
         
         lblTotalCredits.setText("총 미리담기 학점: " + totalCredits + " 학점");
+       
     }
     
     // --- CPreRegister 컨트롤러가 접근할 Getter ---

@@ -91,7 +91,7 @@ public class VMain extends JFrame {
 
         rightToolbar.add(new JLabel("테마: "));
         rightToolbar.add(themeCombo);
-        rightToolbar.add(new JLabel(" | "));
+        rightToolbar.add(spacer);
         rightToolbar.add(btnLogout);
 
         // 좌/우 패널을 컨테이너에 부착
@@ -114,11 +114,9 @@ public class VMain extends JFrame {
     public void addPanel(JPanel panel, String name) {
         mainCardPanel.add(panel, name);
     }
-    
-    
 
     public void contentPanel(String panelName) {
-        if (panelName.equals("registerPanel") || panelName.equals("preRegisterPanel") || 
+        if (panelName.equals("registerPanel") || panelName.equals("preregisterPanel") || 
             panelName.equals("searchPanel") || panelName.equals("schedulePanel")) {
             cardLayout.show(mainCardPanel, "mainContentPanel");
             contentCardLayout.show(panel, panelName);

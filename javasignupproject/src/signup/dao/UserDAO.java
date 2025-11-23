@@ -56,8 +56,7 @@ public class UserDAO {
             }
         } catch (SQLException e) {
             // 3. 쿼리 실행 중 DB 오류 발생 시, 예외를 컨트롤러로 '다시 던짐'
-            logger.log(Level.SEVERE, "로그인 인증 중 SQL 오류 발생", e);
-            throw e;
+            throw new SQLException("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
         } finally {
             // 4. Connection은 닫아야 함
             // (try-with-resources가 pstmt, rs를 닫아주므로 conn만 닫습니다)
@@ -210,4 +209,46 @@ public class UserDAO {
         return campusId;
     }
     
+    public MUser getUserInfo(String userId) {
+        conn = dao.getConnection();
+        MUser user = null;
+        
+        if (conn == null) return null; // DB 연결 실패 시 null 반환
+        
+        // [핵심] 4개의 테이블을 JOIN하여 소속 '이름'을 가져오는 쿼리
+        String sql = "SELECT u.userid, u.name, u.code, u.email, " +
+                     "r.name AS campus_name, " +
+                     "c.name AS college_name, " +
+                     "d.name AS dept_name " +
+                     "FROM user u " +
+                     "JOIN root r ON u.campus_id = r.id " +
+                     "JOIN college c ON u.college_id = c.id " +
+                     "JOIN department d ON u.department_id = d.id " +
+                     "WHERE u.userid = ?";
+        
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                user = new MUser();
+                user.setUserid(rs.getString("userid"));
+                user.setName(rs.getString("name"));
+                user.setCode(rs.getInt("code"));
+                user.setEmail(rs.getString("email"));
+                
+                // [수정됨] 조회한 '이름(String)'을 DTO의 String 필드에 저장합니다.
+                // 이제 user.getCampus()를 호출하면 "자연캠퍼스"가 나옵니다.
+                user.setCampus(rs.getString("campus_name"));
+                user.setCollege(rs.getString("college_name"));
+                user.setDepartment(rs.getString("dept_name"));
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "사용자 상세 정보 조회 실패", e);
+        } finally {
+            DAO.close(rs, pstmt, conn);
+        }
+        return user;
+    }
 }

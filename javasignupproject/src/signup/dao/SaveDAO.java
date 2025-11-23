@@ -38,7 +38,7 @@ public class SaveDAO {
      * @param status "reg" (수강신청) 또는 "pre" (미리담기)
      * @return 해당 상태의 Lecture 객체 리스트
      */
-    public List<MLecture> getLecturesByStatus(String userId, String status) {
+    public List<MLecture> getLecturesByStatus(String userid, String status) {
         List<MLecture> lectures = new ArrayList<>();
         conn = dao.getConnection();
         
@@ -50,7 +50,7 @@ public class SaveDAO {
         
         try {
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, userId);
+            pstmt.setString(1, userid);
             pstmt.setString(2, status); // "reg" 또는 "pre"
             
             rs = pstmt.executeQuery();
@@ -77,17 +77,17 @@ public class SaveDAO {
      * 'save' 테이블에 수강신청("reg") 또는 미리담기("pre") 내역을 추가합니다.
      * 이미 동일한 항목이 있다면 (PRIMARY KEY 중복), 무시하고 false를 반환합니다.
      *
-     * @param userId    로그인한 사용자 ID
-     * @param lectureId 사용자가 선택한 강의의 ID (숫자 ID)
+     * @param userid    로그인한 사용자 ID
+     * @param lectureid 사용자가 선택한 강의의 ID (숫자 ID)
      * @param status    저장할 상태 ("reg" 또는 "pre")
      * @return 삽입 성공 시 true, 실패(중복 등) 시 false
      */
-    public int addLecture(String userId, int lectureId, String status, int newCredits) {
+    public int addLecture(String userid, int lectureid, String status, int newCredits) {
         
     	// 1. [핵심] "reg" (수강신청) 상태일 때만 학점 제한을 검사합니다.
         // (미리담기("pre")는 학점 제한 없이 담을 수 있어야 합니다.)
         if (status.equals("reg")) {
-            int currentCredits = getTotalCredits(userId, "reg");
+            int currentCredits = getTotalCredits(userid, "reg");
             if (currentCredits + newCredits > MAX_CREDITS) {
                 // 1번 오류: 학점 초과
                 return 1; 
@@ -101,8 +101,8 @@ public class SaveDAO {
         
         try {
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, userId);
-            pstmt.setInt(2, lectureId);
+            pstmt.setString(1, userid);
+            pstmt.setInt(2, lectureid);
             pstmt.setString(3, status);
             
             int insertedRows = pstmt.executeUpdate();
@@ -121,7 +121,7 @@ public class SaveDAO {
         }
     }
 
-    public boolean removeLecture(String userId, int lectureId, String status) {
+    public boolean removeLecture(String userid, int lectureid, String status) {
         conn = dao.getConnection();
         
         // [방어 코드] DB 연결 실패 시 즉시 중단
@@ -134,8 +134,8 @@ public class SaveDAO {
         
         try {
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, userId);
-            pstmt.setInt(2, lectureId);
+            pstmt.setString(1, userid);
+            pstmt.setInt(2, lectureid);
             pstmt.setString(3, status);
             
             // executeUpdate()는 삭제된 행(row)의 수를 반환합니다.
@@ -154,11 +154,11 @@ public class SaveDAO {
     
     /**
      * 특정 사용자의 '수강신청' 또는 '미리담기' 목록의 총 학점을 계산합니다.
-     * @param userId 로그인한 사용자 ID
+     * @param userid 로그인한 사용자 ID
      * @param status "reg" (수강신청) 또는 "pre" (미리담기)
      * @return 계산된 총 학점 (int). 오류 발생 시 0 반환.
      */
-    public int getTotalCredits(String userId, String status) {
+    public int getTotalCredits(String userid, String status) {
         conn = dao.getConnection();
         int totalCredits = 0;
         
@@ -175,7 +175,7 @@ public class SaveDAO {
         
         try {
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, userId);
+            pstmt.setString(1, userid);
             pstmt.setString(2, status);
             
             rs = pstmt.executeQuery();

@@ -23,8 +23,8 @@ public class CLogin {
     private VLogin vLogin;
     private MMain mMain;
     private UserDAO userDAO;
-    
     private CSearch cSearch; 
+    private CMain cMain;
     
     private static final Logger logger = Logger.getLogger(CLogin.class.getName());
     
@@ -32,6 +32,7 @@ public class CLogin {
      * CLogin 컨트롤러를 생성합니다.
      * RMain으로부터 뷰, 모델, DAO, CSearch 객체를 주입받습니다.
      * @param cSearch [추가] 로그인 성공 시 데이터를 로드할 CSearch 컨트롤러
+     * @param cMain 
      */
     public CLogin(VMain vMain, VLogin vLogin, MMain mMain, UserDAO userDAO, CSearch cSearch) {
         this.vMain = vMain;
@@ -69,6 +70,8 @@ public class CLogin {
                 mMain.setCurrentUserId(id); 
                 JOptionPane.showMessageDialog(vLogin, userName + "님, 환영합니다!", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
                 
+                cMain.refreshUserInfo();
+                
                 vLogin.clearFields();
                 vMain.setSize(1280, 800);
                 vMain.setLocationRelativeTo(null);
@@ -95,4 +98,8 @@ public class CLogin {
             logger.log(Level.SEVERE, "로그인 DB 오류", ex);
         }
     }
+    
+    public void setCMain(CMain cMain) {
+		this.cMain = cMain;
+	}
 }

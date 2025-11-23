@@ -8,7 +8,9 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import signup.dao.UserDAO;
 import signup.model.MMain;
+import signup.model.MUser;
 import signup.view.VMain;
 
 import java.awt.event.ActionEvent;
@@ -34,6 +36,8 @@ public class CMain {
     private CPreRegister cPreRegister;
     private CSchedule cSchedule;
 
+    private UserDAO userDAO = new UserDAO();
+    
     // 네비게이션 히스토리 관리용 스택
     private Deque<String> previousStack;
     private Deque<String> forwardStack; 
@@ -49,12 +53,13 @@ public class CMain {
      * RMain으로부터 뷰, 모델, DAO 및 CSearch 컨트롤러를 주입받습니다.
      * @param vMain 제어할 메인 뷰 (VMain)
      * @param mMain 현재 로그인한 사용자 ID를 가져올 메인 모델 (MMain)
+     * @param userDAO 
      * @param saveDAO 수강/미리담기 내역을 처리할 SaveDAO
      * @param cSearch '새로고침' 시 제어할 CSearch 컨트롤러
      * @param vPreRegister 수강신청 목록화면
      * @param vRegister 미리담기 목록화면
      */
-    public CMain(VMain vMain, MMain mMain, CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule) {
+    public CMain(VMain vMain, MMain mMain, UserDAO userDAO, CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule) {
         this.vMain = vMain;
         this.mMain = mMain;
         this.cSearch = cSearch;
@@ -78,6 +83,7 @@ public class CMain {
 		this.vMain.getRefreshButton().addActionListener(this::handleRefresh);
 		this.vMain.getLogoutButton().addActionListener(this::handleLogout);
 		this.vMain.getThemeCombo().addActionListener(this::handleThemeChange);
+		this.vMain.getMyinfoButton().addActionListener(this::handleMyInfo);
         updateNavigationButtons();
     }
 
@@ -213,4 +219,41 @@ public class CMain {
             ex.printStackTrace();
         }
     }
+    
+    public void refreshUserInfo() {
+        String userId = mMain.getCurrentUserId();
+        if (userId != null) {
+            // 간단하게 이름만 가져오기 위해 UserDAO 활용 (또는 validateUser 결과를 재사용 가능하지만, 여기선 조회)
+            MUser user = userDAO.getUserInfo(userId);
+            if (user != null) {
+                vMain.setMyNameLabel(user.getName());
+            }
+        } else {
+            vMain.setMyNameLabel(null); // 로그아웃 시 공란
+        }
+    }
+    
+    public void handleMyInfo(ActionEvent e) {
+        String userId = mMain.getCurrentUserId();
+        if (userId == null) return;
+        
+        MUser user = userDAO.getUserInfo(userId);
+        
+        if (user != null) {
+            String message = "<html><body style='width: 200px'>" +
+                             "<h2>내 정보</h2>" +
+                             "<hr>" +
+                             "<b>이름:</b> " + user.getName() + "<br>" +
+                             "<b>학번:</b> " + user.getCode() + "<br>" +
+                             "<b>ID:</b> " + user.getUserid() + "<br>" +
+                             "<b>이메일:</b> " + user.getEmail() + "<br><br>" +
+                             "<b>소속:</b><br>" +
+                             user.getCampus() + " / " + user.getCollege() + "<br>" +
+                             user.getDepartment() +
+                             "</body></html>";
+                             
+            JOptionPane.showMessageDialog(vMain, message, "학적 사항", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+    
 }

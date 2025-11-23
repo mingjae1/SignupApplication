@@ -39,13 +39,15 @@ public class VMain extends JFrame {
     
     private JComboBox<String> themeCombo; // [추가] 테마 선택 콤보박스
     private JButton btnLogout; 
+    private JButton myinfoButton;
+    private JLabel mynameLable;
 
     /**
      * VMain 프레임 및 내부 컴포넌트들을 생성하고 초기화합니다.
      */
     public VMain() {
         setTitle("수강신청 프로그램");
-        setSize(420, 320); // (기본 크기 조정)
+        setSize(1220, 873); // (기본 크기 조정)
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -63,41 +65,49 @@ public class VMain extends JFrame {
         searchbt = new JButton("강좌 검색");
         registerbt = new JButton("수강신청 내역");
         preRegisterbt = new JButton("미리담기 내역");
-        scheduleButton = new JButton("시간표");
-        
-        // 구분용 공백 라벨
-        JLabel spacer = new JLabel(" | ");
+        btnLogout = new JButton("로그아웃");
         
         beforeButton = new JButton("◀");
+        leftToolbar.add(beforeButton);
         afterButton = new JButton("▶");
+        leftToolbar.add(afterButton);
         refreshButton = new JButton("새로고침");
-        btnLogout = new JButton("로그아웃");
+        leftToolbar.add(refreshButton);
         
         leftToolbar.add(searchbt);
         leftToolbar.add(registerbt);
         leftToolbar.add(preRegisterbt);
-        leftToolbar.add(scheduleButton);
-        leftToolbar.add(spacer);
-        leftToolbar.add(beforeButton);
-        leftToolbar.add(afterButton);
-        leftToolbar.add(refreshButton);
 
         // 2. 오른쪽 (설정 & 계정)
         JPanel rightToolbar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        scheduleButton = new JButton("시간표");
+        rightToolbar.add(scheduleButton);
         
+        myinfoButton = new JButton("내 정보");
+        rightToolbar.add(myinfoButton);
+        
+                // 구분용 공백 라벨
+                JLabel spacer = new JLabel(" | ");
+                rightToolbar.add(spacer);
+        
+        mynameLable = new JLabel("님");
+        rightToolbar.add(mynameLable);
+        rightToolbar.add(btnLogout);
+        
+        JPanel centerToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        JLabel label = new JLabel("테마: ");
+        centerToolbar.add(label);
+
         // 테마 선택 콤보박스
         themeCombo = new JComboBox<>(new String[]{"다크 테마", "라이트 테마"});
         themeCombo.setFocusable(false);
-
-        rightToolbar.add(new JLabel("테마: "));
-        rightToolbar.add(themeCombo);
-        rightToolbar.add(spacer);
-        rightToolbar.add(btnLogout);
-
+        centerToolbar.add(themeCombo);
+        
         // 좌/우 패널을 컨테이너에 부착
         toolbarContainer.add(leftToolbar, BorderLayout.WEST);
         toolbarContainer.add(rightToolbar, BorderLayout.EAST);
-        
+        toolbarContainer.add(centerToolbar, BorderLayout.CENTER);
+
         mainContentPanel.add(toolbarContainer, BorderLayout.NORTH);
         // ------------------------
 
@@ -107,7 +117,7 @@ public class VMain extends JFrame {
         mainContentPanel.add(panel, BorderLayout.CENTER);
         mainCardPanel.add(mainContentPanel, "mainContentPanel");
         
-        this.add(mainCardPanel);
+        getContentPane().add(mainCardPanel);
     }
 
     // ... (addPanel, getPanelForRegisterAndBasket, contentPanel 메서드 동일) ...
@@ -124,6 +134,10 @@ public class VMain extends JFrame {
         else { cardLayout.show(mainCardPanel, panelName); }
     }
 
+    public void setMyNameLabel(String name) {
+		mynameLable.setText(name + "님");
+	}
+    
     // --- Getters ---
     public JButton getSearchbt() { return searchbt; }
     public JButton getRegisterbt() { return registerbt; }
@@ -133,6 +147,7 @@ public class VMain extends JFrame {
     public JButton getAfterButton() { return afterButton; }
     public JButton getRefreshButton() { return refreshButton; }
     public JButton getLogoutButton() { return btnLogout; }
+    public JButton getMyinfoButton() { return myinfoButton; }
     public JPanel getPanel() { return panel; }
     public JComboBox<String> getThemeCombo() { return themeCombo; }
 }

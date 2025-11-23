@@ -62,6 +62,9 @@ public class RMain {
     private CRegister cRegister;
     private CPreRegister cPreRegister;
     private CSchedule cSchedule;
+    private CMain cMain;
+    private CLogin cLogin;
+    
     
     /**
      * RMain 생성자:
@@ -101,11 +104,12 @@ public class RMain {
         // 각 컨트롤러에 필요한 뷰, 모델, DAO를 생성자의 인자로 전달합니다.
         this.cSearch = new CSearch(this.vSearch, this.mMain, this.lectureDAO, this.saveDAO, this.userDAO);
         this.cSchedule = new CSchedule(this.vSchedule, this.mMain, this.saveDAO);
-        new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO, this.cSearch);
-        new CSignup(this.vMain, this.vSignup, this.lectureDAO, this.userDAO);
         this.cRegister = new CRegister(this.vRegister, this.mMain, this.saveDAO);
         this.cPreRegister = new CPreRegister(this.vPreRegister, this.mMain, this.saveDAO);
-        new CMain(this.vMain, this.mMain, this.cSearch, this.cRegister, this.cPreRegister, this.cSchedule);
+        this.cLogin = new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO, this.cSearch);
+        new CSignup(this.vMain, this.vSignup, this.lectureDAO, this.userDAO);
+        this.cMain = new CMain(this.vMain, this.mMain, this.userDAO, this.cSearch, this.cRegister, this.cPreRegister, this.cSchedule);
+        cLogin.setCMain(this.cMain);
     }
     
     /**
@@ -115,7 +119,6 @@ public class RMain {
     	this.vMain.contentPanel("loginPanel");
         this.vMain.setVisible(true);
     }
-       
     /**
      * 프로그램의 메인 진입점입니다.
      * @param args (사용되지 않음)

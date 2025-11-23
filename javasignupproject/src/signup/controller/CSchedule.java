@@ -54,8 +54,14 @@ public class CSchedule {
         // 1. 테이블 초기화 (그림 지우기)
         vSchedule.clearTable();
         // 2. 데이터 가져오기
-        List<MLecture> lectures = saveDAO.getLecturesByStatus(userId, status);
-        // 3. 시간표 파싱 및 그리기 (뷰에게 위임)
-        vSchedule.updateSchedule(lectures);
+        new Thread(() -> {
+            // (이 작업은 백그라운드에서 실행되므로 메인 화면을 멈추지 않습니다)
+            List<MLecture> lectures = saveDAO.getLecturesByStatus(userId, status);
+            
+            // 3. 데이터가 도착하면 화면을 그립니다. (반드시 UI 스레드에서 실행)
+            vSchedule.updateSchedule(lectures);
+
+            
+        }).start();
     }
 }

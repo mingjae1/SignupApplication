@@ -63,7 +63,9 @@ public class CSignup {
         this.vSignup.getComboCollege().addActionListener(this::handleCollegeSelect);
 
         // 3. 컨트롤러가 생성될 때 뷰에 초기 캠퍼스 목록을 로드
-        loadInitialCampusData();
+        new Thread(() -> {
+            loadInitialCampusData();
+        }).start();
     }
     
     

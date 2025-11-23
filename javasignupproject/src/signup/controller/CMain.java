@@ -212,7 +212,7 @@ public class CMain {
             // 필요 시 vMain 갱신
             SwingUtilities.updateComponentTreeUI(vMain);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            JOptionPane.showMessageDialog(vMain, "테마 변경 중 오류가 발생했습니다: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
 

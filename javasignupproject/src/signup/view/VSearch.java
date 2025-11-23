@@ -199,7 +199,7 @@ public class VSearch extends JPanel {
 	/**
      * CSearch 컨트롤러로부터 모드를 전달받아,
      * "수강신청" 버튼의 활성화/비활성화 상태를 제어합니다.
-     * @param mode "REGISTER" (모두 활성화) 또는 "BASKET" (미리담기만 활성화)
+     * @param mode "REGISTER" (모두 활성화) 또는 "PREREGISTER" (미리담기만 활성화)
      */
     public void setMode(String mode) {
         if (mode.equals("PREREGISTER")) {

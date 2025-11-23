@@ -96,7 +96,7 @@ public class RMain {
         // (VMain.java에 getPanel() Getter가 필요합니다)
         this.vMain.getPanel().add(this.vSearch, "searchPanel");
         this.vMain.getPanel().add(this.vRegister, "registerPanel");
-        this.vMain.getPanel().add(this.vPreRegister, "preregisterPanel");
+        this.vMain.getPanel().add(this.vPreRegister, "preRegisterPanel");
         // (참고: vRegisterPanel, vBasketPanel은 VMain이 자체적으로 생성함)
         
 

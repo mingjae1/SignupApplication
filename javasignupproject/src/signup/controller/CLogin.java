@@ -70,14 +70,13 @@ public class CLogin {
                 mMain.setCurrentUserId(id); 
                 JOptionPane.showMessageDialog(vLogin, userName + "님, 환영합니다!", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
                 
-                cMain.refreshUserInfo();
-                
                 vLogin.clearFields();
                 vMain.setSize(1280, 800);
                 vMain.setLocationRelativeTo(null);
                 
-                this.cSearch.loadInitialCollegeData(); 
-                vMain.contentPanel("searchPanel"); 
+                this.cSearch.loadInitialCollegeData();
+                this.cMain.refreshUserInfo();
+                this.cMain.resetNavigation("searchPanel");
 
             } else {
                 // 2. [요청사항 1] 아이디/비밀번호가 틀린 경우 (DAO가 null을 반환)

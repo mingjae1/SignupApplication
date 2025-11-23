@@ -18,50 +18,45 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 /**
- * VMain(메인 뷰)의 툴바 기능(이전, 다음, 새로고침, 패널 전환)을 제어하는 컨트롤러입니다.
- * CardLayout의 패널 전환 히스토리(History)를 스택으로 관리합니다.
+ * VMain(메인 뷰)의 툴바 및 네비게이션을 제어하는 컨트롤러입니다.
+ * 사이드바 메뉴, 테마 변경, 로그아웃 등의 전역 기능을 담당합니다.
  */
 public class CMain {
 
-    // 뷰
+    // --- 뷰 & 모델 ---
     private VMain vMain;
-    
-    // 모델
     private MMain mMain;
     
-    
-    // CMain이 제어해야 할 다른 컨트롤러
+    // --- 하위 컨트롤러 ---
     private CSearch cSearch; 
     private CRegister cRegister;
     private CPreRegister cPreRegister;
     private CSchedule cSchedule;
 
-    private UserDAO userDAO = new UserDAO();
+    // --- DAO ---
+    private UserDAO userDAO;
     
-    // 네비게이션 히스토리 관리용 스택
+    // --- 네비게이션 ---
     private Deque<String> previousStack;
     private Deque<String> forwardStack; 
     private String currentPanel;
     
-    // CardLayout 패널 이름 상수
+    // 패널 상수
     private static final String PANEL_REGISTER = "registerPanel";
-    private static final String PANEL_PREREGISTER = "preregisterPanel";
+    private static final String PANEL_PREREGISTER = "preRegisterPanel";
     private static final String PANEL_SEARCH = "searchPanel"; 
-
+    private static final String PANEL_LOGIN = "loginPanel";
+    
     /**
-     * CMain 컨트롤러를 생성합니다.
-     * RMain으로부터 뷰, 모델, DAO 및 CSearch 컨트롤러를 주입받습니다.
-     * @param vMain 제어할 메인 뷰 (VMain)
-     * @param mMain 현재 로그인한 사용자 ID를 가져올 메인 모델 (MMain)
-     * @param userDAO 
-     * @param saveDAO 수강/미리담기 내역을 처리할 SaveDAO
-     * @param cSearch '새로고침' 시 제어할 CSearch 컨트롤러
-     * @param vPreRegister 수강신청 목록화면
-     * @param vRegister 미리담기 목록화면
+     * CMain 생성자: 모든 의존성을 주입받고 리스너를 설정합니다.
      */
-    public CMain(VMain vMain, MMain mMain, UserDAO userDAO, CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule) {
+    public CMain(VMain vMain, MMain mMain, UserDAO userDAO, 
+                 CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule) {
         this.vMain = vMain;
         this.mMain = mMain;
+        
+		this.userDAO = userDAO;
+        
         this.cSearch = cSearch;
         this.cRegister = cRegister;
         this.cPreRegister = cPreRegister;
@@ -70,39 +65,77 @@ public class CMain {
         this.previousStack = new ArrayDeque<>();
         this.forwardStack = new ArrayDeque<>();
         
-        // 로그인 성공 시 CLogin이 'searchPanel'로 이동시키므로, 초기 패널을 'searchPanel'로 설정
-        this.currentPanel = PANEL_SEARCH; 
+        // 초기 상태: 로그인 화면
+        this.currentPanel = PANEL_LOGIN; 
 
-        // 툴바 버튼 리스너 연결
-        this.vMain.getSearchbt().addActionListener(e -> { cSearch.setMode("REGISTER"); navigateTo(PANEL_SEARCH); });
-        this.vMain.getRegisterbt().addActionListener(e -> navigateTo(PANEL_REGISTER));
-        this.vMain.getPreRegisterbt().addActionListener(e -> navigateTo(PANEL_PREREGISTER));
-        this.vMain.getScheduleButton().addActionListener(e -> this.cSchedule.showSchedule());
+        // --- 1. 상단 헤더 리스너 ---
+        this.vMain.getMenuToggleButton().addActionListener(e -> vMain.toggleSidebar());
         this.vMain.getBeforeButton().addActionListener(this::handlePrevious);
         this.vMain.getAfterButton().addActionListener(this::handleNext);
-		this.vMain.getRefreshButton().addActionListener(this::handleRefresh);
-		this.vMain.getLogoutButton().addActionListener(this::handleLogout);
-		this.vMain.getThemeCombo().addActionListener(this::handleThemeChange);
-		this.vMain.getMyinfoButton().addActionListener(this::handleMyInfo);
+        this.vMain.getRefreshButton().addActionListener(this::handleRefresh);
+        this.vMain.getLogoutButton().addActionListener(this::handleLogout);
+
+        // --- 2. 사이드바 메뉴 리스너 ---
+        // 강좌 검색
+        this.vMain.getBtnSideSearch().addActionListener(e -> { 
+            cSearch.setMode("REGISTER"); 
+            navigateTo(PANEL_SEARCH); 
+        });
+        
+        // 수강신청 내역
+        this.vMain.getBtnSideRegister().addActionListener(e -> {
+        	cSearch.setMode("REGISTER");
+        	navigateTo(PANEL_REGISTER);
+        	});
+        
+        // 미리담기 내역
+        this.vMain.getBtnSidePreRegister().addActionListener(e -> { 
+        	cSearch.setMode("PREREGISTER");
+        	navigateTo(PANEL_PREREGISTER);
+        });
+        
+        // 시간표 (팝업)
+        this.vMain.getBtnSideTimeTable().addActionListener(e -> this.cSchedule.showSchedule());
+        
+        // 내 정보 (팝업)
+        this.vMain.getBtnSideMyInfo().addActionListener(this::handleMyInfo);
+        
+        // 테마 변경 (토글)
+        this.vMain.getBtnSideTheme().addActionListener(this::handleThemeChange);
+
         updateNavigationButtons();
     }
 
     /**
-     * 툴바 버튼 클릭 시, 해당 패널로 이동하고 데이터를 즉시 로드합니다.
-     * @param panelName VMain에 보여줄 패널의 이름
+     * 로그인 성공 시 호출되어 네비게이션을 초기화하고 홈 화면으로 이동합니다.
+     */
+    public void resetNavigation(String panelName) {
+        previousStack.clear();
+        forwardStack.clear();
+        
+        currentPanel = panelName;
+        vMain.contentPanel(panelName);
+        
+        updateNavigationButtons();
+    }
+
+    /**
+     * 패널 이동 및 데이터 로드 로직
      */
     private void navigateTo(String panelName) {
-    	if (panelName.equals("loginPanel")) return;
-        // 1. 패널 이동 로직 (현재 패널과 다른 패널을 눌렀을 때만 히스토리 기록)
+        if (panelName.equals(PANEL_LOGIN)) return;
+        
         if (!panelName.equals(currentPanel)) {
-            previousStack.push(currentPanel);
+        	if(!PANEL_LOGIN.equals(currentPanel)) {
+        		previousStack.push(currentPanel);
+        	}
             currentPanel = panelName;
-            vMain.contentPanel(panelName); // 뷰(VMain)에 화면 전환 요청
-            forwardStack.clear(); // '다음' 스택은 초기화
+            vMain.contentPanel(panelName);
+            forwardStack.clear();
             updateNavigationButtons();
         }
         
-        // 2. 패널 이동 후 즉시 데이터 로드
+        // 패널별 데이터 새로고침
         switch (panelName) {
             case PANEL_REGISTER:
                 refreshRegisterPanel();
@@ -110,32 +143,31 @@ public class CMain {
             case PANEL_PREREGISTER:
                 refreshPreRegisterPanel();
                 break;
-            default :	
-                break;
+            // 검색 패널은 조회 버튼이 있으므로 자동 로드 생략
+            default: break;
         }
     }
 
-    // 이전버튼 핸들러
+    // --- 핸들러 메서드 ---
+
     private void handlePrevious(ActionEvent e) {
         if (!previousStack.isEmpty()) {
-            forwardStack.push(currentPanel); // 현재 패널을 '다음' 스택에 추가
-            currentPanel = previousStack.pop(); // '이전' 스택에서 패널 가져오기
-            vMain.contentPanel(currentPanel); 
+            forwardStack.push(currentPanel);
+            currentPanel = previousStack.pop();
+            vMain.contentPanel(currentPanel);
             updateNavigationButtons();
         }
     }
 
-    // 다음버튼 핸들러
     private void handleNext(ActionEvent e) {
         if (!forwardStack.isEmpty()) {
-            previousStack.push(currentPanel); // 현재 패널을 '이전' 스택에 추가
-            currentPanel = forwardStack.pop(); // '다음' 스택에서 패널 가져오기
-            vMain.contentPanel(currentPanel); 
+            previousStack.push(currentPanel);
+            currentPanel = forwardStack.pop();
+            vMain.contentPanel(currentPanel);
             updateNavigationButtons();
         }
     }
 
-    // 새로고침 핸들러
     private void handleRefresh(ActionEvent e) {
         switch (currentPanel) {
             case PANEL_REGISTER:
@@ -145,95 +177,46 @@ public class CMain {
                 refreshPreRegisterPanel();
                 break;
             case PANEL_SEARCH:
-                // VSearch의 "조회" 버튼을 프로그래밍적으로 클릭하여 새로고침
-            	this.cSearch.refreshSearch(); 
+                this.cSearch.refreshSearch();
                 break;
-            default:
-                
-                break;
+            default: break;
         }
     }
-    // 로그아웃 핸들러
+
     public void handleLogout(ActionEvent e) {
-    	// 1. MMain 모델의 현재 사용자 ID를 null로 초기화
         mMain.setCurrentUserId(null);
+        vMain.setMyNameLabel(""); // 이름 지우기
         
-        // 2. VMain(프레임)의 창 크기를 원래 로그인 창 크기로 복구
+        // 창 크기 복구
         vMain.setSize(420, 320);
-        vMain.setLocationRelativeTo(null); // 화면 중앙 정렬
+        vMain.setLocationRelativeTo(null);
         
-        // 3. 메인 뷰(CardLayout)를 "loginPanel"로 전환
-        vMain.contentPanel("loginPanel");
+        // 로그인 화면으로 이동
+        vMain.contentPanel(PANEL_LOGIN);
         
-        // (선택사항) 히스토리 스택 초기화
+        // 히스토리 초기화
         previousStack.clear();
         forwardStack.clear();
         updateNavigationButtons();
-        currentPanel = "loginPanel"; // 현재 패널 상태도 업데이트
-	}
-
-    // --- 데이터 로딩 헬퍼(Helper) 메서드 ---
-    
-    // '수강신청 내역' 패널의 데이터를 새로고침합니다.
-    private void refreshRegisterPanel() {
-        String currentUserId = mMain.getCurrentUserId();
-        if (currentUserId == null) {
-            JOptionPane.showMessageDialog(vMain, "로그인이 필요합니다.", "오류", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        // CRegister에게 새로고침을 '요청'합니다.
-        this.cRegister.refreshTable();
-    }
-
-    //'미리담기 내역' 패널의 데이터를 새로고침합니다.
-    private void refreshPreRegisterPanel() {
-        String currentUserId = mMain.getCurrentUserId();
-        if (currentUserId == null) {
-            JOptionPane.showMessageDialog(vMain, "로그인이 필요합니다.", "오류", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        // CPreRegister에게 새로고침을 '요청'합니다.
-        this.cPreRegister.refreshTable();
-    }
-
-    // '이전' 및 '다음' 버튼의 활성화/비활성화 상태를 스택 크기에 따라 업데이트합니다.
-    private void updateNavigationButtons() {
-        vMain.getBeforeButton().setEnabled(!previousStack.isEmpty());
-        vMain.getAfterButton().setEnabled(!forwardStack.isEmpty());
-        
+        currentPanel = PANEL_LOGIN;
     }
     
     private void handleThemeChange(ActionEvent e) {
-        String selectedTheme = (String) vMain.getThemeCombo().getSelectedItem();
-        
         try {
-            if ("다크 테마".equals(selectedTheme)) {
-                UIManager.setLookAndFeel(new FlatDarkLaf());
-            } else {
+            if (FlatLaf.isLafDark()) {
                 UIManager.setLookAndFeel(new FlatLightLaf());
+            } else {
+                UIManager.setLookAndFeel(new FlatDarkLaf());
             }
-
-            FlatLaf.updateUI(); 
-            SwingUtilities.updateComponentTreeUI(vMain); 
+            FlatLaf.updateUI();
+            // 필요 시 vMain 갱신
+            SwingUtilities.updateComponentTreeUI(vMain);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
-    
-    public void refreshUserInfo() {
-        String userId = mMain.getCurrentUserId();
-        if (userId != null) {
-            // 간단하게 이름만 가져오기 위해 UserDAO 활용 (또는 validateUser 결과를 재사용 가능하지만, 여기선 조회)
-            MUser user = userDAO.getUserInfo(userId);
-            if (user != null) {
-                vMain.setMyNameLabel(user.getName());
-            }
-        } else {
-            vMain.setMyNameLabel(null); // 로그아웃 시 공란
-        }
-    }
-    
-    public void handleMyInfo(ActionEvent e) {
+
+    private void handleMyInfo(ActionEvent e) {
         String userId = mMain.getCurrentUserId();
         if (userId == null) return;
         
@@ -241,8 +224,7 @@ public class CMain {
         
         if (user != null) {
             String message = "<html><body style='width: 200px'>" +
-                             "<h2>내 정보</h2>" +
-                             "<hr>" +
+                             "<h2>내 정보</h2><hr>" +
                              "<b>이름:</b> " + user.getName() + "<br>" +
                              "<b>학번:</b> " + user.getCode() + "<br>" +
                              "<b>ID:</b> " + user.getUserid() + "<br>" +
@@ -251,9 +233,39 @@ public class CMain {
                              user.getCampus() + " / " + user.getCollege() + "<br>" +
                              user.getDepartment() +
                              "</body></html>";
-                             
             JOptionPane.showMessageDialog(vMain, message, "학적 사항", JOptionPane.INFORMATION_MESSAGE);
         }
     }
     
+    // 로그인 시 이름 표시 업데이트 (외부 호출용)
+    public void refreshUserInfo() {
+        String userId = mMain.getCurrentUserId();
+        if (userId != null) {
+            MUser user = userDAO.getUserInfo(userId);
+            if (user != null) {
+                vMain.setMyNameLabel(user.getName());
+            }
+        } else {
+            vMain.setMyNameLabel(null);
+        }
+    }
+
+    // --- Helper Methods ---
+    
+    private void refreshRegisterPanel() {
+        String userId = mMain.getCurrentUserId();
+        if (userId == null) return;
+        this.cRegister.refreshTable();
+    }
+
+    private void refreshPreRegisterPanel() {
+        String userId = mMain.getCurrentUserId();
+        if (userId == null) return;
+        this.cPreRegister.refreshTable();
+    }
+
+    private void updateNavigationButtons() {
+        vMain.getBeforeButton().setEnabled(!previousStack.isEmpty());
+        vMain.getAfterButton().setEnabled(!forwardStack.isEmpty());
+    }
 }

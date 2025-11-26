@@ -5,16 +5,21 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -28,17 +33,18 @@ import signup.model.MLecture;
 public class VSchedule extends JDialog {
 	private static final long serialVersionUID = 1L;
     
-    private JRadioButton radioRegister; 
-    private JRadioButton radioBasket;   
+    private JRadioButton RegSchedulButton; 
+    private JRadioButton PreRegScheduleButton;
+    private JButton SaveImageButton; // 이미지 저장 버튼
     private TimetablePanel timetablePanel; // 시간표를 직접 그릴 패널
     private String FONT = "SansSerif";
-
+    private static final Logger logger = Logger.getLogger(VSchedule.class.getName());
 
     
-    public VSchedule(JFrame owner) {
-        super(owner, "내 시간표", false); 
+    public VSchedule(JFrame vSchedule) {
+        super(vSchedule, "내 시간표", false); 
         setSize(600, 800); // 세로로 좀 더 길게
-        setLocationRelativeTo(owner); 
+        setLocationRelativeTo(vSchedule); 
         setLayout(new BorderLayout());
         setResizable(false);
         
@@ -46,19 +52,24 @@ public class VSchedule extends JDialog {
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-        radioRegister = new JRadioButton("수강신청 시간표");
-        radioBasket = new JRadioButton("미리담기 시간표");
+        RegSchedulButton = new JRadioButton("수강신청 시간표");
+        PreRegScheduleButton = new JRadioButton("미리담기 시간표");
         
         ButtonGroup group = new ButtonGroup();
-        group.add(radioRegister);
-        group.add(radioBasket);
+        group.add(RegSchedulButton);
+        group.add(PreRegScheduleButton);
         
-        radioRegister.setSelected(true);
-		radioRegister.setFont(new Font(FONT, Font.BOLD, 14));
-        radioBasket.setFont(new Font(FONT, Font.BOLD, 14));
-
-        topPanel.add(radioRegister);
-        topPanel.add(radioBasket);
+        RegSchedulButton.setSelected(true);
+		RegSchedulButton.setFont(new Font(FONT, Font.BOLD, 14));
+        PreRegScheduleButton.setFont(new Font(FONT, Font.BOLD, 14));
+        
+        SaveImageButton = new JButton("이미지 저장 📸");
+        SaveImageButton.setFocusPainted(false);
+        
+        topPanel.add(RegSchedulButton);
+        topPanel.add(PreRegScheduleButton);
+        topPanel.add(new JLabel("  |  ")); // 구분선
+        topPanel.add(SaveImageButton);
         
         add(topPanel, BorderLayout.NORTH);
 
@@ -71,6 +82,8 @@ public class VSchedule extends JDialog {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    
+    
     
     /**
      * 내부 클래스: 실제 시간표 그림을 그리는 패널
@@ -180,13 +193,12 @@ public class VSchedule extends JDialog {
             }
         }
 
-        // [핵심 수정] 시간 계산 로직 점검
+     // 시간표 블럭과 강의 내용 텍스트 그리기
         private void drawLectureBlock(Graphics2D g2, MLecture lecture, int dayWidth, Color color, boolean isDark) {
-            String timeStr = lecture.getSchedule(); // "월수0900-1015"
+            String timeStr = lecture.getSchedule(); 
             if (timeStr == null || timeStr.length() < 5) return;
             
             try {
-                // 1. 파싱 (이전과 동일)
                 String dayStr = timeStr.replaceAll("[0-9\\-]", ""); 
                 String timePart = timeStr.replaceAll("[^0-9\\-]", ""); 
                 String[] times = timePart.split("-");
@@ -196,18 +208,43 @@ public class VSchedule extends JDialog {
                 int endH = Integer.parseInt(times[1].substring(0, 2));
                 int endM = Integer.parseInt(times[1].substring(2));
 
-                // 2. [정밀 계산] 분 단위 -> 픽셀 변환
-                // 09:00부터 흐른 시간을 분 단위로 계산
                 double pixelsPerMinute = (double)HOUR_HEIGHT / 60.0;
                 int startTotalMinutes = (startH - START_HOUR) * 60 + startM;
                 int endTotalMinutes = (endH - START_HOUR) * 60 + endM;
                 
                 int startY = HEADER_HEIGHT + (int)(startTotalMinutes * pixelsPerMinute);
                 int endY = HEADER_HEIGHT + (int)(endTotalMinutes * pixelsPerMinute);
-                
                 int blockHeight = endY - startY;
 
-                // 3. 그리기
+                // 폰트 설정 (미리 설정해야 FontMetrics 계산 가능)
+                int fontSize = 12;
+                if (blockHeight < 40) fontSize = 10;
+                Font nameFont = new Font(FONT, Font.BOLD, fontSize);
+                g2.setFont(nameFont);
+
+                // [핵심 추가] 텍스트 줄바꿈 계산
+                String name = lecture.getName();
+                String line1 = name;
+                String line2 = "";
+                
+                // 텍스트 너비 측정 도구
+                FontMetrics fm = g2.getFontMetrics();
+                int textWidth = fm.stringWidth(name);
+                int padding = 10; // 좌우 여백
+                int maxWidth = dayWidth - padding;
+                
+                // 이름이 칸보다 길면 자르기
+                if (textWidth > maxWidth) {
+                    // 대략적인 자를 위치 추정 (평균 글자 너비 이용)
+                    int charWidth = fm.charWidth('가'); // 한글 기준
+                    int maxChars = maxWidth / charWidth;
+                    
+                    if (maxChars < name.length()) {
+                        line1 = name.substring(0, maxChars);
+                        line2 = name.substring(maxChars);
+                    }
+                }
+
                 for (char day : dayStr.toCharArray()) {
                     int dayIdx = getDayIndex(day);
                     if (dayIdx == -1) continue;
@@ -218,36 +255,42 @@ public class VSchedule extends JDialog {
                     g2.setColor(color);
                     g2.fillRoundRect(x + 2, startY + 1, dayWidth - 4, blockHeight - 2, 8, 8);
                     
-                    // 텍스트 그리기 
-                    // 다크 모드 -> 흰색 글씨 (배경이 어두움)
-                    // 라이트 모드 -> 검정 글씨 (배경이 밝음)
+                    // 텍스트 색상 설정
                     Color mainTextColor = isDark ? Color.WHITE : Color.BLACK;
                     Color subTextColor = isDark ? new Color(220, 220, 220) : new Color(60, 60, 60);
                     Color timeColor = isDark ? new Color(200, 200, 200) : new Color(80, 80, 80);
-                    
+
                     g2.setColor(mainTextColor);
+                    g2.setFont(nameFont);
                     
-                    int fontSize = 13;
-                    if (blockHeight < 40) fontSize = 10;
-                    // 과목명
-                    g2.setFont(new Font(FONT, Font.BOLD, fontSize));
-                    g2.drawString(lecture.getName(), x + 5, startY + 25);
-                    
-                    // 교수명 
-                    if (blockHeight > 45) {
-                         g2.setFont(new Font(FONT, Font.PLAIN, fontSize - 2));
-                         g2.setColor(subTextColor);
-                         g2.drawString(lecture.getProfessor(), x + 5, startY + 45);
+                    // [수정] 과목명 그리기 (줄바꿈 처리)
+                    if (line2.isEmpty()) {
+                        // 한 줄일 때 (기존 위치: +25)
+                        g2.drawString(line1, x + 5, startY + 25);
+                    } else {
+                        // 두 줄일 때 (위로 조금 올려서 2줄 그림)
+                        g2.drawString(line1, x + 5, startY + 20);
+                        g2.drawString(line2, x + 5, startY + 35);
                     }
                     
-                    // 시간 텍스트 
-                    if (blockHeight > 55) {
+                    // 교수명 (공간 체크)
+                    // 두 줄일 경우 공간을 더 많이 차지하므로 조건 강화
+                    int profY = line2.isEmpty() ? 45 : 55; // 교수명 Y 위치 조정
+                    if (blockHeight > (line2.isEmpty() ? 45 : 60)) {
+                         g2.setFont(new Font(FONT, Font.PLAIN, fontSize - 2));
+                         g2.setColor(subTextColor);
+                         g2.drawString(lecture.getProfessor(), x + 5, startY + profY);
+                    }
+                    
+                    // 시간 텍스트
+                    int timeY = line2.isEmpty() ? 60 : 70; // 시간 Y 위치 조정
+                    if (blockHeight > (line2.isEmpty() ? 55 : 70)) {
                         g2.setColor(timeColor);
-                        g2.drawString(String.format("%02d:%02d~%02d:%02d", startH, startM, endH, endM), x + 5, startY + 60);
+                        g2.drawString(String.format("%02d:%02d~%02d:%02d", startH, startM, endH, endM), x + 5, startY + timeY);
                     }
                 }
             } catch (Exception e) {
-            	
+                logger.log(Level.WARNING, "강의 시간 파싱 오류: " + timeStr, e);
             }
         }
         
@@ -275,7 +318,9 @@ public class VSchedule extends JDialog {
     }
     
     // --- Getters & Methods ---
-    public JRadioButton getRadioRegister() { return radioRegister; }
-    public JRadioButton getRadioBasket() { return radioBasket; }
+    public JRadioButton getRadioRegister() { return RegSchedulButton; }
+    public JRadioButton getRadioBasket() { return PreRegScheduleButton; }
+    public JButton getSaveImageButton() { return SaveImageButton; }
+    public JPanel getTimetablePanel() { return timetablePanel; }
     
 }

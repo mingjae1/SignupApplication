@@ -1,7 +1,17 @@
 package signup.controller;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 
+import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import signup.dao.SaveDAO;
 import signup.model.MLecture;
@@ -22,6 +32,7 @@ public class CSchedule {
         // 팝업창 내부의 라디오 버튼 리스너 연결
         this.vSchedule.getRadioRegister().addActionListener(e -> loadSchedule("reg"));
         this.vSchedule.getRadioBasket().addActionListener(e -> loadSchedule("pre"));
+        this.vSchedule.getSaveImageButton().addActionListener(e -> saveAsImage());
     }
 
     /**
@@ -63,5 +74,49 @@ public class CSchedule {
 
             
         }).start();
+    }
+    
+    /**
+     * [이동됨] 현재 그려진 시간표 패널을 이미지 파일(.png)로 저장합니다.
+     */
+    private void saveAsImage() {
+        // 1. 저장할 파일 선택 (JFileChooser)
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("시간표 이미지 저장");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG 이미지 (*.png)", "png"));
+        fileChooser.setSelectedFile(new File("내시간표.png"));
+
+        // vSchedule(팝업창)을 부모로 하여 다이얼로그를 띄움
+        int userSelection = fileChooser.showSaveDialog(vSchedule);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            // 확장자(.png) 자동 추가
+            if (!fileToSave.getName().toLowerCase().endsWith(".png")) {
+                fileToSave = new File(fileToSave.getParentFile(), fileToSave.getName() + ".png");
+            }
+
+            try {
+                // 2. 뷰에서 시간표 패널(JPanel)을 가져옴
+                JPanel panel = vSchedule.getTimetablePanel();
+                
+                // 3. 패널 크기만큼의 빈 이미지 버퍼 생성
+                BufferedImage image = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
+                
+                // 4. 패널의 그림을 이미지 버퍼에 그림 (캡처)
+                Graphics2D g2 = image.createGraphics();
+                panel.print(g2); // paint() 대신 print() 사용 (더 안정적)
+                g2.dispose();
+
+                // 5. 파일로 저장
+                ImageIO.write(image, "png", fileToSave);
+                
+                JOptionPane.showMessageDialog(vSchedule, "시간표가 저장되었습니다!\n" + fileToSave.getAbsolutePath(), "저장 완료", JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(vSchedule, "저장 중 오류가 발생했습니다.", "실패", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }

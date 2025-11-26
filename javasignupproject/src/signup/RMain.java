@@ -6,6 +6,7 @@ import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
+import signup.controller.CAdmin;
 // 컨트롤러
 import signup.controller.CLogin;
 import signup.controller.CMain;
@@ -22,7 +23,7 @@ import signup.dao.UserDAO;
 
 // 모델 (DTO 및 상태)
 import signup.model.MMain;
-
+import signup.view.VAdmin;
 // 뷰 (GUI)
 import signup.view.VLogin;
 import signup.view.VMain;
@@ -47,6 +48,7 @@ public class RMain {
     private VRegister vRegister;
     private VPreRegister vPreRegister;
     private VSchedule vSchedule;
+    private VAdmin vAdmin;
     
     // --- 2. 모델 (전역 상태) ---
     private MMain mMain;
@@ -64,7 +66,7 @@ public class RMain {
     private CSchedule cSchedule;
     private CMain cMain;
     private CLogin cLogin;
-    
+    private CAdmin cAdmin;
     
     /**
      * RMain 생성자:
@@ -85,7 +87,7 @@ public class RMain {
         this.vRegister = new VRegister();
         this.vPreRegister = new VPreRegister();
         this.vSchedule = new VSchedule(this.vMain);
-        
+        this.vAdmin = new VAdmin(this.vMain);
         
         // --- 3. 뷰 조립 ---
         // VMain(메인 프레임)의 메인 CardLayout에 패널 추가
@@ -93,11 +95,10 @@ public class RMain {
         this.vMain.addPanel(this.vSignup, "signupPanel");
         
         // VMain 내부의 컨텐츠 CardLayout에 패널 추가
-        // (VMain.java에 getPanel() Getter가 필요합니다)
         this.vMain.getPanel().add(this.vSearch, "searchPanel");
         this.vMain.getPanel().add(this.vRegister, "registerPanel");
         this.vMain.getPanel().add(this.vPreRegister, "preRegisterPanel");
-        // (참고: vRegisterPanel, vBasketPanel은 VMain이 자체적으로 생성함)
+        
         
 
         // --- 4. 컨트롤러 생성 (의존성 주입) ---
@@ -106,9 +107,11 @@ public class RMain {
         this.cSchedule = new CSchedule(this.vSchedule, this.mMain, this.saveDAO);
         this.cRegister = new CRegister(this.vRegister, this.mMain, this.saveDAO);
         this.cPreRegister = new CPreRegister(this.vPreRegister, this.mMain, this.saveDAO);
-        this.cLogin = new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO, this.cSearch);
+        this.cAdmin = new CAdmin(this.vAdmin, this.lectureDAO);
+        this.cMain = new CMain(this.vMain, this.mMain, this.userDAO, this.cSearch, this.cRegister, this.cPreRegister, this.cSchedule, this.cAdmin);
+        this.cLogin = new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO, this.cSearch, this.cAdmin);
         new CSignup(this.vMain, this.vSignup, this.lectureDAO, this.userDAO);
-        this.cMain = new CMain(this.vMain, this.mMain, this.userDAO, this.cSearch, this.cRegister, this.cPreRegister, this.cSchedule);
+        
         cLogin.setCMain(this.cMain);
     }
     

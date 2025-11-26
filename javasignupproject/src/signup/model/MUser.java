@@ -14,7 +14,7 @@ public class MUser {
     private int campusId;
     private int collegeId;
     private int departmentId;
-    
+    private String role;
     private String campus;      // 캠퍼스 이름
     private String college;     // 단과대학 이름
     private String department;  // 학과 이름
@@ -23,11 +23,12 @@ public class MUser {
     public MUser() {}
     
     // (필요에 따라) 모든 필드를 받는 생성자
-    public MUser(String userid, String name, int code, String email, int campusId, int collegeId, int departmentId) {
+    public MUser(String userid, String name, int code, String email, int campusId, int collegeId, int departmentId, String role) {
     	this.userid = userid;
     	this.name = name;
     	this.code = code;
     	this.email = email;
+    	this.role = role;
     	this.campusId = campusId;
     	this.collegeId = collegeId;
     	this.departmentId = departmentId;
@@ -46,6 +47,9 @@ public class MUser {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
     
     public int getCampusId() { return campusId; }
     public void setCampusId(int campusId) { this.campusId = campusId; }

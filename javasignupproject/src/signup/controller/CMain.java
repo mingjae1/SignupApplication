@@ -32,7 +32,7 @@ public class CMain {
     private CRegister cRegister;
     private CPreRegister cPreRegister;
     private CSchedule cSchedule;
-
+    private CAdmin cAdmin;
     // --- DAO ---
     private UserDAO userDAO;
     
@@ -46,12 +46,14 @@ public class CMain {
     private static final String PANEL_PREREGISTER = "preRegisterPanel";
     private static final String PANEL_SEARCH = "searchPanel"; 
     private static final String PANEL_LOGIN = "loginPanel";
+    private static final String PANEL_ADMIN = "adminPanel";
     
     /**
      * CMain 생성자: 모든 의존성을 주입받고 리스너를 설정합니다.
+     * @param cAdmin 
      */
     public CMain(VMain vMain, MMain mMain, UserDAO userDAO, 
-                 CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule) {
+                 CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule, CAdmin cAdmin) {
         this.vMain = vMain;
         this.mMain = mMain;
         
@@ -61,6 +63,7 @@ public class CMain {
         this.cRegister = cRegister;
         this.cPreRegister = cPreRegister;
         this.cSchedule = cSchedule;
+        this.cAdmin = cAdmin;
 
         this.previousStack = new ArrayDeque<>();
         this.forwardStack = new ArrayDeque<>();
@@ -74,7 +77,7 @@ public class CMain {
         this.vMain.getAfterButton().addActionListener(this::handleNext);
         this.vMain.getRefreshButton().addActionListener(this::handleRefresh);
         this.vMain.getLogoutButton().addActionListener(this::handleLogout);
-
+        
         // --- 2. 사이드바 메뉴 리스너 ---
         // 강좌 검색
         this.vMain.getBtnSideSearch().addActionListener(e -> { 
@@ -92,6 +95,11 @@ public class CMain {
         this.vMain.getBtnSidePreRegister().addActionListener(e -> { 
         	cSearch.setMode("PREREGISTER");
         	navigateTo(PANEL_PREREGISTER);
+        });
+        
+        // 관리자 모드
+        this.vMain.getBtnSideAdmin().addActionListener(e -> {
+            this.cAdmin.showAdminDialog(); 
         });
         
         // 시간표 (팝업)
@@ -118,7 +126,11 @@ public class CMain {
         
         updateNavigationButtons();
     }
-
+    // 관리자 모드 버튼 표시/숨김
+    public void setAdminMode(boolean isAdmin) {
+        vMain.getBtnSideAdmin().setVisible(isAdmin);
+    }
+    
     /**
      * 패널 이동 및 데이터 로드 로직
      */
@@ -143,6 +155,10 @@ public class CMain {
             case PANEL_PREREGISTER:
                 refreshPreRegisterPanel();
                 break;
+                
+            case PANEL_ADMIN:
+				cAdmin.loadAllLectures();
+				break;
             // 검색 패널은 조회 버튼이 있으므로 자동 로드 생략
             default: break;
         }
@@ -186,7 +202,7 @@ public class CMain {
     public void handleLogout(ActionEvent e) {
         mMain.setCurrentUserId(null);
         vMain.setMyNameLabel(""); // 이름 지우기
-        
+        setAdminMode(false);
         // 창 크기 복구
         vMain.setSize(420, 320);
         vMain.setLocationRelativeTo(null);

@@ -50,6 +50,7 @@ public class VMain extends JFrame {
     private JButton btnSideTimeTable; // 시간표
     private JButton btnSideMyInfo;    // 내 정보
     private JButton btnSideTheme;     // 테마 변경
+    private JButton btnSideAdmin;     // 강의 관리 (관리자 전용)
     
     // (참고: 테마 변경용 콤보박스는 사이드바 버튼 토글 방식으로 대체됨)
     private JComboBox<String> themeCombo; 
@@ -159,6 +160,8 @@ public class VMain extends JFrame {
         btnSideTimeTable = createSidebarButton("📅  시간표");
         btnSideMyInfo = createSidebarButton("👤  내 정보");
         btnSideTheme = createSidebarButton("🌗  테마 변경");
+        btnSideAdmin = createSidebarButton("⚙️  강의 관리");
+        btnSideAdmin.setVisible(false);
         
         menuContainer.add(btnSideSearch);
         menuContainer.add(btnSideRegister);
@@ -167,7 +170,8 @@ public class VMain extends JFrame {
         menuContainer.add(btnSideMyInfo);
         menuContainer.add(new JLabel(" ")); // 공백
         menuContainer.add(btnSideTheme);
-        
+        menuContainer.add(new JLabel(" ")); // 공백
+        menuContainer.add(btnSideAdmin);
         // 위쪽 정렬을 위해 상단에 배치
         sidebarPanel.add(menuContainer, BorderLayout.NORTH);
 
@@ -212,7 +216,7 @@ public class VMain extends JFrame {
      */
     public void contentPanel(String panelName) {
         if (panelName.equals("registerPanel") || panelName.equals("preRegisterPanel") || 
-            panelName.equals("searchPanel") || panelName.equals("schedulePanel")) {
+            panelName.equals("searchPanel") || panelName.equals("schedulePanel") || panelName.equals("adminPanel")) {
             cardLayout.show(mainCardPanel, "mainContentPanel");
             contentCardLayout.show(contentPanel, panelName);
         } else {
@@ -240,6 +244,7 @@ public class VMain extends JFrame {
     public JButton getBtnSideTimeTable() { return btnSideTimeTable; }
     public JButton getBtnSideMyInfo() { return btnSideMyInfo; }
     public JButton getBtnSideTheme() { return btnSideTheme; }
+    public JButton getBtnSideAdmin() { return btnSideAdmin; }
     
     // (호환용)
     public JComboBox<String> getThemeCombo() { return themeCombo; }

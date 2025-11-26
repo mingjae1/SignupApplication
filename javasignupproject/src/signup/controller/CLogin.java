@@ -12,7 +12,7 @@ import signup.dao.UserDAO;
 import signup.model.MMain;
 import signup.view.VLogin;
 import signup.view.VMain;
-
+import signup.model.MUser;
 
 /**
  * VLogin(로그인 뷰)의 이벤트를 처리하는 컨트롤러입니다.
@@ -25,6 +25,7 @@ public class CLogin {
     private UserDAO userDAO;
     private CSearch cSearch; 
     private CMain cMain;
+    private CAdmin cAdmin;
     
     private static final Logger logger = Logger.getLogger(CLogin.class.getName());
     
@@ -34,13 +35,14 @@ public class CLogin {
      * @param cSearch [추가] 로그인 성공 시 데이터를 로드할 CSearch 컨트롤러
      * @param cMain 
      */
-    public CLogin(VMain vMain, VLogin vLogin, MMain mMain, UserDAO userDAO, CSearch cSearch) {
+    public CLogin(VMain vMain, VLogin vLogin, MMain mMain, UserDAO userDAO, CSearch cSearch, CAdmin cAdmin) {
         this.vMain = vMain;
         this.vLogin = vLogin;
         this.mMain = mMain; 
         this.userDAO = userDAO;
         this.cSearch = cSearch; 
-
+        this.cAdmin = cAdmin;
+        
         // 리스너 연결 (동일)
         this.vLogin.getLoginButton().addActionListener(this::handleLogin);
         this.vLogin.getSignupButton().addActionListener(e -> {
@@ -60,23 +62,31 @@ public class CLogin {
     private void handleLogin(ActionEvent e) {
         String id = vLogin.getIdField().getText();
         String password = new String(vLogin.getPasswordField().getPassword());
-
+        
         try {
             // DAO 호출을 try 블록으로 감쌉니다.
-            String userName = this.userDAO.validateUser(id, password);
-
-            if (userName != null) {
+        	MUser loginUser = this.userDAO.validateUser(id, password);
+        	
+            if (loginUser != null) {
                 // 1. 로그인 성공 (로직 동일)
-                mMain.setCurrentUserId(id); 
-                JOptionPane.showMessageDialog(vLogin, userName + "님, 환영합니다!", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
+                mMain.setCurrentUserId(id);
                 
+                if ("admin".equals(loginUser.getRole())) {
+                    JOptionPane.showMessageDialog(vLogin, "관리자 모드로 로그인합니다.", "관리자 로그인", JOptionPane.INFORMATION_MESSAGE);
+                    cMain.setAdminMode(true);
+
+                } else {
+                    // 일반 학생 로그인
+                    JOptionPane.showMessageDialog(vLogin, loginUser.getName() + "님, 환영합니다!", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
+                    cMain.setAdminMode(false);
+                    
+                }
                 vLogin.clearFields();
-                vMain.setSize(1280, 800);
-                vMain.setLocationRelativeTo(null);
-                
+                this.cMain.resetNavigation("searchPanel");
                 this.cSearch.loadInitialCollegeData();
                 this.cMain.refreshUserInfo();
-                this.cMain.resetNavigation("searchPanel");
+                vMain.setSize(1280, 800);
+                vMain.setLocationRelativeTo(null);
 
             } else {
                 // 2. [요청사항 1] 아이디/비밀번호가 틀린 경우 (DAO가 null을 반환)

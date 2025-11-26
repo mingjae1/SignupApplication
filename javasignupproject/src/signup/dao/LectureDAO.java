@@ -174,4 +174,157 @@ public class LectureDAO {
         finally { DAO.close(rs, pstmt, conn); }
         return lectures;
     }
+    
+ // ==========================================
+    //          [관리자 모드 전용 메서드]
+    // ==========================================
+
+    /**
+     * [관리자] 모든 강의 목록을 조회합니다.
+     * @return 전체 강의 리스트
+     */
+    public List<MLecture> getAllLectures() {
+        List<MLecture> lectures = new ArrayList<>();
+        conn = dao.getConnection();
+        if (conn == null) return lectures;
+
+        String sql = "SELECT * FROM lecture ORDER BY id";
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                MLecture lecture = new MLecture(
+                    String.valueOf(rs.getInt("id")),
+                    rs.getString("name"),
+                    rs.getString("professor"),
+                    rs.getInt("credit"),
+                    rs.getString("time"),
+                    rs.getInt("department_id") // [추가] DB에서 학과 ID 가져오기
+                );
+                lectures.add(lecture);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "전체 강의 조회 SQL 오류", e);
+        } finally {
+            DAO.close(rs, pstmt, conn);
+        }
+        return lectures;
+    }
+   
+    /**
+     * 모든 학과 목록을 조회합니다. (학과 코드 확인용)
+     * @return "112: 컴퓨터공학과 (공과대학)" 형태의 문자열 리스트
+     */
+    public List<String> getAllDepartments() {
+        List<String> list = new ArrayList<>();
+        conn = dao.getConnection();
+        // 학과 이름과 단과대학 이름을 같이 가져오는 조인 쿼리
+        String sql = "SELECT d.id, d.name, c.name AS college_name " +
+                     "FROM department d " +
+                     "JOIN college c ON d.college_id = c.id " +
+                     "ORDER BY d.id";
+        
+        try {
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                String info = String.format("%d: %s (%s)", 
+                    rs.getInt("id"), rs.getString("name"), rs.getString("college_name"));
+                list.add(info);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "학과 목록 조회 오류", e);
+        } finally {
+            DAO.close(rs, pstmt, conn);
+        }
+        return list;
+    }
+    /**
+     * [관리자] 새 강의를 추가합니다.
+     * @param id 과목코드 (PK)
+     * @param name 과목명
+     * @param prof 교수명
+     * @param credit 학점
+     * @param time 시간표
+     * @param deptId 소속 학과 ID
+     * @return 성공 여부
+     */
+    public boolean insertLecture(int id, String name, String prof, int credit, String time, int deptId) {
+        conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        String sql = "INSERT INTO lecture (id, name, professor, credit, time, department_id) VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, id);
+            pstmt.setString(2, name);
+            pstmt.setString(3, prof);
+            pstmt.setInt(4, credit);
+            pstmt.setString(5, time);
+            pstmt.setInt(6, deptId);
+            
+            int result = pstmt.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "강의 추가 SQL 오류", e);
+            return false;
+        } finally {
+            DAO.close(null, pstmt, conn);
+        }
+    }
+
+    /**
+     * [관리자] 강의 정보를 수정합니다.
+     */
+    public boolean updateLecture(int id, String name, String prof, int credit, String time, int deptId) {
+        conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        String sql = "UPDATE lecture SET name=?, professor=?, credit=?, time=?, department_id=? WHERE id=?";
+        
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, name);
+            pstmt.setString(2, prof);
+            pstmt.setInt(3, credit);
+            pstmt.setString(4, time);
+            pstmt.setInt(5, deptId);
+            pstmt.setInt(6, id);
+            
+            int result = pstmt.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "강의 수정 SQL 오류", e);
+            return false;
+        } finally {
+            DAO.close(null, pstmt, conn);
+        }
+    }
+
+    /**
+     * [관리자] 강의를 삭제합니다.
+     */
+    public boolean deleteLecture(int id) {
+        conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        String sql = "DELETE FROM lecture WHERE id = ?";
+        
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, id);
+            
+            int result = pstmt.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "강의 삭제 SQL 오류", e);
+            return false;
+        } finally {
+            DAO.close(null, pstmt, conn);
+        }
+    }
+
 }

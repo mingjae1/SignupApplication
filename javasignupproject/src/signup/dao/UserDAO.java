@@ -28,7 +28,7 @@ public class UserDAO {
      * @param password 사용자가 입력한 Password
      * @return 로그인 성공 시 사용자의 이름(name), 실패 시 null
      */
-    public String validateUser(String id, String password) throws SQLException {
+    public MUser validateUser(String id, String password) throws SQLException {
         conn = dao.getConnection();
         
         // 1. DB 연결 자체를 실패하면 예외를 컨트롤러로 던짐
@@ -37,9 +37,9 @@ public class UserDAO {
             throw new SQLException("데이터베이스 연결에 실패했습니다. (conn is null)");
         }
         
-        String sql = "SELECT u.name FROM login l " +
-                     "JOIN user u ON l.userId = u.userid " +
-                     "WHERE l.userId = ? AND l.password = ?";
+        String sql = "SELECT u.name, u.role FROM login l " +
+        			 "JOIN user u ON l.userId = u.userid " +
+        			 "WHERE l.userId = ? AND l.password = ?";
 
         // PreparedStatement와 ResultSet은 try-with-resources로 자동 관리
         try (PreparedStatement validpstmt = conn.prepareStatement(sql)) {
@@ -49,7 +49,12 @@ public class UserDAO {
 
             try (ResultSet result = validpstmt.executeQuery()) {
                 if (result.next()) {
-                    return result.getString("name"); // 1. 로그인 성공
+                   MUser mUser = new MUser();
+                   mUser.setUserid(id);
+                   mUser.setName(result.getString("name"));
+                   mUser.setRole(result.getString("role"));
+                   return mUser;
+                    
                 } else {
                     return null; // 2. 아이디 또는 비밀번호 틀림
                 }

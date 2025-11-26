@@ -12,7 +12,18 @@ public class MLecture {
     private String professor; // 교수명
     private int credits;      // 학점
     private String schedule;  // 시간표
-
+    private int deptId;
+    
+    public MLecture() {}
+    
+    public MLecture(String id, String name, String professor, int credits, String schedule) {
+		this.id = id;
+		this.name = name;
+		this.professor = professor;
+		this.credits = credits;
+		this.schedule = schedule;
+	}
+    
     /**
      * 새로운 Lecture 객체를 생성합니다.
      *
@@ -22,46 +33,23 @@ public class MLecture {
      * @param credits   학점 (e.g., 3)
      * @param schedule  시간표 (e.g., "목12:00-14:45")
      */
-    public MLecture(String id, String name, String professor, int credits, String schedule) {
+    public MLecture(String id, String name, String professor, int credits, String schedule, int deptId) {
         this.id = id;
         this.name = name;
         this.professor = professor;
         this.credits = credits;
         this.schedule = schedule;
+        this.deptId = deptId;
     }
 
     /**
      * @return 과목 코드를 반환합니다.
      */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * @return 과목명을 반환합니다.
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @return 교수명을 반환합니다.
-     */
-    public String getProfessor() {
-        return professor;
-    }
-
-    /**
-     * @return 학점을 반환합니다.
-     */
-    public int getCredits() {
-        return credits;
-    }
-
-    /**
-     * @return 시간표를 반환합니다.
-     */
-    public String getSchedule() {
-        return schedule;
-    }
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public String getProfessor() { return professor; }
+    public int getCredits() { return credits; }
+    public String getSchedule() { return schedule; }
+    
+    public int getDeptId() { return deptId; }
 }

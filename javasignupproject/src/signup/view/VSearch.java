@@ -50,7 +50,7 @@ public class VSearch extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5); // 컴포넌트 간 여백
 
-     // 단과대학 레이블
+        // 단과대학 레이블
         GridBagConstraints gbc_collegeLabel = new GridBagConstraints();
         gbc_collegeLabel.insets = new Insets(5, 5, 5, 5);
         gbc_collegeLabel.anchor = GridBagConstraints.EAST;
@@ -211,9 +211,7 @@ public class VSearch extends JPanel {
             this.registerButton.setEnabled(true);
             this.preRegisterButton.setEnabled(true);
         }
-    }
-	
-	
+    }	
 	
     // --- CSearch 컨트롤러가 접근할 Getter들 ---
     

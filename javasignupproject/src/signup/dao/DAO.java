@@ -13,6 +13,27 @@ import java.io.IOException;
 
 /**
  * 기본 DAO 클래스: DB 연결 및 자원 관리 기능을 제공합니다.
+ * 
+ * <p>이 클래스는 MySQL 데이터베이스에 대한 기본 연결 기능을 제공합니다.
+ * 다른 DAO 클래스들(UserDAO, LectureDAO, SaveDAO 등)은 이 클래스를 사용하여
+ * 데이터베이스 연결을 얻고, 공용 자원 해제 메서드를 활용합니다.</p>
+ * 
+ * <h3>설정 방법:</h3>
+ * <ul>
+ *   <li>config.properties 파일에 db.password 속성을 설정해야 합니다.</li>
+ *   <li>MySQL 서버가 localhost:3306에서 실행 중이어야 합니다.</li>
+ *   <li>lms_data 데이터베이스가 생성되어 있어야 합니다.</li>
+ * </ul>
+ * 
+ * <h3>사용 패턴:</h3>
+ * <pre>
+ * Connection conn = dao.getConnection();
+ * try {
+ *     // DB 작업 수행
+ * } finally {
+ *     DAO.close(rs, pstmt, conn);
+ * }
+ * </pre>
  */
 public class DAO {
     

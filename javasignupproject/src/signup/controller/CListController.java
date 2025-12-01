@@ -4,8 +4,9 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.JPanel; // JOptionPane의 부모로 사용
+import javax.swing.JPanel;
 
+import signup.constants.StatusConstants;
 import signup.model.MLecture;
 import signup.model.MMain;
 import signup.dao.SaveDAO;
@@ -88,7 +89,7 @@ public abstract class CListController {
             return;
         }
         if (selectedRow == -1) {
-            String action = status.equals("reg") ? "취소할" : "삭제할";
+            String action = StatusConstants.REGISTER.equals(status) ? "취소할" : "삭제할";
             JOptionPane.showMessageDialog(viewPanel, action + " 강의를 선택하세요.", "알림", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
@@ -103,12 +104,12 @@ public abstract class CListController {
             boolean success = this.saveDAO.removeLecture(userId, lectureId, this.status);
     
             if (success) {
-                String action = status.equals("reg") ? "신청이 취소" : "목록에서 삭제";
+                String action = StatusConstants.REGISTER.equals(status) ? "신청이 취소" : "목록에서 삭제";
                 JOptionPane.showMessageDialog(viewPanel, "[" + lectureName + "] " + action + "되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
                 // 4. 삭제 성공 후, 테이블을 즉시 새로고침
                 refreshTable(); 
             } else {
-                String action = status.equals("reg") ? "신청 취소" : "삭제";
+                String action = StatusConstants.REGISTER.equals(status) ? "신청 취소" : "삭제";
                 JOptionPane.showMessageDialog(viewPanel, action + " 실패 (DB 오류)", "오류", JOptionPane.ERROR_MESSAGE);
             }
         } catch (NumberFormatException ex) {

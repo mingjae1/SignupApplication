@@ -8,6 +8,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import signup.constants.PanelNames;
 import signup.dao.UserDAO;
 import signup.model.MMain;
 import signup.model.MUser;
@@ -41,13 +42,6 @@ public class CMain {
     private Deque<String> forwardStack; 
     private String currentPanel;
     
-    // 패널 상수
-    private static final String PANEL_REGISTER = "registerPanel";
-    private static final String PANEL_PREREGISTER = "preRegisterPanel";
-    private static final String PANEL_SEARCH = "searchPanel"; 
-    private static final String PANEL_LOGIN = "loginPanel";
-    private static final String PANEL_ADMIN = "adminPanel";
-    
     /**
      * CMain 생성자: 모든 의존성을 주입받고 리스너를 설정합니다.
      * @param cAdmin 
@@ -69,7 +63,7 @@ public class CMain {
         this.forwardStack = new ArrayDeque<>();
         
         // 초기 상태: 로그인 화면
-        this.currentPanel = PANEL_LOGIN; 
+        this.currentPanel = PanelNames.LOGIN_PANEL; 
 
         // --- 1. 상단 헤더 리스너 ---
         this.vMain.getMenuToggleButton().addActionListener(e -> vMain.toggleSidebar());
@@ -82,19 +76,19 @@ public class CMain {
         // 강좌 검색
         this.vMain.getBtnSideSearch().addActionListener(e -> { 
             cSearch.setMode("REGISTER"); 
-            navigateTo(PANEL_SEARCH); 
+            navigateTo(PanelNames.SEARCH_PANEL); 
         });
         
         // 수강신청 내역
         this.vMain.getBtnSideRegister().addActionListener(e -> {
         	cSearch.setMode("REGISTER");
-        	navigateTo(PANEL_REGISTER);
+        	navigateTo(PanelNames.REGISTER_PANEL);
         	});
         
         // 미리담기 내역
         this.vMain.getBtnSidePreRegister().addActionListener(e -> { 
         	cSearch.setMode("PREREGISTER");
-        	navigateTo(PANEL_PREREGISTER);
+        	navigateTo(PanelNames.PREREGISTER_PANEL);
         });
         
         // 관리자 모드
@@ -135,10 +129,10 @@ public class CMain {
      * 패널 이동 및 데이터 로드 로직
      */
     private void navigateTo(String panelName) {
-        if (panelName.equals(PANEL_LOGIN)) return;
+        if (panelName.equals(PanelNames.LOGIN_PANEL)) return;
         
         if (!panelName.equals(currentPanel)) {
-        	if(!PANEL_LOGIN.equals(currentPanel)) {
+        	if(!PanelNames.LOGIN_PANEL.equals(currentPanel)) {
         		previousStack.push(currentPanel);
         	}
             currentPanel = panelName;
@@ -149,14 +143,14 @@ public class CMain {
         
         // 패널별 데이터 새로고침
         switch (panelName) {
-            case PANEL_REGISTER:
+            case PanelNames.REGISTER_PANEL:
                 refreshRegisterPanel();
                 break;
-            case PANEL_PREREGISTER:
+            case PanelNames.PREREGISTER_PANEL:
                 refreshPreRegisterPanel();
                 break;
                 
-            case PANEL_ADMIN:
+            case PanelNames.ADMIN_PANEL:
 				cAdmin.loadAllLectures();
 				break;
             // 검색 패널은 조회 버튼이 있으므로 자동 로드 생략
@@ -186,13 +180,13 @@ public class CMain {
 
     private void handleRefresh(ActionEvent e) {
         switch (currentPanel) {
-            case PANEL_REGISTER:
+            case PanelNames.REGISTER_PANEL:
                 refreshRegisterPanel();
                 break;
-            case PANEL_PREREGISTER:
+            case PanelNames.PREREGISTER_PANEL:
                 refreshPreRegisterPanel();
                 break;
-            case PANEL_SEARCH:
+            case PanelNames.SEARCH_PANEL:
                 this.cSearch.refreshSearch();
                 break;
             default: break;
@@ -208,13 +202,13 @@ public class CMain {
         vMain.setLocationRelativeTo(null);
         
         // 로그인 화면으로 이동
-        vMain.contentPanel(PANEL_LOGIN);
+        vMain.contentPanel(PanelNames.LOGIN_PANEL);
         
         // 히스토리 초기화
         previousStack.clear();
         forwardStack.clear();
         updateNavigationButtons();
-        currentPanel = PANEL_LOGIN;
+        currentPanel = PanelNames.LOGIN_PANEL;
     }
     
     private void handleThemeChange(ActionEvent e) {

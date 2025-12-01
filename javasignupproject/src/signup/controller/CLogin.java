@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
+import signup.constants.PanelNames;
 import signup.dao.UserDAO; 
 import signup.model.MMain;
 import signup.view.VLogin;
@@ -48,7 +49,7 @@ public class CLogin {
         this.vLogin.getSignupButton().addActionListener(e -> {
             vMain.setSize(800, 600);
             vMain.setLocationRelativeTo(null); // (선택사항) 크기 변경 후 중앙 정렬
-            vMain.contentPanel("signupPanel");
+            vMain.contentPanel(PanelNames.SIGNUP_PANEL);
         });
         	
         ActionListener enterKeyListener = e -> vLogin.getLoginButton().doClick();

@@ -17,14 +17,10 @@ sourceSets {
     }
 }
 
-// Java 21 버전을 사용한다고 설정
-// Java 21 버전을 사용한다고 설정 (시스템 Java 버전 사용을 위해 toolchain 설정 주석 처리)
+// Java 버전을 시스템에 맞게 설정 (Java 17 이상)
 java {
-    // toolchain {
-    //    languageVersion.set(JavaLanguageVersion.of(21))
-    // }
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 // SonarCloud 설정 (프로젝트 키와 조직 이름)

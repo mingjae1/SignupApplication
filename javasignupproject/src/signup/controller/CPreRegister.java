@@ -50,7 +50,7 @@ public class CPreRegister extends CListController {
     
             int resultCode = this.saveDAO.addLecture(userId, lectureId, StatusConstants.REGISTER, newCredits);
             handleApplyResult(resultCode, userId, lectureId, lectureName);
-        } catch (Exception ex) {
+        } catch (NumberFormatException | ClassCastException | IndexOutOfBoundsException ex) {
             JOptionPane.showMessageDialog(vPreRegister, "처리 중 오류 발생: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
         }
     }

@@ -157,6 +157,23 @@ public class CSearch {
         this.vSearch.setMode(mode);
     }
     
+    /**
+     * 강의 저장 결과 처리 (공통)
+     * @param resultCode SaveDAO.addLecture 반환 코드
+     * @param lectureName 강의 이름
+     * @param status 저장 상태 (StatusConstants.REGISTER 또는 PRE_REGISTER)
+     * 
+     * [결과 코드 처리]
+     * - DB_SUCCESS(0): 정상 추가
+     * - DB_ERROR_CREDIT_EXCEEDED(1): 학점 초과
+     * - DB_ERROR_DUPLICATE(2): 중복
+     * - DB_ERROR_GENERAL(-1): DB 오류
+     * 
+     * [오류 대응]
+     * - 학점 초과: 기존 신청 내역 확인, MAX_CREDITS 확인
+     * - 중복: 이미 추가된 강의, 새로고침 필요
+     * - DB 오류: 로그 확인, DB 연결 상태 확인
+     */
     private void handleSaveResult(int resultCode, String lectureName, String status) {
         String messageType = StatusConstants.REGISTER.equals(status) ? "수강신청" : "미리담기";
         

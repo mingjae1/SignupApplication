@@ -21,10 +21,27 @@ public class UserDAO {
         this.dao = new DAO();
     }
 
+    /**
+     * 로그인 인증 처리
+     * @param id 사용자 ID
+     * @param password 비밀번호 (평문)
+     * @return 인증 성공 시 사용자 정보, 실패 시 null
+     * @throws SQLException DB 연결 또는 쿼리 실행 오류
+     * 
+     * [반환값]
+     * - MUser 객체: 인증 성공 (userid, name, role 포함)
+     * - null: 아이디 또는 비밀번호 불일치
+     * - SQLException: DB 연결 실패 또는 SQL 오류
+     * 
+     * [주의사항]
+     * - 비밀번호는 평문 저장 (추후 암호화 권장)
+     * - login 테이블과 user 테이블 JOIN 필요
+     */
     public MUser validateUser(String id, String password) throws SQLException {
         conn = dao.getConnection();
         
         if (conn == null) {
+            // DB 연결 문제: config.properties 파일, MySQL 서버 확인
             throw new SQLException("데이터베이스 연결에 실패했습니다.");
         }
         
@@ -38,12 +55,14 @@ public class UserDAO {
 
             try (ResultSet result = validpstmt.executeQuery()) {
                 if (result.next()) {
+                   // 인증 성공: 사용자 정보 반환
                    MUser mUser = new MUser();
                    mUser.setUserid(id);
                    mUser.setName(result.getString("name"));
                    mUser.setRole(result.getString("role"));
                    return mUser;
                 } else {
+                    // 인증 실패: 아이디 또는 비밀번호 불일치
                     return null;
                 }
             }
@@ -54,6 +73,27 @@ public class UserDAO {
         }
     }
     
+    /**
+     * 회원 가입 처리 (트랜잭션)
+     * @param mUser 사용자 정보 (userid, name, code, email, campus_id, college_id, department_id)
+     * @param password 비밀번호 (평문)
+     * @return 성공 여부 (true: 가입 성공, false: 가입 실패)
+     * 
+     * [트랜잭션 처리]
+     * 1. user 테이블 INSERT
+     * 2. login 테이블 INSERT
+     * 3. 둘 다 성공 시 commit, 하나라도 실패 시 rollback
+     * 
+     * [실패 원인]
+     * - userid 중복: PK 제약 위반
+     * - code(학번) 중복: UNIQUE 제약 위반
+     * - 외래키 오류: campus_id, college_id, department_id 유효성
+     * - DB 연결 실패: config.properties 확인
+     * 
+     * [주의사항]
+     * - 반드시 중복 검사 후 호출 권장 (isUserIdDuplicate, isStudentIdDuplicate)
+     * - 비밀번호는 평문 저장 (추후 암호화 권장)
+     */
     public boolean addUser(MUser mUser, String password) { 
         String sqlLogin = "INSERT INTO login (userId, password) VALUES (?, ?)";
         String sqlUser = "INSERT INTO user (userid, name, code, email, campus_id, college_id, department_id) " +
@@ -61,6 +101,7 @@ public class UserDAO {
         
         conn = dao.getConnection();
         if (conn == null) { 
+            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
             logger.log(Level.SEVERE, "addUser: DB 연결 실패");
             return false; 
         }
@@ -68,8 +109,10 @@ public class UserDAO {
         PreparedStatement addprsmt = null;
 
         try {
+            // 수동 트랜잭션 시작
             conn.setAutoCommit(false);
             
+            // 1단계: user 테이블 INSERT
             addprsmt = conn.prepareStatement(sqlUser);
             addprsmt.setString(1, mUser.getUserid());
             addprsmt.setString(2, mUser.getName());
@@ -80,6 +123,7 @@ public class UserDAO {
             addprsmt.setInt(7, mUser.getDepartmentId());
             int userResult = addprsmt.executeUpdate();
             
+            // 2단계: login 테이블 INSERT
             addprsmt = conn.prepareStatement(sqlLogin);
             addprsmt.setString(1, mUser.getUserid());
             addprsmt.setString(2, password);
@@ -87,6 +131,7 @@ public class UserDAO {
             
             DAO.close(null, addprsmt, null);
 
+            // 둘 다 성공 시 commit, 실패 시 rollback
             if (loginResult > 0 && userResult > 0) { 
                 conn.commit(); 
                 return true; 
@@ -96,8 +141,9 @@ public class UserDAO {
             }
         }
         catch (SQLException e) { 
+            // 디버깅: 중복 키, 외래키 제약, NOT NULL 제약 확인
             logger.log(Level.WARNING, "회원가입 트랜잭션 오류", e);
-            try { conn.rollback(); } 
+            try { conn.rollback(); }
             catch (SQLException ex) { logger.log(Level.SEVERE, "롤백 실패", ex); } 
             return false; 
         } 
@@ -108,6 +154,19 @@ public class UserDAO {
         }
     }
     
+    /**
+     * 사용자 ID 중복 검사
+     * @param id 검사할 사용자 ID
+     * @return true: 이미 존재하는 ID, false: 사용 가능한 ID
+     * 
+     * [사용 시점]
+     * - 회원가입 전 필수 검사
+     * - addUser 호출 전에 실행 권장
+     * 
+     * [주의사항]
+     * - DB 오류 시 false 반환 (안전하게 처리됨)
+     * - user 테이블의 userid(PK) 기준
+     */
     public boolean isUserIdDuplicate(String id) {
         conn = dao.getConnection();
         String sql = "SELECT COUNT(*) FROM user WHERE userid = ?";
@@ -118,6 +177,7 @@ public class UserDAO {
             rs = pstmt.executeQuery();
             
             if (rs.next()) {
+                // COUNT > 0: 중복, 0: 사용 가능
                 return rs.getInt(1) > 0;
             }
         } catch (SQLException e) {

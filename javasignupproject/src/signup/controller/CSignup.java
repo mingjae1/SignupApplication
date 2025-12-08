@@ -218,8 +218,13 @@ public class CSignup {
             return false;
         }
 
-        if (HAS_KOREAN_PATTERN.matcher(password).find() || password.contains(" ")) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호에 한글이나 공백을 포함할 수 없습니다.", "비번오류", JOptionPane.ERROR_MESSAGE);
+        if (HAS_KOREAN_PATTERN.matcher(password).find()) {
+            JOptionPane.showMessageDialog(vSignup, "비밀번호에 한글을 포함할 수 없습니다.", "비번한글", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        
+        if (password.contains(" ")) {
+            JOptionPane.showMessageDialog(vSignup, "비밀번호에 공백을 포함할 수 없습니다.", "비번공백", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         

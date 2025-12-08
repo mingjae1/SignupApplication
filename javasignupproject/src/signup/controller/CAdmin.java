@@ -116,6 +116,9 @@ public class CAdmin {
         );
     }
     
+    /**
+     * 강의 폼 데이터를 캡슐화하는 데이터 전송 객체
+     */
     private static class LectureFormData {
         final int id;
         final String name;

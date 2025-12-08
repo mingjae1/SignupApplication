@@ -1,5 +1,8 @@
 package signup.constants;
 
+/**
+ * CardLayout 전환 시 사용되는 패널 식별자 상수
+ */
 public final class PanelNames {
     
     private PanelNames() {

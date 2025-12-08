@@ -171,7 +171,7 @@ public class CMain {
             }
             FlatLaf.updateUI();
             SwingUtilities.updateComponentTreeUI(vMain);
-        } catch (Exception ex) {
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             JOptionPane.showMessageDialog(vMain, "테마 변경 중 오류가 발생했습니다: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
         }
     }

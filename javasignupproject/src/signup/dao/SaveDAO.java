@@ -16,9 +16,6 @@ import signup.model.MLecture;
 public class SaveDAO {
     
     private DAO dao;
-    private Connection conn;
-    private PreparedStatement pstmt;
-    private ResultSet rs;
     private static final Logger logger = Logger.getLogger(SaveDAO.class.getName());
     
     public SaveDAO() {
@@ -37,35 +34,33 @@ public class SaveDAO {
      */
     public List<MLecture> getLecturesByStatus(String userid, String status) {
         List<MLecture> lectures = new ArrayList<>();
-        conn = dao.getConnection();
         
         String sql = "SELECT l.id, l.name, l.professor, l.credit, l.time " +
                      "FROM lecture l " +
                      "JOIN save s ON l.id = s.lecture_id " +
                      "WHERE s.userid = ? AND s.status = ?";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, userid);
             pstmt.setString(2, status);
             
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                lectures.add(new MLecture(
-                    rs.getString("id"),
-                    rs.getString("name"),
-                    rs.getString("professor"),
-                    rs.getInt("credit"),
-                    rs.getString("time")
-                ));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    lectures.add(new MLecture(
+                        rs.getString("id"),
+                        rs.getString("name"),
+                        rs.getString("professor"),
+                        rs.getInt("credit"),
+                        rs.getString("time")
+                    ));
+                }
             }
         }
         catch (SQLException e) { 
             // 디버깅: save 테이블 구조, lecture_id 외래키, status 값 확인
             logger.log(Level.SEVERE, "상태별 강의 조회 SQL 오류", e); 
         } 
-        finally { DAO.close(rs, pstmt, conn); }
         return lectures;
     }
     
@@ -96,11 +91,10 @@ public class SaveDAO {
             }
         }
         
-        conn = dao.getConnection();
         String sql = "INSERT IGNORE INTO save (userid, lecture_id, status) VALUES (?, ?, ?)";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, userid);
             pstmt.setInt(2, lectureid);
             pstmt.setString(3, status);
@@ -112,8 +106,6 @@ public class SaveDAO {
             // 디버깅: save 테이블 PK 제약, lecture_id 유효성 확인
             logger.log(Level.WARNING, "강의 저장(save) SQL 오류", e);
             return AppConstants.DB_ERROR_GENERAL;
-        } finally {
-            DAO.close(null, pstmt, conn);
         }
     }
 
@@ -130,18 +122,18 @@ public class SaveDAO {
      * - 삭제할 데이터 없음: false 반환 (정상)
      */
     public boolean removeLecture(String userid, int lectureid, String status) {
-        conn = dao.getConnection();
+        String sql = "DELETE FROM save WHERE userid = ? AND lecture_id = ? AND status = ?";
         
+        Connection conn = dao.getConnection();
         if (conn == null) {
             // DB 연결 문제: config.properties, MySQL 서버 상태 확인
             logger.log(Level.SEVERE, "removeLecture: DB 연결 실패");
             return false;
         }
         
-        String sql = "DELETE FROM save WHERE userid = ? AND lecture_id = ? AND status = ?";
-        
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            
             pstmt.setString(1, userid);
             pstmt.setInt(2, lectureid);
             pstmt.setString(3, status);
@@ -152,8 +144,6 @@ public class SaveDAO {
             // 디버깅: save 테이블 구조, 파라미터 값 확인
             logger.log(Level.WARNING, "강의 삭제(remove) SQL 오류", e);
             return false;
-        } finally {
-            DAO.close(null, pstmt, conn);
         }
     }
     
@@ -173,36 +163,35 @@ public class SaveDAO {
      * - 학점 초과 검사 전에 반드시 호출되어야 함
      */
     public int getTotalCredits(String userid, String status) {
-        conn = dao.getConnection();
         int totalCredits = 0;
-        
-        if (conn == null) {
-            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
-            logger.log(Level.SEVERE, "getTotalCredits: DB 연결 실패");
-            return 0;
-        }
 
         String sql = "SELECT SUM(l.credit) AS total " +
                      "FROM lecture l " +
                      "JOIN save s ON l.id = s.lecture_id " +
                      "WHERE s.userid = ? AND s.status = ?";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        Connection conn = dao.getConnection();
+        if (conn == null) {
+            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
+            logger.log(Level.SEVERE, "getTotalCredits: DB 연결 실패");
+            return 0;
+        }
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            
             pstmt.setString(1, userid);
             pstmt.setString(2, status);
             
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                // SUM 결과가 NULL이면 getInt는 0 반환
-                totalCredits = rs.getInt("total");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // SUM 결과가 NULL이면 getInt는 0 반환
+                    totalCredits = rs.getInt("total");
+                }
             }
         } catch (SQLException e) {
             // 디버깅: lecture.credit 컬럼 타입, JOIN 조건 확인
             logger.log(Level.WARNING, "총 학점 계산 SQL 오류", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
         }
         return totalCredits;
     }

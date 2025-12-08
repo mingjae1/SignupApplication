@@ -15,9 +15,6 @@ import signup.model.MLecture;
 public class LectureDAO {
     
     private DAO dao; 
-    private Connection conn;
-    private PreparedStatement pstmt;
-    private ResultSet rs;
     private static final Logger logger = Logger.getLogger(LectureDAO.class.getName());
 
     public LectureDAO() {
@@ -26,67 +23,61 @@ public class LectureDAO {
 
     public List<ComboboxItem> getAllCampuses() {
         List<ComboboxItem> campuses = new ArrayList<>();
-        conn = dao.getConnection();
         String sql = "SELECT id, name FROM root ORDER BY id"; 
 
-        try {
-            pstmt = conn.prepareStatement(sql);
-            rs = pstmt.executeQuery();
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
             
             while (rs.next()) {
                 campuses.add(new ComboboxItem(rs.getString("name"), rs.getInt("id")));
             } 
         } 
         catch (SQLException e) { logger.log(Level.SEVERE, "모든 캠퍼스 조회 중 SQL 오류", e); } 
-        catch (NullPointerException e) { logger.log(Level.SEVERE, "DB 연결 실패", e); }
-        finally { DAO.close(rs, pstmt, conn); }
         return campuses;
     }
 
     public List<ComboboxItem> getCollegesByCampus(int campusId) {
         List<ComboboxItem> colleges = new ArrayList<>();
-        conn = dao.getConnection();
         
         String sql = "SELECT c.id, c.name FROM college c WHERE c.root_id = ? " +
                      "AND c.name != '교양' ORDER BY c.id";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, campusId);
-            rs = pstmt.executeQuery();
             
-            while (rs.next()) {
-                colleges.add(new ComboboxItem(rs.getString("name"), rs.getInt("id")));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    colleges.add(new ComboboxItem(rs.getString("name"), rs.getInt("id")));
+                }
             }
         } 
         catch (SQLException e) { logger.log(Level.WARNING, "캠퍼스별 단과대학 조회 SQL 오류", e); }
-        finally { DAO.close(rs, pstmt, conn); }
         return colleges;
     }
 
     public List<ComboboxItem> getDepartmentsByCollege(int collegeId) {
         List<ComboboxItem> departments = new ArrayList<>();
-        conn = dao.getConnection();
         
         String sql = "SELECT d.id, d.name FROM department d WHERE d.college_id = ? ORDER BY d.id";
 
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, collegeId);
-            rs = pstmt.executeQuery();
             
-            while (rs.next()) {
-                departments.add(new ComboboxItem(rs.getString("name"), rs.getInt("id")));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    departments.add(new ComboboxItem(rs.getString("name"), rs.getInt("id")));
+                }
             } 
         } 
         catch (SQLException e) { logger.log(Level.WARNING, "단과대학별 학과 조회 SQL 오류", e); }
-        finally { DAO.close(rs, pstmt, conn); }
         return departments;
     }
     
     public List<MLecture> searchLectures(String userId, String collegeName, String deptName, String keyword) {
         List<MLecture> lectures = new ArrayList<>();
-        conn = dao.getConnection();
 
         StringBuilder sql = new StringBuilder(
             "SELECT l.id, l.name, l.professor, l.credit, l.time " +
@@ -118,41 +109,40 @@ public class LectureDAO {
             params.add(keywordNoSpace);
         }
 
-        try {
-            pstmt = conn.prepareStatement(sql.toString());
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 pstmt.setObject(i + 1, params.get(i));
             }
             
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                lectures.add(new MLecture(
-                    rs.getString("id"),
-                    rs.getString("name"),
-                    rs.getString("professor"),
-                    rs.getInt("credit"),
-                    rs.getString("time")
-                ));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    lectures.add(new MLecture(
+                        rs.getString("id"),
+                        rs.getString("name"),
+                        rs.getString("professor"),
+                        rs.getInt("credit"),
+                        rs.getString("time")
+                    ));
+                }
             } 
         } 
         catch (SQLException e) { logger.log(Level.WARNING, "강의 검색 SQL 오류", e); } 
-        catch (NullPointerException e) { logger.log(Level.SEVERE, "DB 연결 실패", e); } 
-        finally { DAO.close(rs, pstmt, conn); }
         return lectures;
     }
     
     public List<MLecture> getAllLectures() {
         List<MLecture> lectures = new ArrayList<>();
-        conn = dao.getConnection();
-        if (conn == null) return lectures;
 
         String sql = "SELECT * FROM lecture ORDER BY id";
 
-        try {
-            pstmt = conn.prepareStatement(sql);
-            rs = pstmt.executeQuery();
+        Connection conn = dao.getConnection();
+        if (conn == null) return lectures;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
             
             while (rs.next()) {
                 lectures.add(new MLecture(
@@ -166,43 +156,39 @@ public class LectureDAO {
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "전체 강의 조회 SQL 오류", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
         }
         return lectures;
     }
    
     public List<String> getAllDepartments() {
         List<String> list = new ArrayList<>();
-        conn = dao.getConnection();
         String sql = "SELECT d.id, d.name, c.name AS college_name " +
                      "FROM department d " +
                      "JOIN college c ON d.college_id = c.id " +
                      "ORDER BY d.id";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
-            rs = pstmt.executeQuery();
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 list.add(String.format("%d: %s (%s)", 
                     rs.getInt("id"), rs.getString("name"), rs.getString("college_name")));
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "학과 목록 조회 오류", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
         }
         return list;
     }
 
     public boolean insertLecture(int id, String name, String prof, int credit, String time, int deptId) {
-        conn = dao.getConnection();
-        if (conn == null) return false;
-        
         String sql = "INSERT INTO lecture (id, name, professor, credit, time, department_id) VALUES (?, ?, ?, ?, ?, ?)";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        Connection conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            
             pstmt.setInt(1, id);
             pstmt.setString(2, name);
             pstmt.setString(3, prof);
@@ -214,19 +200,18 @@ public class LectureDAO {
         } catch (SQLException e) {
             logger.log(Level.WARNING, "강의 추가 SQL 오류", e);
             return false;
-        } finally {
-            DAO.close(null, pstmt, conn);
         }
     }
 
     public boolean updateLecture(int id, String name, String prof, int credit, String time, int deptId) {
-        conn = dao.getConnection();
-        if (conn == null) return false;
-        
         String sql = "UPDATE lecture SET name=?, professor=?, credit=?, time=?, department_id=? WHERE id=?";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        Connection conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            
             pstmt.setString(1, name);
             pstmt.setString(2, prof);
             pstmt.setInt(3, credit);
@@ -238,27 +223,24 @@ public class LectureDAO {
         } catch (SQLException e) {
             logger.log(Level.WARNING, "강의 수정 SQL 오류", e);
             return false;
-        } finally {
-            DAO.close(null, pstmt, conn);
         }
     }
 
     public boolean deleteLecture(int id) {
-        conn = dao.getConnection();
-        if (conn == null) return false;
-        
         String sql = "DELETE FROM lecture WHERE id = ?";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        Connection conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            
             pstmt.setInt(1, id);
             
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             logger.log(Level.WARNING, "강의 삭제 SQL 오류", e);
             return false;
-        } finally {
-            DAO.close(null, pstmt, conn);
         }
     }
 }

@@ -289,7 +289,7 @@ public class VSchedule extends JDialog {
                         g2.drawString(String.format("%02d:%02d~%02d:%02d", startH, startM, endH, endM), x + 5, startY + timeY);
                     }
                 }
-            } catch (Exception e) {
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException | NullPointerException e) {
                 logger.log(Level.WARNING, "강의 시간 파싱 오류: " + timeStr, e);
             }
         }

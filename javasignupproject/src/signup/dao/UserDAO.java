@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import signup.model.MUser;
 
 public class UserDAO {
@@ -41,27 +43,57 @@ public class UserDAO {
             throw new SQLException("데이터베이스 연결에 실패했습니다.");
         }
         
-        String sql = "SELECT u.name, u.role FROM login l " +
+        String sql = "SELECT l.password AS hash, u.name, u.role FROM login l " +
                      "JOIN user u ON l.userId = u.userid " +
-                     "WHERE l.userId = ? AND l.password = ?";
+                     "WHERE l.userId = ?";
 
         try (Connection connection = conn;
              PreparedStatement validpstmt = connection.prepareStatement(sql)) {
             validpstmt.setString(1, id);
-            validpstmt.setString(2, password);
 
             try (ResultSet result = validpstmt.executeQuery()) {
                 if (result.next()) {
-                   // 인증 성공: 사용자 정보 반환
-                   MUser mUser = new MUser();
-                   mUser.setUserid(id);
-                   mUser.setName(result.getString("name"));
-                   mUser.setRole(result.getString("role"));
-                   return mUser;
-                } else {
-                    // 인증 실패: 아이디 또는 비밀번호 불일치
-                    return null;
+                   String hash = result.getString("hash");
+                   if (hash != null) {
+                       // 기존에 평문으로 저장된 비밀번호가 있을 수 있으므로 마이그레이션 처리
+                       boolean passwordMatches = false;
+                       boolean wasPlain = false;
+
+                       if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
+                           passwordMatches = BCrypt.checkpw(password, hash);
+                       } else {
+                           // 평문 저장된 케이스: 직접 비교 후 해시로 교체
+                           if (password.equals(hash)) {
+                               passwordMatches = true;
+                               wasPlain = true;
+                           }
+                       }
+
+                       if (passwordMatches) {
+                           MUser mUser = new MUser();
+                           mUser.setUserid(id);
+                           mUser.setName(result.getString("name"));
+                           mUser.setRole(result.getString("role"));
+
+                           if (wasPlain) {
+                               // 평문에서 해시로 마이그레이션: 즉시 DB 업데이트
+                               String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
+                               String updSql = "UPDATE login SET password = ? WHERE userId = ?";
+                               try (PreparedStatement updStmt = connection.prepareStatement(updSql)) {
+                                   updStmt.setString(1, newHash);
+                                   updStmt.setString(2, id);
+                                   updStmt.executeUpdate();
+                               } catch (SQLException ex) {
+                                   logger.log(Level.WARNING, "비밀번호 해시 마이그레이션 실패", ex);
+                               }
+                           }
+
+                           return mUser;
+                       }
+                   }
                 }
+                // 인증 실패: 아이디 또는 비밀번호 불일치
+                return null;
             }
         } catch (SQLException e) {
             throw new SQLException("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
@@ -119,7 +151,9 @@ public class UserDAO {
                     // 2단계: login 테이블 INSERT
                     try (PreparedStatement pstmt2 = conn.prepareStatement(sqlLogin)) {
                         pstmt2.setString(1, mUser.getUserid());
-                        pstmt2.setString(2, password);
+                        // 비밀번호 해싱
+                        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+                        pstmt2.setString(2, hashed);
                         int loginResult = pstmt2.executeUpdate();
                         
                         // 둘 다 성공 시 commit, 실패 시 rollback
@@ -256,5 +290,87 @@ public class UserDAO {
             logger.log(Level.WARNING, "사용자 상세 정보 조회 실패", e);
         }
         return user;
+    }
+    
+    /**
+     * 주어진 id, name, code가 user 테이블에 일치하는지 확인하고,
+     * 일치하면 login 테이블의 password를 newPassword로 업데이트합니다.
+     * @return true: 업데이트(초기화) 성공, false: 일치하는 사용자 없음
+     * @throws SQLException DB 오류 발생 시
+     */
+    public boolean resetPasswordIfMatch(String id, String name, int code, String newPassword) throws SQLException {
+        String checkSql = "SELECT COUNT(*) FROM user WHERE userid = ? AND name = ? AND code = ?";
+        String updateSql = "UPDATE login SET password = ? WHERE userId = ?";
+
+        Connection conn = dao.getConnection();
+        if (conn == null) throw new SQLException("데이터베이스 연결에 실패했습니다.");
+
+        try (Connection connection = conn) {
+            // 먼저 사용자 존재 및 정보 일치 여부 확인
+            try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
+                checkStmt.setString(1, id);
+                checkStmt.setString(2, name);
+                checkStmt.setInt(3, code);
+
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        // 정보가 일치하면 비밀번호 업데이트
+                        try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
+                            // 해시 저장
+                            String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+                            updateStmt.setString(1, hashed);
+                            updateStmt.setString(2, id);
+                            int updated = updateStmt.executeUpdate();
+                            return updated > 0;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "비밀번호 초기화 중 DB 오류", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.
+     * @return true: 변경 성공, false: 현재 비밀번호 불일치 또는 업데이트 실패
+     * @throws SQLException DB 오류 발생 시
+     */
+    public boolean changePassword(String userId, String oldPassword, String newPassword) throws SQLException {
+        String fetchSql = "SELECT password FROM login WHERE userId = ?";
+        String updateSql = "UPDATE login SET password = ? WHERE userId = ?";
+
+        Connection conn = dao.getConnection();
+        if (conn == null) throw new SQLException("데이터베이스 연결에 실패했습니다.");
+
+        try (Connection connection = conn) {
+            try (PreparedStatement fetchStmt = connection.prepareStatement(fetchSql)) {
+                fetchStmt.setString(1, userId);
+                try (ResultSet rs = fetchStmt.executeQuery()) {
+                    if (rs.next()) {
+                        String hash = rs.getString("password");
+                        if (hash != null && BCrypt.checkpw(oldPassword, hash)) {
+                            try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
+                                String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+                                updateStmt.setString(1, hashed);
+                                updateStmt.setString(2, userId);
+                                int updated = updateStmt.executeUpdate();
+                                return updated > 0;
+                            }
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "비밀번호 변경 중 DB 오류", e);
+            throw e;
+        }
     }
 }

@@ -56,7 +56,10 @@ dependencies {
     // 2. FlatLaf (방금 추가한 Look and Feel 스킨)
     implementation("com.formdev:flatlaf:3.6.2")
 
-    // 3. JUnit (테스트 및 SonarCloud 커버리지용)
+    // 3. bcrypt for password hashing
+    implementation("org.mindrot:jbcrypt:0.4")
+
+    // 4. JUnit (테스트 및 SonarCloud 커버리지용)
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

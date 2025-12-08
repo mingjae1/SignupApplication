@@ -2,6 +2,7 @@ plugins {
     java
     application
     eclipse
+    jacoco
     id("org.sonarqube") version "7.0.1.6134"
 }
 
@@ -58,4 +59,14 @@ dependencies {
 // JUnit 5 테스트를 실행하도록 설정
 tasks.withType<Test> {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport) // test 실행 후 자동으로 리포트 생성
+}
+
+// JaCoCo 테스트 리포트 생성 설정
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) // test 실행 후 리포트 생성
+    reports {
+        xml.required.set(true) // SonarQube가 XML 포맷을 읽음
+        html.required.set(true)
+    }
 }

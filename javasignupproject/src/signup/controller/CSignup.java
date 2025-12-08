@@ -125,8 +125,11 @@ public class CSignup {
         
         char[] passwordChars = vSignup.getPasswordField().getPassword();
         String password = new String(passwordChars);
+        Arrays.fill(passwordChars, '0'); // Clear password from memory immediately for security
+        
         char[] passwordConfirmChars = vSignup.getPasswordConfirmField().getPassword();
         String passwordConfirm = new String(passwordConfirmChars);
+        Arrays.fill(passwordConfirmChars, '0'); // Clear password from memory immediately for security
         
         Object campusObj = vSignup.getComboCampus().getSelectedItem();
         Object collegeObj = vSignup.getComboCollege().getSelectedItem();
@@ -176,9 +179,6 @@ public class CSignup {
         } else {
             JOptionPane.showMessageDialog(vSignup, "회원가입 중 오류가 발생했습니다. (DB 오류)", "오류", JOptionPane.ERROR_MESSAGE);
         }
-        
-        Arrays.fill(passwordChars, '0');
-        Arrays.fill(passwordConfirmChars, '0');
     }
 
     private void handleCancel(ActionEvent e) {

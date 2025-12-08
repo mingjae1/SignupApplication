@@ -28,16 +28,16 @@ public class MMain {
     }
     
     /**
-     * CLogin 컨트롤러가 로그인 성공 시 호출하여 현재 사용자 ID를 설정합니다.
-     * @param userId 로그인한 사용자의 ID
+     * 현재 로그인된 사용자의 ID를 설정하거나, 로그아웃 처리를 합니다.
+     * @param userId 로그인한 사용자의 ID. 로그아웃 시 null을 전달하여 세션을 초기화합니다.
      */
     public void setCurrentUserId(String userId) {
-        if(userId == null) {
-			logger.log(Level.WARNING, "MMain: 로그아웃 되었습니다.");
-		}
-        else {
-        	this.currentUserId = userId;
-        	logger.log(Level.INFO, "MMain: {0}로 로그인 되었습니다.", userId);
+        if (userId == null) {
+            logger.log(Level.WARNING, "MMain: 로그아웃 되었습니다.");
+            this.currentUserId = null;
+        } else {
+            this.currentUserId = userId;
+            logger.log(Level.INFO, "MMain: {0}로 로그인 되었습니다.", userId);
         }
     }
 }

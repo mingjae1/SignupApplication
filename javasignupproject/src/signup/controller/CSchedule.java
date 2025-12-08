@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
@@ -13,6 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import signup.constants.StatusConstants;
 import signup.dao.SaveDAO;
 import signup.model.MLecture;
 import signup.model.MMain;
@@ -30,8 +30,8 @@ public class CSchedule {
         this.saveDAO = saveDAO;
 
         // 팝업창 내부의 라디오 버튼 리스너 연결
-        this.vSchedule.getRadioRegister().addActionListener(e -> loadSchedule("reg"));
-        this.vSchedule.getRadioBasket().addActionListener(e -> loadSchedule("pre"));
+        this.vSchedule.getRadioRegister().addActionListener(e -> loadSchedule(StatusConstants.REGISTER));
+        this.vSchedule.getRadioBasket().addActionListener(e -> loadSchedule(StatusConstants.PRE_REGISTER));
         this.vSchedule.getSaveImageButton().addActionListener(e -> saveAsImage());
     }
 
@@ -50,7 +50,7 @@ public class CSchedule {
 
         // 기본값: 수강신청 시간표 보여주기
         vSchedule.getRadioRegister().setSelected(true);
-        loadSchedule("reg");
+        loadSchedule(StatusConstants.REGISTER);
        
         // 팝업창 보이기
         vSchedule.setVisible(true);

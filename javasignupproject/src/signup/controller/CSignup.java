@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 
+import signup.constants.PanelNames;
 import signup.dao.UserDAO;     // UserDAO 임포트
 import signup.dao.LectureDAO; // LectureDAO 임포트
 import signup.model.MUser;
@@ -225,7 +226,7 @@ public class CSignup {
         if (isSuccess) {
             JOptionPane.showMessageDialog(vSignup, name + "님, 회원가입이 성공적으로 완료되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
             vSignup.clearFields(); 
-            vMain.contentPanel("loginPanel"); 
+            vMain.contentPanel(PanelNames.LOGIN_PANEL); 
         } else {
             JOptionPane.showMessageDialog(vSignup, "회원가입 중 오류가 발생했습니다. (DB 오류)", "오류", JOptionPane.ERROR_MESSAGE);
         }
@@ -242,7 +243,7 @@ public class CSignup {
         vSignup.clearFields();
         vMain.setSize(380, 280);
         vMain.setLocationRelativeTo(null);
-        vMain.contentPanel("loginPanel");
+        vMain.contentPanel(PanelNames.LOGIN_PANEL);
     }
     
     /**

@@ -10,13 +10,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import signup.constants.StatusConstants;
 import signup.dao.LectureDAO;
 import signup.dao.SaveDAO;
 import signup.dao.UserDAO;
-import signup.model.MLecture; // 강의 DTO
+import signup.model.MLecture;
 import signup.model.MMain;
 import signup.view.VSearch;
-import signup.model.ComboboxItem; // ComboboxItem DTO 임포트
+import signup.model.ComboboxItem;
 
 /**
  * VSearch(강좌 검색 뷰)의 모든 이벤트를 처리하고
@@ -51,8 +52,8 @@ public class CSearch {
         
         // 1. 이벤트 리스너 연결
         this.vSearch.getSearchButton().addActionListener(this::handleSearch);
-        this.vSearch.getRegisterButton().addActionListener(e -> handleSave("reg")); 
-        this.vSearch.getPreRegisterButton().addActionListener(e -> handleSave("pre")); 
+        this.vSearch.getRegisterButton().addActionListener(e -> handleSave(StatusConstants.REGISTER)); 
+        this.vSearch.getPreRegisterButton().addActionListener(e -> handleSave(StatusConstants.PRE_REGISTER));
         
         // 콤보박스 연쇄 동작 리스너 연결
         this.vSearch.getComboCollege().addActionListener(this::handleCollegeSelect);
@@ -198,7 +199,7 @@ public class CSearch {
             int resultCode = saveDAO.addLecture(userId, lectureId, status, newCredits);
             
             // 3. DAO로 저장 요청 (검사 통과 시)
-            String messageType = status.equals("reg") ? "수강신청" : "미리담기";
+            String messageType = StatusConstants.REGISTER.equals(status) ? "수강신청" : "미리담기";
             
             // 4. 결과 피드백
             switch (resultCode) {

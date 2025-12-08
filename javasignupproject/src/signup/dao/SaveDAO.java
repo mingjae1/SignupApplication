@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import signup.model.MLecture; // model.Lecture DTO가 필요합니다.
+import signup.constants.StatusConstants;
+import signup.model.MLecture;
 
 /**
  * 'save' 테이블 (수강신청, 미리담기 내역) 관련
@@ -86,8 +87,8 @@ public class SaveDAO {
         
     	// 1. [핵심] "reg" (수강신청) 상태일 때만 학점 제한을 검사합니다.
         // (미리담기("pre")는 학점 제한 없이 담을 수 있어야 합니다.)
-        if (status.equals("reg")) {
-            int currentCredits = getTotalCredits(userid, "reg");
+        if (StatusConstants.REGISTER.equals(status)) {
+            int currentCredits = getTotalCredits(userid, StatusConstants.REGISTER);
             if (currentCredits + newCredits > MAX_CREDITS) {
                 // 1번 오류: 학점 초과
                 return 1; 

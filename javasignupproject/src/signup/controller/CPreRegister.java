@@ -5,10 +5,11 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
+import signup.constants.StatusConstants;
 import signup.model.MLecture;
 import signup.model.MMain;
 import signup.dao.SaveDAO;
-import signup.view.VPreRegister; // VRegister가 아닌 VPreRegister 뷰를 사용
+import signup.view.VPreRegister;
 
 /**
  * '미리담기 내역' 뷰(VPreRegister)를 제어하는 자식 컨트롤러입니다.
@@ -34,7 +35,7 @@ public class CPreRegister extends CListController {
             vPreRegister.getTable(), // 2. 제어할 테이블(JTable)
             mMain,               // 3. MMain
             saveDAO,             // 4. SaveDAO
-            "pre"                // 5. 이 컨트롤러는 "pre" (미리담기) 상태를 담당
+            StatusConstants.PRE_REGISTER // 5. 이 컨트롤러는 "pre" (미리담기) 상태를 담당
         );
         
         this.vPreRegister = vPreRegister;
@@ -84,13 +85,13 @@ public class CPreRegister extends CListController {
             int lectureId = Integer.parseInt(lectureIdStr);
     
             // 2. SaveDAO에 "reg" 상태로 신청 요청 (학점 검사 포함)
-            int resultCode = this.saveDAO.addLecture(userId, lectureId, "reg", newCredits);
+            int resultCode = this.saveDAO.addLecture(userId, lectureId, StatusConstants.REGISTER, newCredits);
     
             // 3. DAO의 결과 코드에 따라 피드백
             switch (resultCode) {
                 case 0: // 수강신청 성공
                     // 수강신청에 성공했으므로, "pre"(미리담기) 목록에서는 삭제
-                    this.saveDAO.removeLecture(userId, lectureId, "pre"); 
+                    this.saveDAO.removeLecture(userId, lectureId, StatusConstants.PRE_REGISTER); 
                     
                     JOptionPane.showMessageDialog(vPreRegister, "[" + lectureName + "] 수강신청 되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
                     refreshTable(); // 미리담기 목록 새로고침 (항목이 사라짐)

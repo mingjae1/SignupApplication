@@ -18,6 +18,8 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
+import signup.constants.PanelNames;
+
 /**
  * 프로그램의 메인 프레임(JFrame) 클래스입니다.
  * 상단 헤더(네비게이션, 계정)와 좌측 사이드바(메뉴), 중앙 컨텐츠 패널로 구성됩니다.
@@ -84,7 +86,7 @@ public class VMain extends JFrame {
         contentPanel = new JPanel(contentCardLayout);
         
         mainContentPanel.add(contentPanel, BorderLayout.CENTER);
-        mainCardPanel.add(mainContentPanel, "mainContentPanel");
+        mainCardPanel.add(mainContentPanel, PanelNames.MAIN_CONTENT_PANEL);
         
         // 3. 프레임에 메인 패널 추가
         this.add(mainCardPanel);
@@ -215,9 +217,9 @@ public class VMain extends JFrame {
      * 화면 전환 메서드
      */
     public void contentPanel(String panelName) {
-        if (panelName.equals("registerPanel") || panelName.equals("preRegisterPanel") || 
-            panelName.equals("searchPanel") || panelName.equals("schedulePanel") || panelName.equals("adminPanel")) {
-            cardLayout.show(mainCardPanel, "mainContentPanel");
+        if (panelName.equals(PanelNames.REGISTER_PANEL) || panelName.equals(PanelNames.PREREGISTER_PANEL) || 
+            panelName.equals(PanelNames.SEARCH_PANEL) || panelName.equals(PanelNames.SCHEDULE_PANEL) || panelName.equals(PanelNames.ADMIN_PANEL)) {
+            cardLayout.show(mainCardPanel, PanelNames.MAIN_CONTENT_PANEL);
             contentCardLayout.show(contentPanel, panelName);
         } else {
             cardLayout.show(mainCardPanel, panelName);

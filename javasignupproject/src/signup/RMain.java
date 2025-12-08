@@ -6,6 +6,7 @@ import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
+import signup.constants.PanelNames;
 import signup.controller.CAdmin;
 // 컨트롤러
 import signup.controller.CLogin;
@@ -91,13 +92,13 @@ public class RMain {
         
         // --- 3. 뷰 조립 ---
         // VMain(메인 프레임)의 메인 CardLayout에 패널 추가
-        this.vMain.addPanel(this.vLogin, "loginPanel");
-        this.vMain.addPanel(this.vSignup, "signupPanel");
+        this.vMain.addPanel(this.vLogin, PanelNames.LOGIN_PANEL);
+        this.vMain.addPanel(this.vSignup, PanelNames.SIGNUP_PANEL);
         
         // VMain 내부의 컨텐츠 CardLayout에 패널 추가
-        this.vMain.getPanel().add(this.vSearch, "searchPanel");
-        this.vMain.getPanel().add(this.vRegister, "registerPanel");
-        this.vMain.getPanel().add(this.vPreRegister, "preRegisterPanel");
+        this.vMain.getPanel().add(this.vSearch, PanelNames.SEARCH_PANEL);
+        this.vMain.getPanel().add(this.vRegister, PanelNames.REGISTER_PANEL);
+        this.vMain.getPanel().add(this.vPreRegister, PanelNames.PREREGISTER_PANEL);
         
         
 
@@ -119,7 +120,7 @@ public class RMain {
      * GUI를 초기화하고 화면에 표시합니다.
      */
     public void initialize() {
-    	this.vMain.contentPanel("loginPanel");
+    	this.vMain.contentPanel(PanelNames.LOGIN_PANEL);
         this.vMain.setVisible(true);
     }
     /**

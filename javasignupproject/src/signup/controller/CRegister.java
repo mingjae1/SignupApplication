@@ -2,6 +2,7 @@ package signup.controller;
 
 import java.util.List;
 
+import signup.constants.StatusConstants;
 import signup.model.MLecture;
 import signup.model.MMain;
 import signup.dao.SaveDAO;
@@ -30,7 +31,7 @@ public class CRegister extends CListController {
             vRegister.getTable(), // 2. 제어할 테이블(JTable) 전달
             mMain,             // 3. MMain 전달
             saveDAO,           // 4. SaveDAO 전달
-            "reg"              // 5. 이 컨트롤러는 "reg" (수강신청) 상태를 담당
+            StatusConstants.REGISTER // 5. 이 컨트롤러는 "reg" (수강신청) 상태를 담당
         );
         
         this.vRegister = vRegister;

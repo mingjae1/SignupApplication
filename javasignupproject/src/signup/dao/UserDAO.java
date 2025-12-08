@@ -12,9 +12,6 @@ import signup.model.MUser;
 public class UserDAO {
 
     private DAO dao;
-    private Connection conn;
-    private PreparedStatement pstmt;
-    private ResultSet rs;
     private static final Logger logger = Logger.getLogger(UserDAO.class.getName());
 
     public UserDAO() {
@@ -38,38 +35,36 @@ public class UserDAO {
      * - login 테이블과 user 테이블 JOIN 필요
      */
     public MUser validateUser(String id, String password) throws SQLException {
-        conn = dao.getConnection();
-        
-        if (conn == null) {
-            // DB 연결 문제: config.properties 파일, MySQL 서버 확인
-            throw new SQLException("데이터베이스 연결에 실패했습니다.");
-        }
-        
-        String sql = "SELECT u.name, u.role FROM login l " +
-                     "JOIN user u ON l.userId = u.userid " +
-                     "WHERE l.userId = ? AND l.password = ?";
-
-        try (PreparedStatement validpstmt = conn.prepareStatement(sql)) {
-            validpstmt.setString(1, id);
-            validpstmt.setString(2, password);
-
-            try (ResultSet result = validpstmt.executeQuery()) {
-                if (result.next()) {
-                   // 인증 성공: 사용자 정보 반환
-                   MUser mUser = new MUser();
-                   mUser.setUserid(id);
-                   mUser.setName(result.getString("name"));
-                   mUser.setRole(result.getString("role"));
-                   return mUser;
-                } else {
-                    // 인증 실패: 아이디 또는 비밀번호 불일치
-                    return null;
-                }
+        try (Connection conn = dao.getConnection()) {
+            if (conn == null) {
+                // DB 연결 문제: config.properties 파일, MySQL 서버 확인
+                throw new SQLException("데이터베이스 연결에 실패했습니다.");
             }
-        } catch (SQLException e) {
-            throw new SQLException("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
-        } finally {
-            DAO.close(null, null, conn);
+            
+            String sql = "SELECT u.name, u.role FROM login l " +
+                         "JOIN user u ON l.userId = u.userid " +
+                         "WHERE l.userId = ? AND l.password = ?";
+
+            try (PreparedStatement validpstmt = conn.prepareStatement(sql)) {
+                validpstmt.setString(1, id);
+                validpstmt.setString(2, password);
+
+                try (ResultSet result = validpstmt.executeQuery()) {
+                    if (result.next()) {
+                       // 인증 성공: 사용자 정보 반환
+                       MUser mUser = new MUser();
+                       mUser.setUserid(id);
+                       mUser.setName(result.getString("name"));
+                       mUser.setRole(result.getString("role"));
+                       return mUser;
+                    } else {
+                        // 인증 실패: 아이디 또는 비밀번호 불일치
+                        return null;
+                    }
+                }
+            } catch (SQLException e) {
+                throw new SQLException("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
+            }
         }
     }
     
@@ -99,58 +94,59 @@ public class UserDAO {
         String sqlUser = "INSERT INTO user (userid, name, code, email, campus_id, college_id, department_id) " +
                           "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        conn = dao.getConnection();
-        if (conn == null) { 
-            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
-            logger.log(Level.SEVERE, "addUser: DB 연결 실패");
-            return false; 
-        }
-
-        PreparedStatement addprsmt = null;
-
-        try {
-            // 수동 트랜잭션 시작
-            conn.setAutoCommit(false);
-            
-            // 1단계: user 테이블 INSERT
-            addprsmt = conn.prepareStatement(sqlUser);
-            addprsmt.setString(1, mUser.getUserid());
-            addprsmt.setString(2, mUser.getName());
-            addprsmt.setInt(3, mUser.getCode());
-            addprsmt.setString(4, mUser.getEmail());
-            addprsmt.setInt(5, mUser.getCampusId());
-            addprsmt.setInt(6, mUser.getCollegeId());
-            addprsmt.setInt(7, mUser.getDepartmentId());
-            int userResult = addprsmt.executeUpdate();
-            
-            // 2단계: login 테이블 INSERT
-            addprsmt = conn.prepareStatement(sqlLogin);
-            addprsmt.setString(1, mUser.getUserid());
-            addprsmt.setString(2, password);
-            int loginResult = addprsmt.executeUpdate();
-            
-            DAO.close(null, addprsmt, null);
-
-            // 둘 다 성공 시 commit, 실패 시 rollback
-            if (loginResult > 0 && userResult > 0) { 
-                conn.commit(); 
-                return true; 
-            } else { 
-                conn.rollback(); 
+        try (Connection conn = dao.getConnection()) {
+            if (conn == null) { 
+                // DB 연결 문제: config.properties, MySQL 서버 상태 확인
+                logger.log(Level.SEVERE, "addUser: DB 연결 실패");
                 return false; 
             }
-        }
-        catch (SQLException e) { 
-            // 디버깅: 중복 키, 외래키 제약, NOT NULL 제약 확인
-            logger.log(Level.WARNING, "회원가입 트랜잭션 오류", e);
-            try { conn.rollback(); }
-            catch (SQLException ex) { logger.log(Level.SEVERE, "롤백 실패", ex); } 
-            return false; 
-        } 
-        finally {
-            try { conn.setAutoCommit(true); } 
-            catch (SQLException e) { logger.log(Level.WARNING, "AutoCommit 원상복구 실패", e); }
-            DAO.close(null, addprsmt, conn); 
+
+            try {
+                // 수동 트랜잭션 시작
+                conn.setAutoCommit(false);
+                
+                // 1단계: user 테이블 INSERT
+                try (PreparedStatement pstmt1 = conn.prepareStatement(sqlUser)) {
+                    pstmt1.setString(1, mUser.getUserid());
+                    pstmt1.setString(2, mUser.getName());
+                    pstmt1.setInt(3, mUser.getCode());
+                    pstmt1.setString(4, mUser.getEmail());
+                    pstmt1.setInt(5, mUser.getCampusId());
+                    pstmt1.setInt(6, mUser.getCollegeId());
+                    pstmt1.setInt(7, mUser.getDepartmentId());
+                    int userResult = pstmt1.executeUpdate();
+                    
+                    // 2단계: login 테이블 INSERT
+                    try (PreparedStatement pstmt2 = conn.prepareStatement(sqlLogin)) {
+                        pstmt2.setString(1, mUser.getUserid());
+                        pstmt2.setString(2, password);
+                        int loginResult = pstmt2.executeUpdate();
+                        
+                        // 둘 다 성공 시 commit, 실패 시 rollback
+                        if (loginResult > 0 && userResult > 0) { 
+                            conn.commit(); 
+                            return true; 
+                        } else { 
+                            conn.rollback(); 
+                            return false; 
+                        }
+                    }
+                }
+            }
+            catch (SQLException e) { 
+                // 디버깅: 중복 키, 외래키 제약, NOT NULL 제약 확인
+                logger.log(Level.WARNING, "회원가입 트랜잭션 오류", e);
+                try { conn.rollback(); }
+                catch (SQLException ex) { logger.log(Level.SEVERE, "롤백 실패", ex); } 
+                return false; 
+            } 
+            finally {
+                try { conn.setAutoCommit(true); } 
+                catch (SQLException e) { logger.log(Level.WARNING, "AutoCommit 원상복구 실패", e); }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "DB 연결 오류", e);
+            return false;
         }
     }
     
@@ -168,76 +164,63 @@ public class UserDAO {
      * - user 테이블의 userid(PK) 기준
      */
     public boolean isUserIdDuplicate(String id) {
-        conn = dao.getConnection();
         String sql = "SELECT COUNT(*) FROM user WHERE userid = ?";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, id);
-            rs = pstmt.executeQuery();
             
-            if (rs.next()) {
-                // COUNT > 0: 중복, 0: 사용 가능
-                return rs.getInt(1) > 0;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // COUNT > 0: 중복, 0: 사용 가능
+                    return rs.getInt(1) > 0;
+                }
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "ID 중복 검사 SQL 오류", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);	
         }
         return false;
     }
     
     public boolean isStudentIdDuplicate(int studentCode) { 
-        conn = dao.getConnection();
         String sql = "SELECT COUNT(*) FROM user WHERE code = ?";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, studentCode);
-            rs = pstmt.executeQuery();
             
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "학번 중복 검사 SQL 오류", e);
-        } catch (NullPointerException e) {
-            logger.log(Level.SEVERE, "DB 연결 실패", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
         }
         return false;
     }
     
     public int getCampusIdByUserId(String userId) {
-        conn = dao.getConnection();
         String sql = "SELECT campus_id FROM user WHERE userid = ?";
         int campusId = -1;
         
-        try {
-            pstmt = conn.prepareStatement(sql);
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, userId);
-            rs = pstmt.executeQuery();
             
-            if (rs.next()) {
-                campusId = rs.getInt("campus_id");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    campusId = rs.getInt("campus_id");
+                }
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "사용자 캠퍼스 ID 조회 SQL 오류", e);
-        } catch (NullPointerException e) {
-            logger.log(Level.SEVERE, "DB 연결 실패", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
         }
         return campusId;
     }
     
     public MUser getUserInfo(String userId) {
-        conn = dao.getConnection();
         MUser user = null;
-        
-        if (conn == null) return null;
         
         String sql = "SELECT u.userid, u.name, u.code, u.email, " +
                      "r.name AS campus_name, " +
@@ -249,25 +232,27 @@ public class UserDAO {
                      "JOIN department d ON u.department_id = d.id " +
                      "WHERE u.userid = ?";
         
-        try {
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, userId);
-            rs = pstmt.executeQuery();
+        try (Connection conn = dao.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            if (rs.next()) {
-                user = new MUser();
-                user.setUserid(rs.getString("userid"));
-                user.setName(rs.getString("name"));
-                user.setCode(rs.getInt("code"));
-                user.setEmail(rs.getString("email"));
-                user.setCampus(rs.getString("campus_name"));
-                user.setCollege(rs.getString("college_name"));
-                user.setDepartment(rs.getString("dept_name"));
+            if (conn == null) return null;
+            
+            pstmt.setString(1, userId);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    user = new MUser();
+                    user.setUserid(rs.getString("userid"));
+                    user.setName(rs.getString("name"));
+                    user.setCode(rs.getInt("code"));
+                    user.setEmail(rs.getString("email"));
+                    user.setCampus(rs.getString("campus_name"));
+                    user.setCollege(rs.getString("college_name"));
+                    user.setDepartment(rs.getString("dept_name"));
+                }
             }
         } catch (SQLException e) {
             logger.log(Level.WARNING, "사용자 상세 정보 조회 실패", e);
-        } finally {
-            DAO.close(rs, pstmt, conn);
         }
         return user;
     }

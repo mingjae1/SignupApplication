@@ -41,31 +41,30 @@ public class UserDAO {
             throw new SQLException("데이터베이스 연결에 실패했습니다.");
         }
         
-        try (Connection connection = conn) {
-            String sql = "SELECT u.name, u.role FROM login l " +
-                         "JOIN user u ON l.userId = u.userid " +
-                         "WHERE l.userId = ? AND l.password = ?";
+        String sql = "SELECT u.name, u.role FROM login l " +
+                     "JOIN user u ON l.userId = u.userid " +
+                     "WHERE l.userId = ? AND l.password = ?";
 
-            try (PreparedStatement validpstmt = connection.prepareStatement(sql)) {
-                validpstmt.setString(1, id);
-                validpstmt.setString(2, password);
+        try (Connection connection = conn;
+             PreparedStatement validpstmt = connection.prepareStatement(sql)) {
+            validpstmt.setString(1, id);
+            validpstmt.setString(2, password);
 
-                try (ResultSet result = validpstmt.executeQuery()) {
-                    if (result.next()) {
-                       // 인증 성공: 사용자 정보 반환
-                       MUser mUser = new MUser();
-                       mUser.setUserid(id);
-                       mUser.setName(result.getString("name"));
-                       mUser.setRole(result.getString("role"));
-                       return mUser;
-                    } else {
-                        // 인증 실패: 아이디 또는 비밀번호 불일치
-                        return null;
-                    }
+            try (ResultSet result = validpstmt.executeQuery()) {
+                if (result.next()) {
+                   // 인증 성공: 사용자 정보 반환
+                   MUser mUser = new MUser();
+                   mUser.setUserid(id);
+                   mUser.setName(result.getString("name"));
+                   mUser.setRole(result.getString("role"));
+                   return mUser;
+                } else {
+                    // 인증 실패: 아이디 또는 비밀번호 불일치
+                    return null;
                 }
-            } catch (SQLException e) {
-                throw new SQLException("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
             }
+        } catch (SQLException e) {
+            throw new SQLException("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
         }
     }
     

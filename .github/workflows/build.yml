@@ -1,0 +1,43 @@
+name: SonarQube
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # SonarQube 분석의 정확도를 위해 전체 히스토리를 가져옵니다.
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'       # 기존 설정 유지 (Project Java Version)
+          distribution: 'temurin'  # 기존 설정 유지
+          cache: 'gradle'          # Gradle 의존성 캐싱
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Make gradlew executable
+        working-directory: javasignupproject # 기존 설정 유지 (작업 폴더)
+        run: chmod +x ./gradlew
+
+      - name: Build and analyze
+        working-directory: javasignupproject # 기존 설정 유지 (작업 폴더)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR 분석 시 필요할 수 있음
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build sonar --info

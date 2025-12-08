@@ -73,16 +73,12 @@ public class CAdmin {
     // [추가] 버튼 클릭 핸들러
     private void handleAdd(ActionEvent e) {
         try {
-            int id = Integer.parseInt(vAdmin.getTfId().getText());
-            String name = vAdmin.getTfName().getText();
-            String prof = vAdmin.getTfProfessor().getText();
-            int credit = Integer.parseInt(vAdmin.getTfCredit().getText());
-            String time = vAdmin.getTfTime().getText();
-            int deptId = Integer.parseInt(vAdmin.getTfDeptId().getText());
+            LectureFormData formData = getLectureFormData();
             
-            if (lectureDAO.insertLecture(id, name, prof, credit, time, deptId)) {
+            if (lectureDAO.insertLecture(formData.id, formData.name, formData.prof, 
+                                         formData.credit, formData.time, formData.deptId)) {
                 JOptionPane.showMessageDialog(vAdmin, "강의가 추가되었습니다.");
-                loadAllLectures(); // 목록 갱신
+                loadAllLectures();
                 vAdmin.clearForm();
             } else {
                 JOptionPane.showMessageDialog(vAdmin, "추가 실패 (중복된 ID 등)", "오류", JOptionPane.ERROR_MESSAGE);
@@ -92,18 +88,12 @@ public class CAdmin {
         }
     }
 
-    // [수정] 버튼 클릭 핸들러
     private void handleUpdate(ActionEvent e) {
         try {
-            // ID는 수정 불가(PK)라고 가정하고 조건절에 사용
-            int id = Integer.parseInt(vAdmin.getTfId().getText());
-            String name = vAdmin.getTfName().getText();
-            String prof = vAdmin.getTfProfessor().getText();
-            int credit = Integer.parseInt(vAdmin.getTfCredit().getText());
-            String time = vAdmin.getTfTime().getText();
-            int deptId = Integer.parseInt(vAdmin.getTfDeptId().getText());
+            LectureFormData formData = getLectureFormData();
 
-            if (lectureDAO.updateLecture(id, name, prof, credit, time, deptId)) {
+            if (lectureDAO.updateLecture(formData.id, formData.name, formData.prof, 
+                                        formData.credit, formData.time, formData.deptId)) {
                 JOptionPane.showMessageDialog(vAdmin, "강의 정보가 수정되었습니다.");
                 loadAllLectures();
                 vAdmin.clearForm();
@@ -112,6 +102,35 @@ public class CAdmin {
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(vAdmin, "숫자 입력 형식을 확인하세요.", "입력 오류", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    
+    private LectureFormData getLectureFormData() {
+        return new LectureFormData(
+            Integer.parseInt(vAdmin.getTfId().getText()),
+            vAdmin.getTfName().getText(),
+            vAdmin.getTfProfessor().getText(),
+            Integer.parseInt(vAdmin.getTfCredit().getText()),
+            vAdmin.getTfTime().getText(),
+            Integer.parseInt(vAdmin.getTfDeptId().getText())
+        );
+    }
+    
+    private static class LectureFormData {
+        final int id;
+        final String name;
+        final String prof;
+        final int credit;
+        final String time;
+        final int deptId;
+        
+        LectureFormData(int id, String name, String prof, int credit, String time, int deptId) {
+            this.id = id;
+            this.name = name;
+            this.prof = prof;
+            this.credit = credit;
+            this.time = time;
+            this.deptId = deptId;
         }
     }
 
@@ -142,18 +161,19 @@ public class CAdmin {
     private void handleTableClick() {
         JTable table = vAdmin.getTable();
         int row = table.getSelectedRow();
-        if (row != -1) {
-            // 테이블 값 가져오기
-        	vAdmin.getTfId().setText(getStringValue(table, row, 0));
-            vAdmin.getTfName().setText(getStringValue(table, row, 1));
-            vAdmin.getTfProfessor().setText(getStringValue(table, row, 2));
-            vAdmin.getTfCredit().setText(getStringValue(table, row, 3));
-            vAdmin.getTfTime().setText(getStringValue(table, row, 4));
-            vAdmin.getTfDeptId().setText(getStringValue(table, row, 5));
-            
-            // ID는 PK이므로 수정 모드에서는 비활성화
-            vAdmin.getTfId().setEditable(false);
-        }
+        if (row == -1) return;
+        
+        populateFormFromTable(table, row);
+        vAdmin.getTfId().setEditable(false);
+    }
+    
+    private void populateFormFromTable(JTable table, int row) {
+        vAdmin.getTfId().setText(getStringValue(table, row, 0));
+        vAdmin.getTfName().setText(getStringValue(table, row, 1));
+        vAdmin.getTfProfessor().setText(getStringValue(table, row, 2));
+        vAdmin.getTfCredit().setText(getStringValue(table, row, 3));
+        vAdmin.getTfTime().setText(getStringValue(table, row, 4));
+        vAdmin.getTfDeptId().setText(getStringValue(table, row, 5));
     }
     
     // 학과 목록 다이얼로그 표시

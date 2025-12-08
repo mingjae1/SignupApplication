@@ -6,6 +6,7 @@ import javax.swing.UIManager;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
+import signup.constants.AppConstants;
 import signup.constants.PanelNames;
 import signup.controller.CAdmin;
 import signup.controller.CLogin;
@@ -94,10 +95,12 @@ public class RMain {
     }
 
     public static void main(String[] args) {
-    	System.setProperty("flatlaf.uiScale", "1.2");
+    	System.setProperty("flatlaf.uiScale", AppConstants.UI_SCALE);
     	try {
-            UIManager.setLookAndFeel( new FlatDarkLaf() );
-        } catch( Exception ex ) { Logger.getLogger(RMain.class.getName()).severe("Failed to initialize LaF"); }
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch(Exception ex) { 
+            Logger.getLogger(RMain.class.getName()).severe("Failed to initialize LaF"); 
+        }
     	
     	RMain rMain = new RMain();
         rMain.initialize();

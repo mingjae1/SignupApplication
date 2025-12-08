@@ -10,6 +10,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import signup.constants.AppConstants;
 import signup.constants.StatusConstants;
 import signup.dao.LectureDAO;
 import signup.dao.SaveDAO;
@@ -22,7 +23,6 @@ import signup.model.ComboboxItem;
 public class CSearch {
     
     private static final Logger logger = Logger.getLogger(CSearch.class.getName());
-    private static final int MAX_CREDITS = 18;
     
     private VSearch vSearch;
     private MMain mMain;
@@ -143,27 +143,7 @@ public class CSearch {
             int lectureId = Integer.parseInt(lectureIdStr);
             
             int resultCode = saveDAO.addLecture(userId, lectureId, status, newCredits);
-            String messageType = StatusConstants.REGISTER.equals(status) ? "수강신청" : "미리담기";
-            
-            switch (resultCode) {
-            case 0:
-                JOptionPane.showMessageDialog(vSearch, "[" + lectureName + "]\n" + messageType + " 되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-                break;
-            case 1:
-                JOptionPane.showMessageDialog(vSearch, 
-                    "최대 " + messageType + " 학점(" + MAX_CREDITS + "학점)을 초과할 수 없습니다.",
-                    "학점 초과", JOptionPane.ERROR_MESSAGE);
-                break;
-            case 2:
-                JOptionPane.showMessageDialog(vSearch, "이미 " + messageType + " 내역에 존재하는 과목입니다.", "알림", JOptionPane.WARNING_MESSAGE);
-                break;
-            case -1:
-                JOptionPane.showMessageDialog(vSearch, messageType + " 중 DB 오류가 발생했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
-                break;
-            default:
-                JOptionPane.showMessageDialog(vSearch, messageType + " 중 알 수 없는 오류가 발생했습니다. (Code: " + resultCode + ")", "오류", JOptionPane.ERROR_MESSAGE);
-                break;
-            }	
+            handleSaveResult(resultCode, lectureName, status);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(vSearch, "강의 코드를 숫자로 변환하는 데 실패했습니다.", "시스템 오류", JOptionPane.ERROR_MESSAGE);
         }
@@ -175,5 +155,37 @@ public class CSearch {
         
     public void setMode(String mode) {
         this.vSearch.setMode(mode);
+    }
+    
+    private void handleSaveResult(int resultCode, String lectureName, String status) {
+        String messageType = StatusConstants.REGISTER.equals(status) ? "수강신청" : "미리담기";
+        
+        switch (resultCode) {
+        case AppConstants.DB_SUCCESS:
+            JOptionPane.showMessageDialog(vSearch, 
+                "[" + lectureName + "]\n" + messageType + " 되었습니다.", 
+                "성공", JOptionPane.INFORMATION_MESSAGE);
+            break;
+        case AppConstants.DB_ERROR_CREDIT_EXCEEDED:
+            JOptionPane.showMessageDialog(vSearch, 
+                "최대 " + messageType + " 학점(" + AppConstants.MAX_CREDITS + "학점)을 초과할 수 없습니다.",
+                "학점 초과", JOptionPane.ERROR_MESSAGE);
+            break;
+        case AppConstants.DB_ERROR_DUPLICATE:
+            JOptionPane.showMessageDialog(vSearch, 
+                "이미 " + messageType + " 내역에 존재하는 과목입니다.", 
+                "알림", JOptionPane.WARNING_MESSAGE);
+            break;
+        case AppConstants.DB_ERROR_GENERAL:
+            JOptionPane.showMessageDialog(vSearch, 
+                messageType + " 중 DB 오류가 발생했습니다.", 
+                "오류", JOptionPane.ERROR_MESSAGE);
+            break;
+        default:
+            JOptionPane.showMessageDialog(vSearch, 
+                messageType + " 중 알 수 없는 오류가 발생했습니다. (Code: " + resultCode + ")", 
+                "오류", JOptionPane.ERROR_MESSAGE);
+            break;
+        }
     }
 }

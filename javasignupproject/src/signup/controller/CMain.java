@@ -8,6 +8,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import signup.constants.AppConstants;
 import signup.constants.PanelNames;
 import signup.dao.UserDAO;
 import signup.model.MMain;
@@ -152,7 +153,7 @@ public class CMain {
         mMain.setCurrentUserId(null);
         vMain.setMyNameLabel("");
         setAdminMode(false);
-        vMain.setSize(420, 320);
+        vMain.setSize(AppConstants.LOGIN_WINDOW_WIDTH, AppConstants.LOGIN_WINDOW_HEIGHT);
         vMain.setLocationRelativeTo(null);
         vMain.contentPanel(PanelNames.LOGIN_PANEL);
         previousStack.clear();

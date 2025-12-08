@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 
+import signup.constants.AppConstants;
 import signup.constants.PanelNames;
 import signup.dao.UserDAO;
 import signup.dao.LectureDAO;
@@ -31,6 +32,8 @@ public class CSignup {
     private static final Pattern HAS_DIGIT_PATTERN = Pattern.compile("\\d");
     private static final Pattern HAS_SPECIAL_PATTERN = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]");
     private static final Pattern HAS_KOREAN_PATTERN = Pattern.compile("[ㄱ-ㅎㅏ-ㅣ가-힣]");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
+    private static final Pattern STUDENT_CODE_PATTERN = Pattern.compile("\\d{" + AppConstants.STUDENT_CODE_LENGTH + "}");
     
     public CSignup(VMain vMain, VSignup vSignup, LectureDAO lectureDAO, UserDAO userDAO) {
         this.vMain = vMain;
@@ -186,25 +189,27 @@ public class CSignup {
     }
     
     private boolean validateInput(MUser user, String studentId, String password, String passwordConfirm) {
-        if (user.getName().isEmpty() || studentId.isEmpty() || user.getUserid().isEmpty() || 
-            password.isEmpty() || user.getEmail().isEmpty() ||
-            user.getCampus() == null || user.getCollege() == null || user.getDepartment() == null) {
+        if (!isAllFieldsFilled(user, studentId, password)) {
             JOptionPane.showMessageDialog(vSignup, "모든 정보를 입력/선택해주세요.", "정보누락", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         
-        if (!user.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+        if (!EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
             JOptionPane.showMessageDialog(vSignup, "올바른 이메일 형식이 아닙니다.", "이메일 오류", JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
-        if (!studentId.matches("\\d{8}")) {
-            JOptionPane.showMessageDialog(vSignup, "올바르지 않은 학번입니다. (숫자 8자리)", "학번오류", JOptionPane.ERROR_MESSAGE);
+        if (!STUDENT_CODE_PATTERN.matcher(studentId).matches()) {
+            JOptionPane.showMessageDialog(vSignup, 
+                "올바르지 않은 학번입니다. (숫자 " + AppConstants.STUDENT_CODE_LENGTH + "자리)", 
+                "학번오류", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         
-        if (user.getUserid().length() < 3 || user.getUserid().length() > 15) {
-            JOptionPane.showMessageDialog(vSignup, "아이디는 3~15자 이내여야 합니다.", "아이디수제한", JOptionPane.ERROR_MESSAGE);
+        if (!isUserIdLengthValid(user.getUserid())) {
+            JOptionPane.showMessageDialog(vSignup, 
+                "아이디는 " + AppConstants.MIN_USER_ID_LENGTH + "~" + AppConstants.MAX_USER_ID_LENGTH + "자 이내여야 합니다.", 
+                "아이디수제한", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         
@@ -213,8 +218,10 @@ public class CSignup {
             return false;
         }
         
-        if (password.length() < 8 || password.length() > 20) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호는 8~20자 이내여야 합니다.", "비번수제한", JOptionPane.ERROR_MESSAGE);
+        if (!isPasswordLengthValid(password)) {
+            JOptionPane.showMessageDialog(vSignup, 
+                "비밀번호는 " + AppConstants.MIN_PASSWORD_LENGTH + "~" + AppConstants.MAX_PASSWORD_LENGTH + "자 이내여야 합니다.", 
+                "비번수제한", JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
@@ -228,9 +235,7 @@ public class CSignup {
             return false;
         }
         
-        if (!HAS_LETTER_PATTERN.matcher(password).find() || 
-            !HAS_DIGIT_PATTERN.matcher(password).find() || 
-            !HAS_SPECIAL_PATTERN.matcher(password).find()) {
+        if (!hasRequiredPasswordElements(password)) {
             JOptionPane.showMessageDialog(vSignup, 
                 "비밀번호는 영어, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.", 
                 "조건불충족", 
@@ -239,5 +244,28 @@ public class CSignup {
         }
         
         return true;
+    }
+    
+    private boolean isAllFieldsFilled(MUser user, String studentId, String password) {
+        return !user.getName().isEmpty() && !studentId.isEmpty() && 
+               !user.getUserid().isEmpty() && !password.isEmpty() && 
+               !user.getEmail().isEmpty() && user.getCampus() != null && 
+               user.getCollege() != null && user.getDepartment() != null;
+    }
+    
+    private boolean isUserIdLengthValid(String userId) {
+        return userId.length() >= AppConstants.MIN_USER_ID_LENGTH && 
+               userId.length() <= AppConstants.MAX_USER_ID_LENGTH;
+    }
+    
+    private boolean isPasswordLengthValid(String password) {
+        return password.length() >= AppConstants.MIN_PASSWORD_LENGTH && 
+               password.length() <= AppConstants.MAX_PASSWORD_LENGTH;
+    }
+    
+    private boolean hasRequiredPasswordElements(String password) {
+        return HAS_LETTER_PATTERN.matcher(password).find() && 
+               HAS_DIGIT_PATTERN.matcher(password).find() && 
+               HAS_SPECIAL_PATTERN.matcher(password).find();
     }
 }

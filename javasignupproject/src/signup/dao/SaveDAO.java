@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import signup.constants.AppConstants;
 import signup.constants.StatusConstants;
 import signup.model.MLecture;
 
@@ -19,7 +20,6 @@ public class SaveDAO {
     private PreparedStatement pstmt;
     private ResultSet rs;
     private static final Logger logger = Logger.getLogger(SaveDAO.class.getName());
-    private static final int MAX_CREDITS = 18;
     
     public SaveDAO() {
         this.dao = new DAO();
@@ -59,8 +59,8 @@ public class SaveDAO {
     public int addLecture(String userid, int lectureid, String status, int newCredits) {
         if (StatusConstants.REGISTER.equals(status)) {
             int currentCredits = getTotalCredits(userid, StatusConstants.REGISTER);
-            if (currentCredits + newCredits > MAX_CREDITS) {
-                return 1;
+            if (currentCredits + newCredits > AppConstants.MAX_CREDITS) {
+                return AppConstants.DB_ERROR_CREDIT_EXCEEDED;
             }
         }
         
@@ -74,10 +74,10 @@ public class SaveDAO {
             pstmt.setString(3, status);
             
             int insertedRows = pstmt.executeUpdate();
-            return insertedRows > 0 ? 0 : 2;
+            return insertedRows > 0 ? AppConstants.DB_SUCCESS : AppConstants.DB_ERROR_DUPLICATE;
         } catch (SQLException e) {
             logger.log(Level.WARNING, "강의 저장(save) SQL 오류", e);
-            return -1;
+            return AppConstants.DB_ERROR_GENERAL;
         } finally {
             DAO.close(null, pstmt, conn);
         }

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
+import signup.constants.AppConstants;
 import signup.constants.PanelNames;
 import signup.dao.UserDAO; 
 import signup.model.MMain;
@@ -36,7 +37,7 @@ public class CLogin {
         
         this.vLogin.getLoginButton().addActionListener(this::handleLogin);
         this.vLogin.getSignupButton().addActionListener(e -> {
-            vMain.setSize(800, 600);
+            vMain.setSize(AppConstants.SIGNUP_WINDOW_WIDTH, AppConstants.SIGNUP_WINDOW_HEIGHT);
             vMain.setLocationRelativeTo(null);
             vMain.contentPanel(PanelNames.SIGNUP_PANEL);
         });
@@ -67,7 +68,7 @@ public class CLogin {
                 this.cMain.resetNavigation("searchPanel");
                 this.cSearch.loadInitialCollegeData();
                 this.cMain.refreshUserInfo();
-                vMain.setSize(1280, 800);
+                vMain.setSize(AppConstants.MAIN_WINDOW_WIDTH, AppConstants.MAIN_WINDOW_HEIGHT);
                 vMain.setLocationRelativeTo(null);
             } else {
                 JOptionPane.showMessageDialog(vLogin, 

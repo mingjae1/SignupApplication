@@ -98,7 +98,7 @@ public class RMain {
     	System.setProperty("flatlaf.uiScale", AppConstants.UI_SCALE);
     	try {
             UIManager.setLookAndFeel(new FlatDarkLaf());
-        } catch(Exception ex) { 
+        } catch(javax.swing.UnsupportedLookAndFeelException ex) { 
             Logger.getLogger(RMain.class.getName()).severe("Failed to initialize LaF"); 
         }
     	

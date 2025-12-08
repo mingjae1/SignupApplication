@@ -7,32 +7,19 @@ package signup.model;
  */
 public class MLecture {
     
-    private String id;        // 과목 코드
-    private String name;      // 과목명
-    private String professor; // 교수명
-    private int credits;      // 학점
-    private String schedule;  // 시간표
+    private String id;
+    private String name;
+    private String professor;
+    private int credits;
+    private String schedule;
     private int deptId;
     
     public MLecture() {}
     
     public MLecture(String id, String name, String professor, int credits, String schedule) {
-		this.id = id;
-		this.name = name;
-		this.professor = professor;
-		this.credits = credits;
-		this.schedule = schedule;
-	}
+        this(id, name, professor, credits, schedule, 0);
+    }
     
-    /**
-     * 새로운 Lecture 객체를 생성합니다.
-     *
-     * @param id        과목 코드 (e.g., "1")
-     * @param name      과목명 (e.g., "행정학의이해")
-     * @param professor 교수명 (e.g., "이현정")
-     * @param credits   학점 (e.g., 3)
-     * @param schedule  시간표 (e.g., "목12:00-14:45")
-     */
     public MLecture(String id, String name, String professor, int credits, String schedule, int deptId) {
         this.id = id;
         this.name = name;

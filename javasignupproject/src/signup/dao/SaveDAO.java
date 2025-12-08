@@ -9,41 +9,36 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import signup.constants.AppConstants;
 import signup.constants.StatusConstants;
 import signup.model.MLecture;
 
-/**
- * 'save' 테이블 (수강신청, 미리담기 내역) 관련
- * 모든 DB 작업을 전담하는 DAO 클래스입니다.
- */
 public class SaveDAO {
     
-    private DAO dao; // 기본 DB 연결 헬퍼
+    private DAO dao;
     private Connection conn;
     private PreparedStatement pstmt;
     private ResultSet rs;
-    
     private static final Logger logger = Logger.getLogger(SaveDAO.class.getName());
-    
-    // 최대 허용 학점 상수 (18학점)
-    private static final int MAX_CREDITS = 18;
     
     public SaveDAO() {
         this.dao = new DAO();
     }
 
     /**
-     * 특정 사용자의 '수강신청' 또는 '미리담기' 목록을 DB에서 조회합니다.
-     * save 테이블과 lecture 테이블을 JOIN하여 강의 상세 정보를 가져옵니다.
-     * * @param userId 로그인한 사용자의 ID
-     * @param status "reg" (수강신청) 또는 "pre" (미리담기)
-     * @return 해당 상태의 Lecture 객체 리스트
+     * 상태별 강의 목록 조회 (수강신청/미리담기)
+     * @param userid 사용자 ID
+     * @param status 조회할 상태 (StatusConstants.REGISTER 또는 PRE_REGISTER)
+     * @return 강의 목록 (오류 시 빈 리스트 반환)
+     * 
+     * [오류 처리]
+     * - SQL 오류: 로그 출력 후 빈 리스트 반환
+     * - DB 연결 실패: 빈 리스트 반환
      */
     public List<MLecture> getLecturesByStatus(String userid, String status) {
         List<MLecture> lectures = new ArrayList<>();
         conn = dao.getConnection();
         
-        // save 테이블(s)과 lecture 테이블(l)을 JOIN하는 SQL
         String sql = "SELECT l.id, l.name, l.professor, l.credit, l.time " +
                      "FROM lecture l " +
                      "JOIN save s ON l.id = s.lecture_id " +
@@ -52,52 +47,56 @@ public class SaveDAO {
         try {
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, userid);
-            pstmt.setString(2, status); // "reg" 또는 "pre"
+            pstmt.setString(2, status);
             
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
-                // Lecture DTO 객체에 결과값을 담음
-                MLecture lecture = new MLecture(
+                lectures.add(new MLecture(
                     rs.getString("id"),
                     rs.getString("name"),
                     rs.getString("professor"),
-                    rs.getInt("credit"), // SQL 스키마에 따라 credit으로 수정
+                    rs.getInt("credit"),
                     rs.getString("time")
-                );
-                lectures.add(lecture);
+                ));
             }
         }
-        catch (SQLException e) { logger.log(Level.SEVERE, "상태별 강의 조회 SQL 오류", e); } 
+        catch (SQLException e) { 
+            // 디버깅: save 테이블 구조, lecture_id 외래키, status 값 확인
+            logger.log(Level.SEVERE, "상태별 강의 조회 SQL 오류", e); 
+        } 
         finally { DAO.close(rs, pstmt, conn); }
         return lectures;
     }
     
-    
     /**
-     * 'save' 테이블에 수강신청("reg") 또는 미리담기("pre") 내역을 추가합니다.
-     * 이미 동일한 항목이 있다면 (PRIMARY KEY 중복), 무시하고 false를 반환합니다.
-     *
-     * @param userid    로그인한 사용자 ID
-     * @param lectureid 사용자가 선택한 강의의 ID (숫자 ID)
-     * @param status    저장할 상태 ("reg" 또는 "pre")
-     * @return 삽입 성공 시 true, 실패(중복 등) 시 false
+     * 강의 추가 (수강신청/미리담기)
+     * @param userid 사용자 ID
+     * @param lectureid 강의 ID
+     * @param status 저장 상태 (StatusConstants.REGISTER 또는 PRE_REGISTER)
+     * @param newCredits 추가할 강의 학점
+     * @return 결과 코드 (AppConstants.DB_SUCCESS/DB_ERROR_* 참조)
+     * 
+     * [반환값]
+     * - DB_SUCCESS(0): 정상 추가 완료
+     * - DB_ERROR_CREDIT_EXCEEDED(1): 학점 초과 (MAX_CREDITS 확인)
+     * - DB_ERROR_DUPLICATE(2): 이미 추가된 강의
+     * - DB_ERROR_GENERAL(-1): DB 연결 또는 쿼리 오류
+     * 
+     * [주의사항]
+     * - 수강신청(REGISTER)만 학점 검사 수행
+     * - INSERT IGNORE 사용으로 중복 시 오류 없이 무시됨
      */
     public int addLecture(String userid, int lectureid, String status, int newCredits) {
-        
-    	// 1. [핵심] "reg" (수강신청) 상태일 때만 학점 제한을 검사합니다.
-        // (미리담기("pre")는 학점 제한 없이 담을 수 있어야 합니다.)
+        // 수강신청인 경우만 학점 검사
         if (StatusConstants.REGISTER.equals(status)) {
             int currentCredits = getTotalCredits(userid, StatusConstants.REGISTER);
-            if (currentCredits + newCredits > MAX_CREDITS) {
-                // 1번 오류: 학점 초과
-                return 1; 
+            if (currentCredits + newCredits > AppConstants.MAX_CREDITS) {
+                return AppConstants.DB_ERROR_CREDIT_EXCEEDED;
             }
         }
         
-    	conn = dao.getConnection();
-        
-        // INSERT IGNORE: PK(userid, lecture_id, status)가 중복되면 오류 대신 무시
+        conn = dao.getConnection();
         String sql = "INSERT IGNORE INTO save (userid, lecture_id, status) VALUES (?, ?, ?)";
         
         try {
@@ -107,27 +106,35 @@ public class SaveDAO {
             pstmt.setString(3, status);
             
             int insertedRows = pstmt.executeUpdate();
-            
-            if (insertedRows > 0) {
-                return 0; // 0번: 성공
-            } else {
-                return 2; // 2번 오류: 이미 존재함 (중복)
-            }
-            
+            // insertedRows = 0: 중복으로 인한 무시, 1: 정상 삽입
+            return insertedRows > 0 ? AppConstants.DB_SUCCESS : AppConstants.DB_ERROR_DUPLICATE;
         } catch (SQLException e) {
+            // 디버깅: save 테이블 PK 제약, lecture_id 유효성 확인
             logger.log(Level.WARNING, "강의 저장(save) SQL 오류", e);
-            return -1; // -1번: DB 오류
+            return AppConstants.DB_ERROR_GENERAL;
         } finally {
             DAO.close(null, pstmt, conn);
         }
     }
 
+    /**
+     * 강의 삭제 (수강신청/미리담기 취소)
+     * @param userid 사용자 ID
+     * @param lectureid 강의 ID
+     * @param status 삭제할 상태 (StatusConstants.REGISTER 또는 PRE_REGISTER)
+     * @return 성공 여부 (true: 삭제 성공, false: 삭제 실패 또는 해당 데이터 없음)
+     * 
+     * [오류 처리]
+     * - DB 연결 실패: false 반환, 로그 출력
+     * - SQL 오류: false 반환, 로그 출력
+     * - 삭제할 데이터 없음: false 반환 (정상)
+     */
     public boolean removeLecture(String userid, int lectureid, String status) {
         conn = dao.getConnection();
         
-        // [방어 코드] DB 연결 실패 시 즉시 중단
         if (conn == null) {
-            logger.log(Level.SEVERE, "removeLecture: DB 연결 실패 (conn=null)");
+            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
+            logger.log(Level.SEVERE, "removeLecture: DB 연결 실패");
             return false;
         }
         
@@ -139,36 +146,42 @@ public class SaveDAO {
             pstmt.setInt(2, lectureid);
             pstmt.setString(3, status);
             
-            // executeUpdate()는 삭제된 행(row)의 수를 반환합니다.
-            int deletedRows = pstmt.executeUpdate();
-            
-            // 1개 이상의 행(row)이 삭제되었다면 성공
-            return deletedRows > 0; 
-            
+            // 삭제된 행 수 > 0: 성공, 0: 해당 데이터 없음
+            return pstmt.executeUpdate() > 0; 
         } catch (SQLException e) {
+            // 디버깅: save 테이블 구조, 파라미터 값 확인
             logger.log(Level.WARNING, "강의 삭제(remove) SQL 오류", e);
             return false;
         } finally {
-            DAO.close(null, pstmt, conn); // rs가 없으므로 null 전달
+            DAO.close(null, pstmt, conn);
         }
     }
     
     /**
-     * 특정 사용자의 '수강신청' 또는 '미리담기' 목록의 총 학점을 계산합니다.
-     * @param userid 로그인한 사용자 ID
-     * @param status "reg" (수강신청) 또는 "pre" (미리담기)
-     * @return 계산된 총 학점 (int). 오류 발생 시 0 반환.
+     * 총 학점 계산
+     * @param userid 사용자 ID
+     * @param status 계산할 상태 (StatusConstants.REGISTER 또는 PRE_REGISTER)
+     * @return 총 학점 (오류 시 0 반환)
+     * 
+     * [반환값]
+     * - 정상: 해당 상태의 모든 강의 학점 합계
+     * - 강의 없음: 0 (정상)
+     * - DB 오류: 0 (로그 확인 필요)
+     * 
+     * [주의사항]
+     * - SUM이 NULL인 경우 0으로 처리됨
+     * - 학점 초과 검사 전에 반드시 호출되어야 함
      */
     public int getTotalCredits(String userid, String status) {
         conn = dao.getConnection();
         int totalCredits = 0;
         
         if (conn == null) {
-            logger.log(Level.SEVERE, "getTotalCredits: DB 연결 실패 (conn=null)");
+            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
+            logger.log(Level.SEVERE, "getTotalCredits: DB 연결 실패");
             return 0;
         }
 
-        // 'save' 테이블(s)과 'lecture' 테이블(l)을 JOIN하여 학점(credit)의 합(SUM)을 계산
         String sql = "SELECT SUM(l.credit) AS total " +
                      "FROM lecture l " +
                      "JOIN save s ON l.id = s.lecture_id " +
@@ -182,15 +195,15 @@ public class SaveDAO {
             rs = pstmt.executeQuery();
             
             if (rs.next()) {
-                // SUM() 결과는 'total'이라는 이름의 컬럼으로 반환됨
+                // SUM 결과가 NULL이면 getInt는 0 반환
                 totalCredits = rs.getInt("total");
             }
         } catch (SQLException e) {
+            // 디버깅: lecture.credit 컬럼 타입, JOIN 조건 확인
             logger.log(Level.WARNING, "총 학점 계산 SQL 오류", e);
         } finally {
             DAO.close(rs, pstmt, conn);
         }
         return totalCredits;
     }
-    
 }

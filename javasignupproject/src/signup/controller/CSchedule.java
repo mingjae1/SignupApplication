@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import signup.constants.AppConstants;
 import signup.constants.StatusConstants;
 import signup.dao.SaveDAO;
 import signup.model.MLecture;
@@ -84,16 +85,14 @@ public class CSchedule {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("시간표 이미지 저장");
         fileChooser.setFileFilter(new FileNameExtensionFilter("PNG 이미지 (*.png)", "png"));
-        fileChooser.setSelectedFile(new File("내시간표.png"));
+        fileChooser.setSelectedFile(new File(AppConstants.DEFAULT_SCHEDULE_FILENAME));
 
-        // vSchedule(팝업창)을 부모로 하여 다이얼로그를 띄움
         int userSelection = fileChooser.showSaveDialog(vSchedule);
 
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToSave = fileChooser.getSelectedFile();
-            // 확장자(.png) 자동 추가
-            if (!fileToSave.getName().toLowerCase().endsWith(".png")) {
-                fileToSave = new File(fileToSave.getParentFile(), fileToSave.getName() + ".png");
+            if (!fileToSave.getName().toLowerCase().endsWith(AppConstants.PNG_EXTENSION)) {
+                fileToSave = new File(fileToSave.getParentFile(), fileToSave.getName() + AppConstants.PNG_EXTENSION);
             }
 
             try {

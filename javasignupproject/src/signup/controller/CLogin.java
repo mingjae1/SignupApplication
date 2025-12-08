@@ -49,7 +49,8 @@ public class CLogin {
 
     private void handleLogin(ActionEvent e) {
         String id = vLogin.getIdField().getText();
-        String password = new String(vLogin.getPasswordField().getPassword());
+        char[] passwordChars = vLogin.getPasswordField().getPassword();
+        String password = new String(passwordChars);
         
         try {
         	MUser loginUser = this.userDAO.validateUser(id, password);
@@ -84,6 +85,9 @@ public class CLogin {
                 JOptionPane.ERROR_MESSAGE);
             vLogin.getPasswordField().setText("");
             logger.log(Level.SEVERE, "로그인 DB 오류", ex);
+        } finally {
+            // Clear password from memory for security
+            java.util.Arrays.fill(passwordChars, '0');
         }
     }
     

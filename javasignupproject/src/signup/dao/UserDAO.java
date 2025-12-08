@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +16,9 @@ public class UserDAO {
 
     private DAO dao;
     private static final Logger logger = Logger.getLogger(UserDAO.class.getName());
+    private static final int MIN_PASSWORD_HASH_LENGTH = 60;
+    private static final int TARGET_PASSWORD_COLUMN_LENGTH = 100;
+    private static volatile boolean passwordColumnChecked = false;
 
     public UserDAO() {
         this.dao = new DAO();
@@ -42,6 +46,7 @@ public class UserDAO {
             // DB 연결 문제: config.properties 파일, MySQL 서버 확인
             throw new SQLException("데이터베이스 연결에 실패했습니다.");
         }
+        ensurePasswordColumnLength(conn);
         
         String sql = "SELECT l.password AS hash, u.name, u.role FROM login l " +
                      "JOIN user u ON l.userId = u.userid " +
@@ -132,6 +137,7 @@ public class UserDAO {
                 logger.log(Level.SEVERE, "addUser: DB 연결 실패");
                 return false; 
             }
+            ensurePasswordColumnLength(conn);
 
             try {
                 // 수동 트랜잭션 시작
@@ -304,6 +310,7 @@ public class UserDAO {
 
         Connection conn = dao.getConnection();
         if (conn == null) throw new SQLException("데이터베이스 연결에 실패했습니다.");
+        ensurePasswordColumnLength(conn);
 
         try (Connection connection = conn) {
             // 먼저 사용자 존재 및 정보 일치 여부 확인
@@ -345,6 +352,7 @@ public class UserDAO {
 
         Connection conn = dao.getConnection();
         if (conn == null) throw new SQLException("데이터베이스 연결에 실패했습니다.");
+        ensurePasswordColumnLength(conn);
 
         try (Connection connection = conn) {
             try (PreparedStatement fetchStmt = connection.prepareStatement(fetchSql)) {
@@ -372,5 +380,60 @@ public class UserDAO {
             logger.log(Level.SEVERE, "비밀번호 변경 중 DB 오류", e);
             throw e;
         }
+    }
+
+    private void ensurePasswordColumnLength(Connection connection) {
+        if (connection == null || passwordColumnChecked) {
+            return;
+        }
+
+        synchronized (UserDAO.class) {
+            if (passwordColumnChecked) {
+                return;
+            }
+
+            boolean verified = false;
+            final String showSql = "SHOW COLUMNS FROM login LIKE 'password'";
+
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(showSql)) {
+                if (rs.next()) {
+                    String type = rs.getString("Type");
+                    int definedLength = parseVarcharLength(type);
+                    if (definedLength > 0 && definedLength < MIN_PASSWORD_HASH_LENGTH) {
+                        try (Statement alterStmt = connection.createStatement()) {
+                            alterStmt.executeUpdate(
+                                "ALTER TABLE login MODIFY password VARCHAR(" + TARGET_PASSWORD_COLUMN_LENGTH + ")"
+                            );
+                            logger.info("비밀번호 해시화에 성공했습니다.");
+                        }
+                    }
+                }
+                verified = true;
+            } catch (SQLException ex) {
+                logger.log(Level.FINE, "비밀번호 컬럼 길이 확인 실패 - 수동 점검 필요", ex);
+            } finally {
+                if (verified) {
+                    passwordColumnChecked = true;
+                }
+            }
+        }
+    }
+
+    private int parseVarcharLength(String typeDefinition) {
+        if (typeDefinition == null) {
+            return -1;
+        }
+
+        int start = typeDefinition.indexOf('(');
+        int end = typeDefinition.indexOf(')');
+        if (start >= 0 && end > start) {
+            try {
+                return Integer.parseInt(typeDefinition.substring(start + 1, end));
+            } catch (NumberFormatException ignored) {
+                // no-op
+            }
+        }
+        return -1;
     }
 }

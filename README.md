@@ -1,8 +1,61 @@
-# Java Swing 수강신청 프로그램 (MVC/DAO)
+# Java Swing 수강신청 프로그램 (Course Registration System)
 
-Java Swing과 MySQL을 사용하여 MVC(Model-View-Controller) 패턴 및 DAO(Data Access Object) 패턴을 기반으로 구현한 데스크톱 수강신청 프로그램입니다.
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
+[![Gradle](https://img.shields.io/badge/Gradle-8.5-blue.svg)](https://gradle.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)](https://www.mysql.com/)
+[![License](https://img.shields.io/badge/License-Educational-green.svg)](LICENSE)
 
-Gradle을 통해 라이브러리 의존성을 관리하며, FlatLaf 스킨을 적용하여 UI를 개선했습니다. 또한, SonarCloud와 GitHub Actions를 연동하여 코드 품질을 지속적으로 관리합니다.
+## 📖 프로젝트 소개
+
+Java Swing과 MySQL을 사용하여 **MVC(Model-View-Controller)** 패턴 및 **DAO(Data Access Object)** 패턴을 기반으로 구현한 데스크톱 수강신청 프로그램입니다.
+
+### 주요 특징
+- ✨ **현대적인 UI/UX**: FlatLaf 테마를 적용하여 깔끔하고 모던한 인터페이스 제공
+- 🏗️ **체계적인 아키텍처**: MVC 패턴과 DAO 패턴으로 관심사 분리 및 유지보수성 향상
+- 🔐 **보안 강화**: 비밀번호 정책, SQL 인젝션 방지, 세션 관리 등 보안 기능 구현
+- 📊 **코드 품질 관리**: SonarCloud와 GitHub Actions 연동으로 지속적인 품질 관리
+- 🎨 **테마 지원**: 라이트/다크 모드 실시간 전환 지원
+- 📱 **반응형 디자인**: 화면별 최적화된 창 크기 자동 조정
+
+---
+
+## 📑 목차
+
+- [프로젝트 소개](#-프로젝트-소개)
+- [주요 기능](#-주요-기능-전체-구현-기능-목록)
+  - [사용자 인증 및 계정 관리](#1-사용자-인증-및-계정-관리)
+  - [강좌 검색 및 조회](#2-강좌-검색-및-조회-기능)
+  - [수강신청 관리](#3-수강신청-관리)
+  - [시간표 기능](#4-시간표-기능)
+  - [관리자 기능](#5-관리자-기능)
+  - [UI/UX 기능](#6-uiux-기능)
+- [설치 및 실행 방법](#-설치-및-실행-방법)
+- [테스트 계정](#-테스트-계정)
+- [사용된 기술 스택](#-사용된-기술-스택)
+- [프로젝트 아키텍처](#-프로젝트-아키텍처)
+- [보안 기능](#-보안-기능)
+- [향후 개선 가능 사항](#-향후-개선-가능-사항)
+
+---
+
+## 📸 스크린샷
+
+> 💡 **참고**: 프로그램을 실행하면 다음과 같은 화면들을 확인할 수 있습니다.
+
+### 로그인 화면
+- 아이디/비밀번호 입력
+- 회원가입 링크
+- 엔터키로 빠른 로그인
+
+### 강좌 검색 화면
+- 캠퍼스/단과대학/학과별 필터링
+- 키워드 검색
+- 수강신청/미리담기 기능
+
+### 시간표 화면
+- 월~금 1~9교시 그리드
+- 강좌별 색상 구분
+- PNG 이미지로 저장 가능
 
 ---
 
@@ -341,76 +394,178 @@ Gradle을 통해 라이브러리 의존성을 관리하며, FlatLaf 스킨을 �
 
 ---
 
-## 🚀 설치 및 실행 방법 (How-To)
+## 🚀 설치 및 실행 방법
 
-이 프로젝트는 **Gradle**로 빌드되며, **MySQL** 데이터베이스가 필요합니다.
+### 📋 사전 요구사항
 
-### 1단계: 데이터베이스 (DB) 설정
+시작하기 전에 다음 항목들이 설치되어 있는지 확인하세요:
 
-1. 로컬 PC에 MySQL 서버 (v8.0.20 권장)가 설치 및 실행 중이어야 합니다.
-2. MySQL Workbench (또는 다른 DB 툴)에서 **`lms_data`**라는 이름의 새 스키마(데이터베이스)를 생성합니다.
-3. `javasignupproject` 폴더 내의 **`LMS_data.sql`** 파일 전체 스크립트를 `lms_data` 스키마에서 실행합니다.
-   * *(이 과정은 모든 테이블과 기본 테스트 계정 1개를 생성합니다.)*
+- **Java Development Kit (JDK) 17 이상**
+  - [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) 또는 [OpenJDK](https://adoptium.net/)
+- **MySQL Server 8.0 이상**
+  - [MySQL 다운로드](https://dev.mysql.com/downloads/mysql/)
+- **MySQL Workbench** (선택사항, 권장)
+  - [MySQL Workbench 다운로드](https://dev.mysql.com/downloads/workbench/)
+- **IDE** (다음 중 하나)
+  - Eclipse IDE with Buildship Gradle plugin
+  - IntelliJ IDEA
 
-### 2단계: 환경 설정 (`config.properties`)
+---
 
-1. **`javasignupproject`** 폴더 (즉, `src` 폴더와 같은 위치)에 **`config.properties`**라는 이름의 새 파일을 **직접 생성**해야 합니다. (이 파일은 `.gitignore` 처리되어 있습니다.)
-2. 파일 안에 본인의 MySQL 비밀번호를 입력합니다.
+### 1️⃣ 데이터베이스 설정
 
+1. MySQL 서버가 실행 중인지 확인합니다.
+   ```bash
+   # MySQL 서비스 상태 확인 (Windows)
+   net start | findstr MySQL
+   
+   # MySQL 서비스 상태 확인 (Linux/Mac)
+   systemctl status mysql
+   ```
+
+2. MySQL에 접속하여 데이터베이스를 생성합니다.
+   ```bash
+   mysql -u root -p
+   ```
+
+3. MySQL Workbench 또는 MySQL CLI에서 다음 명령을 실행합니다.
+   ```sql
+   CREATE DATABASE IF NOT EXISTS lms_data;
+   USE lms_data;
+   ```
+
+4. 프로젝트의 `javasignupproject/LMS_data.sql` 파일을 실행하여 테이블과 샘플 데이터를 생성합니다.
+   ```bash
+   # MySQL CLI에서 실행
+   source /path/to/javasignupproject/LMS_data.sql;
+   
+   # 또는 MySQL Workbench에서 SQL 스크립트를 열어 실행
+   ```
+
+---
+
+### 2️⃣ 데이터베이스 연결 설정
+
+1. `javasignupproject` 디렉토리에 `config.properties` 파일을 생성합니다.
+   ```bash
+   cd javasignupproject
+   touch config.properties  # Linux/Mac
+   # Windows에서는 텍스트 편집기로 직접 생성
+   ```
+
+2. 파일에 MySQL 비밀번호를 입력합니다.
    ```properties
    db.password=YOUR_MYSQL_PASSWORD_HERE
    ```
 
-### 3단계: Eclipse IDE로 가져오기 (Gradle)
-
-1. (필수) Eclipse Marketplace에서 **"Buildship Gradle Integration"** 플러그인을 설치합니다.
-2. `File > Import...` (가져오기)를 선택합니다.
-3. `Gradle > **Existing Gradle Project**` (기존 Gradle 프로젝트)를 선택합니다.
-4. `Project root directory`에서 이 저장소의 **`javasignupproject`** 폴더를 선택합니다.
-5. `Finish`를 누르면 Gradle이 `build.gradle.kts` 파일을 읽어 모든 라이브러리(MySQL, FlatLaf)를 자동으로 다운로드합니다.
-
-### 4단계: 프로그램 실행
-
-1. `src/signup/RMain.java` 파일을 엽니다.
-2. `RMain.java` 파일을 마우스 오른쪽 클릭 > `Run As > Java Application`으로 실행합니다.
+   > ⚠️ **주의**: `config.properties` 파일은 `.gitignore`에 포함되어 있어 Git에 커밋되지 않습니다. 보안을 위해 절대 이 파일을 저장소에 포함시키지 마세요.
 
 ---
 
-## 🧪 기본 테스트 계정
+### 3️⃣ 프로젝트 가져오기 및 빌드
 
-`LMS_data.sql` 파일 실행 시, 다음과 같은 테스트 계정이 자동으로 생성됩니다.
+#### Eclipse IDE 사용 시
+
+1. Eclipse Marketplace에서 **"Buildship Gradle Integration"** 플러그인을 설치합니다.
+   - `Help > Eclipse Marketplace` 메뉴에서 "Buildship" 검색 후 설치
+
+2. 프로젝트를 가져옵니다.
+   - `File > Import...` 선택
+   - `Gradle > Existing Gradle Project` 선택
+   - `Project root directory`에서 `javasignupproject` 폴더 선택
+   - `Finish` 클릭
+
+3. Gradle이 자동으로 의존성(MySQL Connector, FlatLaf)을 다운로드합니다.
+
+#### IntelliJ IDEA 사용 시
+
+1. `File > Open` 선택
+2. `javasignupproject` 폴더를 선택
+3. IntelliJ가 자동으로 Gradle 프로젝트를 인식하고 의존성을 다운로드합니다.
+
+#### 커맨드 라인에서 빌드
+
+```bash
+cd javasignupproject
+./gradlew build  # Linux/Mac
+gradlew.bat build  # Windows
+```
+
+---
+
+### 4️⃣ 프로그램 실행
+
+#### IDE에서 실행
+
+1. `src/signup/RMain.java` 파일을 엽니다.
+2. 파일을 마우스 오른쪽 클릭 > `Run As > Java Application` (Eclipse) 또는 `Run 'RMain.main()'` (IntelliJ) 선택
+3. 애플리케이션이 실행되면 로그인 화면이 표시됩니다.
+
+#### 커맨드 라인에서 실행
+
+```bash
+cd javasignupproject
+./gradlew run  # Linux/Mac
+gradlew.bat run  # Windows
+```
+
+---
+
+## 🧪 테스트 계정
+
+`LMS_data.sql` 파일 실행 시 자동으로 생성되는 테스트 계정입니다.
 
 ### 일반 사용자 계정
-* **ID:** `test`
-* **PW:** `1234`
-* **소속:** 자연캠퍼스, 공과대학, 컴퓨터공학과
+```
+아이디: test
+비밀번호: 1234
+소속: 자연캠퍼스 > 공과대학 > 컴퓨터공학과
+```
 
-### 관리자 계정
-* 관리자 계정은 별도 설정 필요 (DB의 `user` 테이블에서 `role` 컬럼을 'admin'으로 설정)
+> 💡 **팁**: 관리자 계정을 생성하려면 MySQL에서 직접 사용자를 추가하고 `user` 테이블의 `role` 컬럼을 'admin'으로 설정하세요.
+
+```sql
+-- 관리자 계정 추가 예시
+INSERT INTO user (userid, name, code, email, campus_id, college_id, department_id, role) VALUES
+('admin', '관리자', 99999999, 'admin@mju.ac.kr', 1, 11, 112, 'admin');
+
+INSERT INTO login (userId, password) VALUES
+('admin', 'Admin123!@#');
+```
 
 ---
 
 ## 💻 사용된 기술 스택
 
-* **언어:** Java (JDK 21)
-* **IDE:** Eclipse 2025-06 (4.36.0)
-* **GUI 프레임워크:** Java Swing
-* **데이터베이스:**
-   * MySQL Server 8.0.20
-   * MySQL Workbench 8.0.20
-* **빌드 도구:** Gradle 7+ (Kotlin DSL)
-* **라이브러리 (Dependencies):**
-   * MySQL Connector/J 9.4.0
-   * FlatLaf 3.6.2 (Look and Feel UI)
-   * JUnit 5 (테스트 프레임워크)
-* **디자인 패턴:**
-   * MVC (Model-View-Controller) 패턴
-   * DAO (Data Access Object) 패턴
-   * Template Method 패턴 (CListController)
-   * Strategy 패턴 (상태별 처리)
-* **코드 품질 관리:**
-   * SonarCloud (GitHub Actions 연동)
-   * SonarLint (IDE 실시간 분석)
+### 핵심 기술
+| 분류 | 기술 | 버전 | 설명 |
+|------|------|------|------|
+| 언어 | Java | 17+ | 애플리케이션 개발 언어 |
+| GUI | Java Swing | - | 데스크톱 사용자 인터페이스 |
+| 데이터베이스 | MySQL Server | 8.0+ | 데이터 저장 및 관리 |
+| 빌드 도구 | Gradle | 8.5 | 의존성 관리 및 빌드 자동화 |
+
+### 라이브러리 및 도구
+| 라이브러리 | 버전 | 용도 |
+|-----------|------|------|
+| MySQL Connector/J | 9.4.0 | MySQL 데이터베이스 연결 |
+| FlatLaf | 3.6.2 | 모던한 Look and Feel 테마 |
+| JUnit 5 | 5.10.0 | 단위 테스트 프레임워크 |
+| JaCoCo | - | 코드 커버리지 측정 |
+
+### 개발 도구
+- **IDE**: Eclipse / IntelliJ IDEA
+- **DB 관리**: MySQL Workbench
+- **코드 품질**: SonarCloud, SonarLint
+- **CI/CD**: GitHub Actions
+- **버전 관리**: Git, GitHub
+
+### 디자인 패턴
+- **MVC (Model-View-Controller)**: 프레젠테이션 로직 분리
+- **DAO (Data Access Object)**: 데이터 접근 추상화
+- **Template Method**: 공통 로직 재사용 (CListController)
+- **Strategy**: 상태별 처리 로직 분리
+- **Singleton**: 전역 상태 관리 (MMain)
 
 ---
 
@@ -459,6 +614,7 @@ signup/
   │   ├─ LectureDAO.java
   │   └─ SaveDAO.java
   └─ constants/ (상수)
+      ├─ AppConstants.java (애플리케이션 전역 상수)
       ├─ PanelNames.java (화면 이름)
       └─ StatusConstants.java (상태 코드)
 ```
@@ -570,6 +726,49 @@ save (수강신청/미리담기)
 
 ---
 
+## 🔧 문제 해결 (Troubleshooting)
+
+### MySQL 연결 오류
+```
+java.sql.SQLException: Access denied for user 'root'@'localhost'
+```
+**해결 방법**: `config.properties` 파일의 비밀번호가 정확한지 확인하세요.
+
+### 데이터베이스가 없다는 오류
+```
+Unknown database 'lms_data'
+```
+**해결 방법**: MySQL에서 `CREATE DATABASE lms_data;` 명령을 실행하고 `LMS_data.sql` 파일을 다시 실행하세요.
+
+### Gradle 빌드 오류
+```
+Could not resolve all dependencies
+```
+**해결 방법**: 
+1. 인터넷 연결을 확인하세요.
+2. `./gradlew clean build --refresh-dependencies` 명령을 실행하세요.
+
+### JDK 버전 오류
+```
+Unsupported class file major version
+```
+**해결 방법**: JDK 17 이상을 설치하고 환경변수를 설정하세요.
+```bash
+# Windows
+set JAVA_HOME=C:\Program Files\Java\jdk-17
+
+# Linux/Mac
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+```
+
+### config.properties 파일을 찾을 수 없음
+```
+FileNotFoundException: config.properties
+```
+**해결 방법**: `javasignupproject` 디렉토리에 `config.properties` 파일을 생성하고 `db.password=your_password`를 입력하세요.
+
+---
+
 ## 📝 향후 개선 가능 사항
 
 * 비밀번호 암호화 (해싱) 적용
@@ -592,7 +791,33 @@ save (수강신청/미리담기)
 
 ## 👥 기여
 
-프로젝트에 대한 피드백이나 개선 사항이 있으시면 이슈를 등록해주세요.
+프로젝트 개선에 참여하고 싶으신가요? 다음 방법으로 기여할 수 있습니다:
+
+### 버그 리포트
+1. GitHub Issues에서 기존 이슈를 확인하세요.
+2. 새로운 이슈를 생성하고 다음 정보를 포함하세요:
+   - 버그 설명
+   - 재현 방법
+   - 예상 동작
+   - 실제 동작
+   - 환경 정보 (OS, Java 버전, MySQL 버전)
+
+### 기능 제안
+1. GitHub Issues에서 "enhancement" 라벨로 새 이슈를 생성하세요.
+2. 제안하는 기능의 목적과 사용 사례를 설명하세요.
+
+### 코드 기여
+1. 저장소를 Fork하세요.
+2. 새로운 브랜치를 생성하세요: `git checkout -b feature/your-feature-name`
+3. 변경사항을 커밋하세요: `git commit -m 'Add some feature'`
+4. 브랜치에 Push하세요: `git push origin feature/your-feature-name`
+5. Pull Request를 생성하세요.
+
+### 코드 스타일
+- Java 코딩 컨벤션을 따르세요.
+- 의미 있는 변수명과 메서드명을 사용하세요.
+- 복잡한 로직에는 주석을 추가하세요.
+- 새로운 기능에는 테스트를 추가하세요.
 
 ---
 

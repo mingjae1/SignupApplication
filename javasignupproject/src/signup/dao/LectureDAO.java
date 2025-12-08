@@ -137,11 +137,12 @@ public class LectureDAO {
 
         String sql = "SELECT * FROM lecture ORDER BY id";
 
-        try (Connection conn = dao.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
+        Connection conn = dao.getConnection();
+        if (conn == null) return lectures;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
-            
-            if (conn == null) return lectures;
             
             while (rs.next()) {
                 lectures.add(new MLecture(
@@ -182,10 +183,11 @@ public class LectureDAO {
     public boolean insertLecture(int id, String name, String prof, int credit, String time, int deptId) {
         String sql = "INSERT INTO lecture (id, name, professor, credit, time, department_id) VALUES (?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = dao.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            if (conn == null) return false;
+        Connection conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             
             pstmt.setInt(1, id);
             pstmt.setString(2, name);
@@ -204,10 +206,11 @@ public class LectureDAO {
     public boolean updateLecture(int id, String name, String prof, int credit, String time, int deptId) {
         String sql = "UPDATE lecture SET name=?, professor=?, credit=?, time=?, department_id=? WHERE id=?";
         
-        try (Connection conn = dao.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            if (conn == null) return false;
+        Connection conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             
             pstmt.setString(1, name);
             pstmt.setString(2, prof);
@@ -226,10 +229,11 @@ public class LectureDAO {
     public boolean deleteLecture(int id) {
         String sql = "DELETE FROM lecture WHERE id = ?";
         
-        try (Connection conn = dao.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            if (conn == null) return false;
+        Connection conn = dao.getConnection();
+        if (conn == null) return false;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             
             pstmt.setInt(1, id);
             

@@ -35,17 +35,18 @@ public class UserDAO {
      * - login 테이블과 user 테이블 JOIN 필요
      */
     public MUser validateUser(String id, String password) throws SQLException {
-        try (Connection conn = dao.getConnection()) {
-            if (conn == null) {
-                // DB 연결 문제: config.properties 파일, MySQL 서버 확인
-                throw new SQLException("데이터베이스 연결에 실패했습니다.");
-            }
-            
+        Connection conn = dao.getConnection();
+        if (conn == null) {
+            // DB 연결 문제: config.properties 파일, MySQL 서버 확인
+            throw new SQLException("데이터베이스 연결에 실패했습니다.");
+        }
+        
+        try (Connection connection = conn) {
             String sql = "SELECT u.name, u.role FROM login l " +
                          "JOIN user u ON l.userId = u.userid " +
                          "WHERE l.userId = ? AND l.password = ?";
 
-            try (PreparedStatement validpstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement validpstmt = connection.prepareStatement(sql)) {
                 validpstmt.setString(1, id);
                 validpstmt.setString(2, password);
 
@@ -232,10 +233,11 @@ public class UserDAO {
                      "JOIN department d ON u.department_id = d.id " +
                      "WHERE u.userid = ?";
         
-        try (Connection conn = dao.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            if (conn == null) return null;
+        Connection conn = dao.getConnection();
+        if (conn == null) return null;
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             
             pstmt.setString(1, userId);
             

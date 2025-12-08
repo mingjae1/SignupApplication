@@ -124,14 +124,15 @@ public class SaveDAO {
     public boolean removeLecture(String userid, int lectureid, String status) {
         String sql = "DELETE FROM save WHERE userid = ? AND lecture_id = ? AND status = ?";
         
-        try (Connection conn = dao.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            if (conn == null) {
-                // DB 연결 문제: config.properties, MySQL 서버 상태 확인
-                logger.log(Level.SEVERE, "removeLecture: DB 연결 실패");
-                return false;
-            }
+        Connection conn = dao.getConnection();
+        if (conn == null) {
+            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
+            logger.log(Level.SEVERE, "removeLecture: DB 연결 실패");
+            return false;
+        }
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             
             pstmt.setString(1, userid);
             pstmt.setInt(2, lectureid);
@@ -169,14 +170,15 @@ public class SaveDAO {
                      "JOIN save s ON l.id = s.lecture_id " +
                      "WHERE s.userid = ? AND s.status = ?";
         
-        try (Connection conn = dao.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            if (conn == null) {
-                // DB 연결 문제: config.properties, MySQL 서버 상태 확인
-                logger.log(Level.SEVERE, "getTotalCredits: DB 연결 실패");
-                return 0;
-            }
+        Connection conn = dao.getConnection();
+        if (conn == null) {
+            // DB 연결 문제: config.properties, MySQL 서버 상태 확인
+            logger.log(Level.SEVERE, "getTotalCredits: DB 연결 실패");
+            return 0;
+        }
+        
+        try (Connection connection = conn;
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             
             pstmt.setString(1, userid);
             pstmt.setString(2, status);

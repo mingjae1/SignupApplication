@@ -19,20 +19,7 @@ public class MUser {
     private String college;     // 단과대학 이름
     private String department;  // 학과 이름
     
-    // 기본 생성자
     public MUser() {}
-    
-    // (필요에 따라) 모든 필드를 받는 생성자
-    public MUser(String userid, String name, int code, String email, int campusId, int collegeId, int departmentId, String role) {
-    	this.userid = userid;
-    	this.name = name;
-    	this.code = code;
-    	this.email = email;
-    	this.role = role;
-    	this.campusId = campusId;
-    	this.collegeId = collegeId;
-    	this.departmentId = departmentId;
-    }
 
     // --- 각 필드에 대한 Getter와 Setter ---
     

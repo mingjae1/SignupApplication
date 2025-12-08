@@ -15,11 +15,7 @@ public class ComboboxItem {
     public String getName() { return name; }
     public int getId() { return id; }
 
-    /**
-     * JComboBox가 객체를 표시할 때 이 메서드를 사용하여 이름만 보여줍니다.
-     */
-    
+    @Override
     public String toString() { return name; }
-    public int toInt() { return id; }
     
 }

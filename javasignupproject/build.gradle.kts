@@ -41,7 +41,6 @@ sonar {
     property("sonar.projectKey", "mingjae1_SignupApplication")
     property("sonar.organization", "mingjae1")
     property("sonar.sources", "src")
-    property("sonar.tests", "src/test/java")
     property("sonar.java.binaries", "build/classes/java/main")
     property("sonar.java.test.binaries", "build/classes/java/test")
     property("sonar.exclusions", "**/test/**,**/config.properties")

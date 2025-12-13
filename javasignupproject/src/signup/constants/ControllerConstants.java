@@ -43,7 +43,7 @@ public final class ControllerConstants {
     public static final String TITLE_LOGIN_COMPLETE_ADMIN = "관리자 로그인";
     public static final String SUCCESS_ADMIN_LOGIN = "관리자 로그인";
     public static final String SUCCESS_PASSWORD_CHANGED = "비밀번호가 변경되었습니다.";
-    public static final String SUCCESS_PASSWORD_RESET = "비밀번호가 초기화되었습니다. 초기 비밀번호: 1234";
+    public static final String SUCCESS_PASSWORD_RESET = "비밀번호가 초기화되었습니다. 초기 비밀번호가 재발급되었습니다.";
     public static final String SUCCESS_LECTURE_SIGNUP = "수강신청이 완료되었습니다.";
     public static final String SUCCESS_LECTURE_CANCEL = "수강신청이 취소되었습니다.";
     public static final String SUCCESS_LECTURE_SAVE = "강의가 저장되었습니다.";
@@ -62,7 +62,7 @@ public final class ControllerConstants {
     public static final String TITLE_SECURITY_ERROR = "보안 정책 위반";
     
     // ==================== 초기값 ====================
-    public static final String INITIAL_PASSWORD = "1234";
+    public static final String INITIAL_PASSWORD_KEY = "controller.initial.password";
     
     // ==================== 검증 메서드 ====================
     

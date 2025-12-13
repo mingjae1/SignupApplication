@@ -15,6 +15,7 @@ import signup.model.MMain;
 import signup.view.VLogin;
 import signup.view.VMain;
 import signup.model.MUser;
+import signup.util.ConfigLoader;
 
 /**
  * 로그인 관련 사용자 입력을 처리하는 컨트롤러.
@@ -145,7 +146,9 @@ public class CLogin {
         }
 
         try {
-            boolean ok = userDAO.resetPasswordIfMatch(id.trim(), name.trim(), code, ControllerConstants.INITIAL_PASSWORD);
+            String initialPassword = ConfigLoader.getInstance()
+                .getProperty(ControllerConstants.INITIAL_PASSWORD_KEY, "");
+            boolean ok = userDAO.resetPasswordIfMatch(id.trim(), name.trim(), code, initialPassword);
             if (ok) {
                 ViewConstants.showInfoMessage(vLogin, ControllerConstants.SUCCESS_PASSWORD_RESET, ControllerConstants.TITLE_RESET_COMPLETE);
             } else {

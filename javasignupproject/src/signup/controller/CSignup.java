@@ -33,7 +33,6 @@ public class CSignup {
     private static final Pattern HAS_DIGIT_PATTERN = Pattern.compile("\\d");
     private static final Pattern HAS_SPECIAL_PATTERN = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`]");
     private static final Pattern HAS_KOREAN_PATTERN = Pattern.compile("[ㄱ-ㅎㅏ-ㅣ가-힣]");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
     private static final Pattern STUDENT_CODE_PATTERN = Pattern.compile("\\d{" + AppConstants.STUDENT_CODE_LENGTH + "}");
     
     public CSignup(VMain vMain, VSignup vSignup, LectureDAO lectureDAO, UserDAO userDAO) {
@@ -189,43 +188,12 @@ public class CSignup {
         vMain.contentPanel(PanelNames.LOGIN_PANEL);
     }
     
-    /**
-     * 회원가입 입력 유효성 검사
-     * @param user 사용자 정보 객체
-     * @param studentId 학번 문자열
-     * @param password 비밀번호
-     * @param passwordConfirm 비밀번호 확인
-     * @return true: 검증 통과, false: 검증 실패 (오류 메시지 표시됨)
-     * 
-     * [검증 순서]
-     * 1. 필수 필드 입력 확인
-     * 2. 이메일 형식 (정규식)
-     * 3. 학번 형식 (숫자 8자리)
-     * 4. 아이디 길이 (3~15자)
-     * 5. 비밀번호 일치 확인
-     * 6. 비밀번호 길이 (8~20자)
-     * 7. 비밀번호 한글 금지
-     * 8. 비밀번호 공백 금지
-     * 9. 비밀번호 필수 요소 (영문, 숫자, 특수문자)
-     * 
-     * [주의사항]
-     * - 각 단계에서 실패 시 즉시 false 반환
-     * - 사용자에게 구체적인 오류 메시지 제공
-     */
     private boolean validateInput(MUser user, String studentId, String password, String passwordConfirm) {
-        // 1. 필수 필드 입력 확인
         if (!isAllFieldsFilled(user, studentId, password)) {
             ViewConstants.showErrorMessage(vSignup, "모든 정보를 입력/선택해주세요.", ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
-        // 2. 이메일 형식 검증
-        if (!ControllerConstants.isValidEmail(user.getEmail())) {
-            ViewConstants.showErrorMessage(vSignup, "올바른 이메일 형식이 아닙니다.", ControllerConstants.TITLE_INPUT_ERROR);
-            return false;
-        }
-
-        // 3. 학번 형식 검증 (숫자 8자리)
         if (!STUDENT_CODE_PATTERN.matcher(studentId).matches()) {
             ViewConstants.showErrorMessage(vSignup, 
                 "올바르지 않은 학번입니다. (숫자 " + AppConstants.STUDENT_CODE_LENGTH + "자리)", 
@@ -233,7 +201,6 @@ public class CSignup {
             return false;
         }
         
-        // 4. 아이디 길이 검증
         if (!isUserIdLengthValid(user.getUserid())) {
             ViewConstants.showErrorMessage(vSignup, 
                 "아이디는 " + AppConstants.MIN_USER_ID_LENGTH + "~" + AppConstants.MAX_USER_ID_LENGTH + "자 이내여야 합니다.", 
@@ -241,13 +208,11 @@ public class CSignup {
             return false;
         }
         
-        // 5. 비밀번호 일치 확인
         if (!password.equals(passwordConfirm)) {
             ViewConstants.showErrorMessage(vSignup, ControllerConstants.ERROR_PASSWORD_NOT_MATCH, ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
-        // 6. 비밀번호 길이 검증
         if (!isPasswordLengthValid(password)) {
             ViewConstants.showErrorMessage(vSignup, 
                 "비밀번호는 " + AppConstants.MIN_PASSWORD_LENGTH + "~" + AppConstants.MAX_PASSWORD_LENGTH + "자 이내여야 합니다.", 
@@ -255,19 +220,16 @@ public class CSignup {
             return false;
         }
 
-        // 7. 비밀번호 한글 금지
         if (HAS_KOREAN_PATTERN.matcher(password).find()) {
             ViewConstants.showErrorMessage(vSignup, "비밀번호에 한글을 포함할 수 없습니다.", ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
-        // 8. 비밀번호 공백 금지
         if (password.contains(" ")) {
             ViewConstants.showErrorMessage(vSignup, "비밀번호에 공백을 포함할 수 없습니다.", ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
-        // 9. 비밀번호 필수 요소 검증 (영문, 숫자, 특수문자)
         if (!hasRequiredPasswordElements(password)) {
             ViewConstants.showErrorMessage(vSignup, 
                 ControllerConstants.ERROR_PASSWORD_POLICY, 

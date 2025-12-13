@@ -32,13 +32,16 @@ import signup.model.MLecture;
  // 시간표를 보여주는 팝업 창(Dialog)입니다.
 public class VSchedule extends JDialog {
 	private static final long serialVersionUID = 1L;
+    private static final String BASE_FONT = "SansSerif";
     
-    private JRadioButton RegSchedulButton; 
-    private JRadioButton PreRegScheduleButton;
-    private JButton SaveImageButton; // 이미지 저장 버튼
+    private JRadioButton regScheduleButton; 
+    private JRadioButton preregScheduleButton;
+    private JButton saveImageButton; // 이미지 저장 버튼
     private TimetablePanel timetablePanel; // 시간표를 직접 그릴 패널
-    private String FONT = "SansSerif";
     private static final Logger logger = Logger.getLogger(VSchedule.class.getName());
+    
+    // --- [추가] 외부 클래스에서 강의 목록 관리 ---
+    private transient List<MLecture> lectures = new ArrayList<>();
 
     
     public VSchedule(JFrame vSchedule) {
@@ -52,24 +55,24 @@ public class VSchedule extends JDialog {
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-        RegSchedulButton = new JRadioButton("수강신청 시간표");
-        PreRegScheduleButton = new JRadioButton("미리담기 시간표");
+        regScheduleButton = new JRadioButton("수강신청 시간표");
+        preregScheduleButton = new JRadioButton("미리담기 시간표");
         
         ButtonGroup group = new ButtonGroup();
-        group.add(RegSchedulButton);
-        group.add(PreRegScheduleButton);
+        group.add(regScheduleButton);
+        group.add(preregScheduleButton);
         
-        RegSchedulButton.setSelected(true);
-		RegSchedulButton.setFont(new Font(FONT, Font.BOLD, 14));
-        PreRegScheduleButton.setFont(new Font(FONT, Font.BOLD, 14));
+        regScheduleButton.setSelected(true);
+		regScheduleButton.setFont(new Font(BASE_FONT, Font.BOLD, 14));
+        preregScheduleButton.setFont(new Font(BASE_FONT, Font.BOLD, 14));
         
-        SaveImageButton = new JButton("이미지 저장 📸");
-        SaveImageButton.setFocusPainted(false);
+        saveImageButton = new JButton("이미지 저장 📸");
+        saveImageButton.setFocusPainted(false);
         
-        topPanel.add(RegSchedulButton);
-        topPanel.add(PreRegScheduleButton);
+        topPanel.add(regScheduleButton);
+        topPanel.add(preregScheduleButton);
         topPanel.add(new JLabel("  |  ")); // 구분선
-        topPanel.add(SaveImageButton);
+        topPanel.add(saveImageButton);
         
         add(topPanel, BorderLayout.NORTH);
 
@@ -90,44 +93,36 @@ public class VSchedule extends JDialog {
      */
     class TimetablePanel extends JPanel {
         private static final long serialVersionUID = 1L;
-        
-        private static final int START_HOUR = 9;  // 09:00 시작
-        private static final int END_HOUR = 19;   // 19:00 종료
-        private static final int HOUR_HEIGHT = 60; // 1시간당 높이 (픽셀)
-        private static final int HEADER_HEIGHT = 30; // 요일 헤더 높이
-        private static final int TIME_COL_WIDTH = 50; // 시간 표시 열 너비
-        
-        private List<MLecture> lectures = new ArrayList<>();
-
-     // [1] 다크 모드용 차분한 색상
-        private Color[] darkColors = { 
-        	new Color(65, 95, 155),  // Deep Blue (차분한 딥 블루)
-        	new Color(50, 120, 80),  // Deep Green (어두운 숲색)
-        	new Color(150, 60, 60),  // Deep Red (와인색)
-        	new Color(160, 120, 30), // Deep Gold (어두운 황금색)
-        	new Color(100, 70, 150), // Deep Purple (어두운 보라)
-        	new Color(40, 100, 120)  // Deep Teal (어두운 청록)
-            };
-        
-        // [2] 라이트 모드용 밝고 화사한 색상 (요청하신 부분)
-        private Color[] lightColors = {
-            new Color(173, 216, 230), // Light Blue
-            new Color(144, 238, 144), // Light Green
-            new Color(255, 182, 193), // Light Pink
-            new Color(255, 218, 185), // Peach Puff (밝은 주황)
-            new Color(221, 160, 221), // Plum (밝은 보라)
-            new Color(176, 224, 230)  // Powder Blue
+        private static final int START_HOUR = 9;
+        private static final int END_HOUR = 19;
+        private static final int HOUR_HEIGHT = 60;
+        private static final int HEADER_HEIGHT = 30;
+        private static final int TIME_COL_WIDTH = 50;
+        private static final Color[] DARK_PALETTE = {
+            new Color(65, 95, 155),
+            new Color(50, 120, 80),
+            new Color(150, 60, 60),
+            new Color(160, 120, 30),
+            new Color(100, 70, 150),
+            new Color(40, 100, 120)
+        };
+        private static final Color[] LIGHT_PALETTE = {
+            new Color(173, 216, 230),
+            new Color(144, 238, 144),
+            new Color(255, 182, 193),
+            new Color(255, 218, 185),
+            new Color(221, 160, 221),
+            new Color(176, 224, 230)
         };
 
-        public TimetablePanel() {
+        TimetablePanel() {
             int totalHeight = HEADER_HEIGHT + (END_HOUR - START_HOUR) * HOUR_HEIGHT + 50;
             setPreferredSize(new Dimension(500, totalHeight));
-
         }
 
-        public void setLectures(List<MLecture> lectures) {
-            this.lectures = lectures;
-        }	
+        void setLectures(List<MLecture> lectures) {
+            VSchedule.this.lectures = lectures == null ? new ArrayList<>() : new ArrayList<>(lectures);
+        }
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -137,168 +132,179 @@ public class VSchedule extends JDialog {
 
             int width = getWidth();
             int height = getHeight();
-            int dayWidth = (width - TIME_COL_WIDTH) / 5; 
-
-            // [테마 감지] 현재 다크모드인지 확인
+            int dayWidth = (width - TIME_COL_WIDTH) / 5;
             boolean isDark = FlatLaf.isLafDark();
 
-            // 테마에 따른 그리드 및 글자 색상 설정
+            renderGrid(g2, width, height, dayWidth, isDark);
+            paintLectures(g2, dayWidth, isDark);
+        }
+
+        private void renderGrid(Graphics2D g2, int width, int height, int dayWidth, boolean isDark) {
             Color gridColor = isDark ? new Color(80, 80, 80) : new Color(200, 200, 200);
+            Color lineColor = isDark ? new Color(85, 85, 85) : new Color(220, 220, 220);
             Color timeTextColor = isDark ? new Color(180, 180, 180) : new Color(100, 100, 100);
             Color headerTextColor = isDark ? Color.WHITE : Color.BLACK;
-            Color lineColor = isDark ? new Color(85, 85, 85) : new Color(220, 220, 220);
 
-            // 1. 세로선 (시간 영역 구분)
-            g2.setColor(gridColor);
-            g2.drawLine(TIME_COL_WIDTH, 0, TIME_COL_WIDTH, height); 
+            drawTimeRows(g2, width, timeTextColor, lineColor);
+            drawDayHeaders(g2, height, dayWidth, gridColor, headerTextColor);
+        }
 
-            g2.setFont(new Font(FONT, Font.PLAIN, 12));
-
-            // 2. 시간 행 그리기
-            for (int i = START_HOUR; i < END_HOUR; i++) {
-                int y = HEADER_HEIGHT + (i - START_HOUR) * HOUR_HEIGHT;
-                
-                // 시간 텍스트
-                g2.setColor(timeTextColor);
-                g2.drawString(String.format("%02d:00", i), 5, y + 15);
-                
-                // 가로선
+        private void drawTimeRows(Graphics2D g2, int width, Color textColor, Color lineColor) {
+            g2.setFont(new Font(BASE_FONT, Font.PLAIN, 12));
+            for (int hour = START_HOUR; hour < END_HOUR; hour++) {
+                int y = HEADER_HEIGHT + (hour - START_HOUR) * HOUR_HEIGHT;
+                g2.setColor(textColor);
+                g2.drawString(String.format("%02d:00", hour), 5, y + 15);
                 g2.setColor(lineColor);
                 g2.drawLine(0, y, width, y);
             }
+        }
 
-            // 3. 요일 헤더 그리기
+        private void drawDayHeaders(Graphics2D g2, int height, int dayWidth, Color gridColor, Color textColor) {
             String[] days = {"월", "화", "수", "목", "금"};
-            for (int i = 0; i < 5; i++) {
-                int x = TIME_COL_WIDTH + i * dayWidth;
-                
-                g2.setColor(headerTextColor); 
-                g2.setFont(new Font(FONT, Font.BOLD, 14));
-                g2.drawString(days[i], x + dayWidth / 2 - 10, 20);
-                
+            g2.setFont(new Font(BASE_FONT, Font.BOLD, 14));
+            for (int idx = 0; idx < days.length; idx++) {
+                int x = TIME_COL_WIDTH + idx * dayWidth;
+                g2.setColor(textColor);
+                g2.drawString(days[idx], x + dayWidth / 2 - 10, 20);
                 g2.setColor(gridColor);
                 g2.drawLine(x, 0, x, height);
             }
+            g2.drawLine(TIME_COL_WIDTH, 0, TIME_COL_WIDTH, height);
+        }
 
-            // 4. 강의 블록 그리기
-            if (lectures != null) {
-                int colorIdx = 0;
-                // 테마에 맞는 색상 팔레트 선택
-                Color[] currentPalette = isDark ? darkColors : lightColors ;
-                
-                for (MLecture lecture : lectures) {
-                    drawLectureBlock(g2, lecture, dayWidth, currentPalette[colorIdx % currentPalette.length], isDark);
-                    colorIdx++;
-                }
+        private void paintLectures(Graphics2D g2, int dayWidth, boolean isDark) {
+            if (lectures == null || lectures.isEmpty()) {
+                return;
+            }
+            Color[] palette = isDark ? DARK_PALETTE : LIGHT_PALETTE;
+            int colorIdx = 0;
+            for (MLecture lecture : lectures) {
+                Color blockColor = palette[colorIdx % palette.length];
+                drawLectureBlock(g2, lecture, dayWidth, blockColor, isDark);
+                colorIdx++;
             }
         }
 
-     // 시간표 블럭과 강의 내용 텍스트 그리기
         private void drawLectureBlock(Graphics2D g2, MLecture lecture, int dayWidth, Color color, boolean isDark) {
-            String timeStr = lecture.getSchedule(); 
-            if (timeStr == null || timeStr.length() < 5) return;
-            
-            try {
-                String dayStr = timeStr.replaceAll("[0-9\\-]", ""); 
-                String timePart = timeStr.replaceAll("[^0-9\\-]", ""); 
-                String[] times = timePart.split("-");
-                
-                int startH = Integer.parseInt(times[0].substring(0, 2));
-                int startM = Integer.parseInt(times[0].substring(2));
-                int endH = Integer.parseInt(times[1].substring(0, 2));
-                int endM = Integer.parseInt(times[1].substring(2));
+            ScheduleWindow window = parseSchedule(lecture.getSchedule());
+            if (window == null) {
+                return;
+            }
 
-                double pixelsPerMinute = (double)HOUR_HEIGHT / 60.0;
-                int startTotalMinutes = (startH - START_HOUR) * 60 + startM;
-                int endTotalMinutes = (endH - START_HOUR) * 60 + endM;
-                
-                int startY = HEADER_HEIGHT + (int)(startTotalMinutes * pixelsPerMinute);
-                int endY = HEADER_HEIGHT + (int)(endTotalMinutes * pixelsPerMinute);
-                int blockHeight = endY - startY;
+            double pixelsPerMinute = HOUR_HEIGHT / 60.0;
+            int startY = HEADER_HEIGHT + (int) (window.startMinutes * pixelsPerMinute);
+            int blockHeight = (int) ((window.endMinutes - window.startMinutes) * pixelsPerMinute);
+            Font nameFont = determineNameFont(blockHeight);
+            g2.setFont(nameFont);
+            FontMetrics fontMetrics = g2.getFontMetrics();
+            NameLines nameLines = splitName(lecture.getName(), fontMetrics, dayWidth - 10);
 
-                // 폰트 설정 (미리 설정해야 FontMetrics 계산 가능)
-                int fontSize = 12;
-                if (blockHeight < 40) fontSize = 10;
-                Font nameFont = new Font(FONT, Font.BOLD, fontSize);
-                g2.setFont(nameFont);
-
-                // [핵심 추가] 텍스트 줄바꿈 계산
-                String name = lecture.getName();
-                String line1 = name;
-                String line2 = "";
-                
-                // 텍스트 너비 측정 도구
-                FontMetrics fm = g2.getFontMetrics();
-                int textWidth = fm.stringWidth(name);
-                int padding = 10; // 좌우 여백
-                int maxWidth = dayWidth - padding;
-                
-                // 이름이 칸보다 길면 자르기
-                if (textWidth > maxWidth) {
-                    // 대략적인 자를 위치 추정 (평균 글자 너비 이용)
-                    int charWidth = fm.charWidth('가'); // 한글 기준
-                    int maxChars = maxWidth / charWidth;
-                    
-                    if (maxChars < name.length()) {
-                        line1 = name.substring(0, maxChars);
-                        line2 = name.substring(maxChars);
-                    }
+            for (char day : window.days) {
+                int dayIdx = getDayIndex(day);
+                if (dayIdx == -1) {
+                    continue;
                 }
-
-                for (char day : dayStr.toCharArray()) {
-                    int dayIdx = getDayIndex(day);
-                    if (dayIdx == -1) continue;
-
-                    int x = TIME_COL_WIDTH + dayIdx * dayWidth;
-
-                    // 블록 그리기
-                    g2.setColor(color);
-                    g2.fillRoundRect(x + 2, startY + 1, dayWidth - 4, blockHeight - 2, 8, 8);
-                    
-                    // 텍스트 색상 설정
-                    Color mainTextColor = isDark ? Color.WHITE : Color.BLACK;
-                    Color subTextColor = isDark ? new Color(220, 220, 220) : new Color(60, 60, 60);
-                    Color timeColor = isDark ? new Color(200, 200, 200) : new Color(80, 80, 80);
-
-                    g2.setColor(mainTextColor);
-                    g2.setFont(nameFont);
-                    
-                    // [수정] 과목명 그리기 (줄바꿈 처리)
-                    if (line2.isEmpty()) {
-                        // 한 줄일 때 (기존 위치: +25)
-                        g2.drawString(line1, x + 5, startY + 25);
-                    } else {
-                        // 두 줄일 때 (위로 조금 올려서 2줄 그림)
-                        g2.drawString(line1, x + 5, startY + 20);
-                        g2.drawString(line2, x + 5, startY + 35);
-                    }
-                    
-                    // 교수명 (공간 체크)
-                    // 두 줄일 경우 공간을 더 많이 차지하므로 조건 강화
-                    int profY = line2.isEmpty() ? 45 : 55; // 교수명 Y 위치 조정
-                    if (blockHeight > (line2.isEmpty() ? 45 : 60)) {
-                         g2.setFont(new Font(FONT, Font.PLAIN, fontSize - 2));
-                         g2.setColor(subTextColor);
-                         g2.drawString(lecture.getProfessor(), x + 5, startY + profY);
-                    }
-                    
-                    // 시간 텍스트
-                    int timeY = line2.isEmpty() ? 60 : 70; // 시간 Y 위치 조정
-                    if (blockHeight > (line2.isEmpty() ? 55 : 70)) {
-                        g2.setColor(timeColor);
-                        g2.drawString(String.format("%02d:%02d~%02d:%02d", startH, startM, endH, endM), x + 5, startY + timeY);
-                    }
-                }
-            } catch (NumberFormatException | ArrayIndexOutOfBoundsException | NullPointerException e) {
-                logger.log(Level.WARNING, "강의 시간 파싱 오류: " + timeStr, e);
+                int x = TIME_COL_WIDTH + dayIdx * dayWidth;
+                paintLectureBackground(g2, x, startY, dayWidth, blockHeight, color);
+                renderLectureTexts(g2, x, startY, blockHeight, lecture, nameLines, isDark, nameFont, window);
             }
         }
-        
+
+        private Font determineNameFont(int blockHeight) {
+            int fontSize = blockHeight < 40 ? 10 : 12;
+            return new Font(BASE_FONT, Font.BOLD, fontSize);
+        }
+
+        private void paintLectureBackground(Graphics2D g2, int x, int startY, int dayWidth, int blockHeight, Color color) {
+            g2.setColor(color);
+            g2.fillRoundRect(x + 2, startY + 1, dayWidth - 4, blockHeight - 2, 8, 8);
+        }
+
+        private void renderLectureTexts(Graphics2D g2, int x, int startY, int blockHeight,
+                                         MLecture lecture, NameLines nameLines, boolean isDark,
+                                         Font nameFont, ScheduleWindow window) {
+            Color mainTextColor = isDark ? Color.WHITE : Color.BLACK;
+            Color subTextColor = isDark ? new Color(220, 220, 220) : new Color(60, 60, 60);
+            Color timeColor = isDark ? new Color(200, 200, 200) : new Color(80, 80, 80);
+
+            g2.setColor(mainTextColor);
+            g2.setFont(nameFont);
+            int currentY = startY + 20;
+            g2.drawString(nameLines.primary, x + 5, currentY);
+            if (!nameLines.secondary.isEmpty()) {
+                g2.drawString(nameLines.secondary, x + 5, currentY + 15);
+                currentY += 15;
+            }
+
+            if (shouldRenderProfessor(blockHeight, nameLines.secondary)) {
+                g2.setFont(new Font(BASE_FONT, Font.PLAIN, nameFont.getSize() - 2));
+                g2.setColor(subTextColor);
+                g2.drawString(lecture.getProfessor(), x + 5, currentY + 25);
+                currentY += 15;
+            }
+
+            g2.setColor(timeColor);
+            g2.drawString(window.formatDuration(), x + 5, currentY + 30);
+        }
+
+        private boolean shouldRenderProfessor(int blockHeight, String secondLine) {
+            return blockHeight > (secondLine.isEmpty() ? 45 : 60);
+        }
+
+        private NameLines splitName(String name, FontMetrics fm, int maxWidth) {
+            if (name == null) {
+                return new NameLines("", "");
+            }
+            if (fm.stringWidth(name) <= maxWidth) {
+                return new NameLines(name, "");
+            }
+            int approxChars = Math.max(1, maxWidth / fm.charWidth('가'));
+            int splitIndex = Math.min(approxChars, name.length());
+            return new NameLines(name.substring(0, splitIndex), name.substring(splitIndex));
+        }
+
+        private ScheduleWindow parseSchedule(String schedule) {
+            if (schedule == null || schedule.length() < 5) {
+                return null;
+            }
+            try {
+                String dayStr = schedule.replaceAll("[0-9\\-]", "");
+                String timePart = schedule.replaceAll("[^0-9\\-]", "");
+                String[] times = timePart.split("-");
+                int startMinutes = toRelativeMinutes(times[0]);
+                int endMinutes = toRelativeMinutes(times[1]);
+                return new ScheduleWindow(dayStr.toCharArray(), startMinutes, endMinutes);
+            } catch (RuntimeException ex) {
+                final String invalidSchedule = schedule;
+                logger.log(Level.WARNING, ex, () -> "강의 시간 파싱 오류: " + invalidSchedule);
+                return null;
+            }
+        }
+
+        private int toRelativeMinutes(String hhmm) {
+            int hour = Integer.parseInt(hhmm.substring(0, 2));
+            int minute = Integer.parseInt(hhmm.substring(2));
+            return (hour - START_HOUR) * 60 + minute;
+        }
+
         private int getDayIndex(char day) {
-        	switch(day) {
-        	case '월': return 0; case '화': return 1; case '수': return 2; 
-        	case '목': return 3; case '금': return 4; default: return -1;
-        	}
+         switch(day) {
+         case '월': return 0; case '화': return 1; case '수': return 2; 
+         case '목': return 3; case '금': return 4; default: return -1;
+         }
+        }
+
+        private record NameLines(String primary, String secondary) {}
+
+        private record ScheduleWindow(char[] days, int startMinutes, int endMinutes) {
+            String formatDuration() {
+                int absoluteStart = START_HOUR * 60 + startMinutes;
+                int absoluteEnd = START_HOUR * 60 + endMinutes;
+                return String.format("%02d:%02d~%02d:%02d",
+                    absoluteStart / 60, absoluteStart % 60,
+                    absoluteEnd / 60, absoluteEnd % 60);
+            }
         }
     }
 
@@ -318,9 +324,9 @@ public class VSchedule extends JDialog {
     }
     
     // --- Getters & Methods ---
-    public JRadioButton getRadioRegister() { return RegSchedulButton; }
-    public JRadioButton getRadioBasket() { return PreRegScheduleButton; }
-    public JButton getSaveImageButton() { return SaveImageButton; }
+    public JRadioButton getRadioRegister() { return regScheduleButton; }
+    public JRadioButton getRadioBasket() { return preregScheduleButton; }
+    public JButton getSaveImageButton() { return saveImageButton; }
     public JPanel getTimetablePanel() { return timetablePanel; }
     
 }

@@ -1,6 +1,5 @@
 package signup.constants;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -44,6 +43,10 @@ public final class ViewConstants {
     public static final Color COLOR_LIGHT_GRAY = Color.LIGHT_GRAY;
     public static final Color COLOR_WHITE = Color.WHITE;
     public static final Color COLOR_SEPARATOR = Color.LIGHT_GRAY;
+    public static final Color COLOR_CLOCK_BG_LIGHT = COLOR_WHITE;
+    public static final Color COLOR_CLOCK_BG_DARK = new Color(30, 30, 30);
+    public static final Color COLOR_CLOCK_TIME_DARK = new Color(156, 220, 254);
+    public static final Color COLOR_CLOCK_DATE_DARK = new Color(180, 180, 180);
     
     // ==================== 크기 관련 상수 ====================
     public static final Dimension HEADER_SIZE = new Dimension(0, 50);
@@ -129,8 +132,7 @@ public final class ViewConstants {
      * 표준 패널을 생성합니다.
      */
     public static JPanel createStandardPanel(LayoutManager layout) {
-        JPanel panel = new JPanel(layout);
-        return panel;
+        return new JPanel(layout);
     }
     
     /**

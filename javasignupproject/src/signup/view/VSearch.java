@@ -51,74 +51,74 @@ public class VSearch extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5); // 컴포넌트 간 여백
 
         // 단과대학 레이블
-        GridBagConstraints gbc_collegeLabel = new GridBagConstraints();
-        gbc_collegeLabel.insets = new Insets(5, 5, 5, 5);
-        gbc_collegeLabel.anchor = GridBagConstraints.EAST;
-        gbc_collegeLabel.gridx = 0; 
-        gbc_collegeLabel.gridy = 0;
-        searchPanel.add(new JLabel("단과대학:"), gbc_collegeLabel);
+        GridBagConstraints collegeLabelConstraints = new GridBagConstraints();
+        collegeLabelConstraints.insets = new Insets(5, 5, 5, 5);
+        collegeLabelConstraints.anchor = GridBagConstraints.EAST;
+        collegeLabelConstraints.gridx = 0; 
+        collegeLabelConstraints.gridy = 0;
+        searchPanel.add(new JLabel("단과대학:"), collegeLabelConstraints);
         
         // 단과대학 콤보박스
         comboCollege = new JComboBox<>(new Object[]{"- 대학 선택 -"}); // Object 타입
-        GridBagConstraints gbc_comboCollege = new GridBagConstraints();
-        gbc_comboCollege.insets = new Insets(5, 5, 5, 5);
-        gbc_comboCollege.anchor = GridBagConstraints.WEST;
-        gbc_comboCollege.fill = GridBagConstraints.HORIZONTAL;
-        gbc_comboCollege.weightx = 0.3;
-        gbc_comboCollege.gridx = 1; 
-        gbc_comboCollege.gridy = 0;
-        searchPanel.add(comboCollege, gbc_comboCollege);
+        GridBagConstraints collegeComboConstraints = new GridBagConstraints();
+        collegeComboConstraints.insets = new Insets(5, 5, 5, 5);
+        collegeComboConstraints.anchor = GridBagConstraints.WEST;
+        collegeComboConstraints.fill = GridBagConstraints.HORIZONTAL;
+        collegeComboConstraints.weightx = 0.3;
+        collegeComboConstraints.gridx = 1; 
+        collegeComboConstraints.gridy = 0;
+        searchPanel.add(comboCollege, collegeComboConstraints);
 
         // 학과 레이블
-        GridBagConstraints gbc_deptLabel = new GridBagConstraints();
-        gbc_deptLabel.insets = new Insets(5, 5, 5, 5);
-        gbc_deptLabel.anchor = GridBagConstraints.EAST;
-        gbc_deptLabel.gridx = 2; 
-        gbc_deptLabel.gridy = 0;
-        searchPanel.add(new JLabel("학과:"), gbc_deptLabel);
+        GridBagConstraints departmentLabelConstraints = new GridBagConstraints();
+        departmentLabelConstraints.insets = new Insets(5, 5, 5, 5);
+        departmentLabelConstraints.anchor = GridBagConstraints.EAST;
+        departmentLabelConstraints.gridx = 2; 
+        departmentLabelConstraints.gridy = 0;
+        searchPanel.add(new JLabel("학과:"), departmentLabelConstraints);
         
         // 학과 콤보박스
         comboDept = new JComboBox<>(new Object[]{"- 학과 선택 -"}); // Object 타입
         comboDept.setEnabled(false);
-        GridBagConstraints gbc_comboDept = new GridBagConstraints();
-        gbc_comboDept.insets = new Insets(5, 5, 5, 5);
-        gbc_comboDept.anchor = GridBagConstraints.WEST;
-        gbc_comboDept.fill = GridBagConstraints.HORIZONTAL;
-        gbc_comboDept.weightx = 0.3;
-        gbc_comboDept.gridx = 3; 
-        gbc_comboDept.gridy = 0;
-        searchPanel.add(comboDept, gbc_comboDept);
+        GridBagConstraints departmentComboConstraints = new GridBagConstraints();
+        departmentComboConstraints.insets = new Insets(5, 5, 5, 5);
+        departmentComboConstraints.anchor = GridBagConstraints.WEST;
+        departmentComboConstraints.fill = GridBagConstraints.HORIZONTAL;
+        departmentComboConstraints.weightx = 0.3;
+        departmentComboConstraints.gridx = 3; 
+        departmentComboConstraints.gridy = 0;
+        searchPanel.add(comboDept, departmentComboConstraints);
 
         // 검색어 레이블
-        GridBagConstraints gbc_searchLabel = new GridBagConstraints();
-        gbc_searchLabel.insets = new Insets(5, 5, 5, 5);
-        gbc_searchLabel.anchor = GridBagConstraints.EAST;
-        gbc_searchLabel.gridx = 0; 
-        gbc_searchLabel.gridy = 1;
-        searchPanel.add(new JLabel("과목명/교수명:"), gbc_searchLabel);
+        GridBagConstraints searchLabelConstraints = new GridBagConstraints();
+        searchLabelConstraints.insets = new Insets(5, 5, 5, 5);
+        searchLabelConstraints.anchor = GridBagConstraints.EAST;
+        searchLabelConstraints.gridx = 0; 
+        searchLabelConstraints.gridy = 1;
+        searchPanel.add(new JLabel("과목명/교수명:"), searchLabelConstraints);
         
         // 검색어 필드
         searchField = new JTextField(20);
-        GridBagConstraints gbc_searchField = new GridBagConstraints();
-        gbc_searchField.insets = new Insets(5, 5, 5, 5);
-        gbc_searchField.anchor = GridBagConstraints.WEST;
-        gbc_searchField.gridwidth = 3; // 3칸 차지
-        gbc_searchField.fill = GridBagConstraints.HORIZONTAL;
-        gbc_searchField.weightx = 1.0;
-        gbc_searchField.gridx = 1; 
-        gbc_searchField.gridy = 1;
-        searchPanel.add(searchField, gbc_searchField);
+        GridBagConstraints searchFieldConstraints = new GridBagConstraints();
+        searchFieldConstraints.insets = new Insets(5, 5, 5, 5);
+        searchFieldConstraints.anchor = GridBagConstraints.WEST;
+        searchFieldConstraints.gridwidth = 3; // 3칸 차지
+        searchFieldConstraints.fill = GridBagConstraints.HORIZONTAL;
+        searchFieldConstraints.weightx = 1.0;
+        searchFieldConstraints.gridx = 1; 
+        searchFieldConstraints.gridy = 1;
+        searchPanel.add(searchField, searchFieldConstraints);
 
         // 조회 버튼
         searchButton = new JButton("조회");
-        GridBagConstraints gbc_searchButton = new GridBagConstraints();
-        gbc_searchButton.insets = new Insets(5, 5, 5, 5);
-        gbc_searchButton.gridheight = 2; // 2줄 차지
-        gbc_searchButton.anchor = GridBagConstraints.CENTER;
-        gbc_searchButton.fill = GridBagConstraints.BOTH;
-        gbc_searchButton.gridx = 4; 
-        gbc_searchButton.gridy = 0;
-        searchPanel.add(searchButton, gbc_searchButton);
+        GridBagConstraints searchButtonConstraints = new GridBagConstraints();
+        searchButtonConstraints.insets = new Insets(5, 5, 5, 5);
+        searchButtonConstraints.gridheight = 2; // 2줄 차지
+        searchButtonConstraints.anchor = GridBagConstraints.CENTER;
+        searchButtonConstraints.fill = GridBagConstraints.BOTH;
+        searchButtonConstraints.gridx = 4; 
+        searchButtonConstraints.gridy = 0;
+        searchPanel.add(searchButton, searchButtonConstraints);
         
         add(searchPanel, BorderLayout.NORTH);
 
@@ -174,23 +174,23 @@ public class VSearch extends JPanel {
         JPanel actionPanel = new JPanel(new GridBagLayout()); 
         
         // 왼쪽 빈 공간
-        GridBagConstraints gbc_emptyLabel = new GridBagConstraints();
-        gbc_emptyLabel.weightx = 1.0;
-        actionPanel.add(new JLabel(""), gbc_emptyLabel);
+        GridBagConstraints spacerConstraints = new GridBagConstraints();
+        spacerConstraints.weightx = 1.0;
+        actionPanel.add(new JLabel(""), spacerConstraints);
         
         // 미리담기 버튼
         preRegisterButton = new JButton("미리담기");
-        GridBagConstraints gbc_preRegisterButton = new GridBagConstraints();
-        gbc_preRegisterButton.insets = new Insets(5, 5, 5, 5);
-        gbc_preRegisterButton.gridx = 2; // (수정) 1 -> 2
-        actionPanel.add(preRegisterButton, gbc_preRegisterButton);
+        GridBagConstraints preregButtonConstraints = new GridBagConstraints();
+        preregButtonConstraints.insets = new Insets(5, 5, 5, 5);
+        preregButtonConstraints.gridx = 2; // (수정) 1 -> 2
+        actionPanel.add(preRegisterButton, preregButtonConstraints);
         
         // 수강신청 버튼
         registerButton = new JButton("수강신청");
-        GridBagConstraints gbc_registerButton = new GridBagConstraints(); // (수정) gbcAction -> gbc_registerButton
-        gbc_registerButton.insets = new Insets(5, 5, 5, 5);
-        gbc_registerButton.gridx = 1; // (수정) 2 -> 1
-        actionPanel.add(registerButton, gbc_registerButton);
+        GridBagConstraints registerButtonConstraints = new GridBagConstraints(); // (수정) gbcAction -> gbc_registerButton
+        registerButtonConstraints.insets = new Insets(5, 5, 5, 5);
+        registerButtonConstraints.gridx = 1; // (수정) 2 -> 1
+        actionPanel.add(registerButton, registerButtonConstraints);
 
         add(actionPanel, BorderLayout.SOUTH);
         

@@ -39,7 +39,10 @@ public abstract class CListController {
         this.updateViewTable(data);
     }
 
-    protected void handleDelete(ActionEvent e) {
+    protected void handleDelete(ActionEvent event) {
+        if (event != null && event.getSource() instanceof java.awt.Component source) {
+            source.requestFocusInWindow();
+        }
         String userId = mMain.getCurrentUserId();
         int selectedRow = listTable.getSelectedRow();
 

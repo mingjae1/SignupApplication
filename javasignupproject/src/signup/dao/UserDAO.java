@@ -12,12 +12,21 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import signup.model.MUser;
 
+/**
+ * UserDAO: 사용자 인증/가입/정보 조회/비밀번호 변경을 담당하는 DAO.
+ */
 public class UserDAO {
 
     private DAO dao;
     private static final Logger logger = Logger.getLogger(UserDAO.class.getName());
     private static final int MIN_PASSWORD_HASH_LENGTH = 60;
     private static final int TARGET_PASSWORD_COLUMN_LENGTH = 100;
+    private static final String UPDATE_LOGIN_PASSWORD_SQL = "UPDATE login SET password = ? WHERE userId = ?";
+    private static final String FETCH_LOGIN_PASSWORD_SQL = "SELECT password FROM login WHERE userId = ?";
+    private static final String VALIDATE_USER_SQL = "SELECT l.password AS hash, u.name, u.role FROM login l " +
+            "JOIN user u ON l.userId = u.userid " +
+            "WHERE l.userId = ?";
+    private static final String COUNT_USER_MATCH_SQL = "SELECT COUNT(*) FROM user WHERE userid = ? AND name = ? AND code = ?";
     private static volatile boolean passwordColumnChecked = false;
 
     public UserDAO() {
@@ -48,63 +57,66 @@ public class UserDAO {
         }
         ensurePasswordColumnLength(conn);
         
-        String sql = "SELECT l.password AS hash, u.name, u.role FROM login l " +
-                     "JOIN user u ON l.userId = u.userid " +
-                     "WHERE l.userId = ?";
-
         try (Connection connection = conn;
-             PreparedStatement validpstmt = connection.prepareStatement(sql)) {
+             PreparedStatement validpstmt = connection.prepareStatement(VALIDATE_USER_SQL)) {
             validpstmt.setString(1, id);
 
             try (ResultSet result = validpstmt.executeQuery()) {
                 if (result.next()) {
-                   String hash = result.getString("hash");
-                   if (hash != null) {
-                       // 기존에 평문으로 저장된 비밀번호가 있을 수 있으므로 마이그레이션 처리
-                       boolean passwordMatches = false;
-                       boolean wasPlain = false;
-
-                       if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
-                           passwordMatches = BCrypt.checkpw(password, hash);
-                       } else {
-                           // 평문 저장된 케이스: 직접 비교 후 해시로 교체
-                           if (password.equals(hash)) {
-                               passwordMatches = true;
-                               wasPlain = true;
-                           }
-                       }
-
-                       if (passwordMatches) {
-                           MUser mUser = new MUser();
-                           mUser.setUserid(id);
-                           mUser.setName(result.getString("name"));
-                           mUser.setRole(result.getString("role"));
-
-                           if (wasPlain) {
-                               // 평문에서 해시로 마이그레이션: 즉시 DB 업데이트
-                               String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
-                               String updSql = "UPDATE login SET password = ? WHERE userId = ?";
-                               try (PreparedStatement updStmt = connection.prepareStatement(updSql)) {
-                                   updStmt.setString(1, newHash);
-                                   updStmt.setString(2, id);
-                                   updStmt.executeUpdate();
-                               } catch (SQLException ex) {
-                                   logger.log(Level.WARNING, "비밀번호 해시 마이그레이션 실패", ex);
-                               }
-                           }
-
-                           return mUser;
-                       }
-                   }
+                    return mapAndMaybeMigrateUser(id, password, connection, result);
                 }
                 // 인증 실패: 아이디 또는 비밀번호 불일치
                 return null;
             }
         } catch (SQLException e) {
-            throw new SQLException("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
+            throw logAndWrap("로그인 인증 중 데이터베이스 오류가 발생했습니다.", e);
         }
     }
-    
+
+    private MUser mapAndMaybeMigrateUser(String id, String password,
+                                         Connection connection, ResultSet result) throws SQLException {
+        String hash = result.getString("hash");
+        if (hash == null) {
+            return null;
+        }
+
+        boolean passwordMatches = false;
+        boolean wasPlain = false;
+
+        if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
+            passwordMatches = BCrypt.checkpw(password, hash);
+        } else if (password.equals(hash)) {
+            passwordMatches = true;
+            wasPlain = true;
+        }
+
+        if (!passwordMatches) {
+            return null;
+        }
+
+        MUser mUser = new MUser();
+        mUser.setUserid(id);
+        mUser.setName(result.getString("name"));
+        mUser.setRole(result.getString("role"));
+
+        if (wasPlain) {
+            migratePlaintextPassword(id, password, connection);
+        }
+
+        return mUser;
+    }
+
+    private void migratePlaintextPassword(String id, String password, Connection connection) {
+        String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
+        try (PreparedStatement updStmt = connection.prepareStatement(UPDATE_LOGIN_PASSWORD_SQL)) {
+            updStmt.setString(1, newHash);
+            updStmt.setString(2, id);
+            updStmt.executeUpdate();
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "비밀번호 해시 마이그레이션 실패", ex);
+        }
+    }
+
     /**
      * 회원 가입 처리 (트랜잭션)
      * @param mUser 사용자 정보 (userid, name, code, email, campus_id, college_id, department_id)
@@ -176,13 +188,11 @@ public class UserDAO {
             catch (SQLException e) { 
                 // 디버깅: 중복 키, 외래키 제약, NOT NULL 제약 확인
                 logger.log(Level.WARNING, "회원가입 트랜잭션 오류", e);
-                try { conn.rollback(); }
-                catch (SQLException ex) { logger.log(Level.SEVERE, "롤백 실패", ex); } 
+                rollbackQuietly(conn);
                 return false; 
             } 
             finally {
-                try { conn.setAutoCommit(true); } 
-                catch (SQLException e) { logger.log(Level.WARNING, "AutoCommit 원상복구 실패", e); }
+                restoreAutoCommit(conn);
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "DB 연결 오류", e);
@@ -305,39 +315,24 @@ public class UserDAO {
      * @throws SQLException DB 오류 발생 시
      */
     public boolean resetPasswordIfMatch(String id, String name, int code, String newPassword) throws SQLException {
-        String checkSql = "SELECT COUNT(*) FROM user WHERE userid = ? AND name = ? AND code = ?";
-        String updateSql = "UPDATE login SET password = ? WHERE userId = ?";
-
         Connection conn = dao.getConnection();
         if (conn == null) throw new SQLException("데이터베이스 연결에 실패했습니다.");
         ensurePasswordColumnLength(conn);
 
-        try (Connection connection = conn) {
-            // 먼저 사용자 존재 및 정보 일치 여부 확인
-            try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
-                checkStmt.setString(1, id);
-                checkStmt.setString(2, name);
-                checkStmt.setInt(3, code);
+        try (Connection connection = conn;
+             PreparedStatement checkStmt = connection.prepareStatement(COUNT_USER_MATCH_SQL)) {
+            checkStmt.setString(1, id);
+            checkStmt.setString(2, name);
+            checkStmt.setInt(3, code);
 
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        // 정보가 일치하면 비밀번호 업데이트
-                        try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
-                            // 해시 저장
-                            String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-                            updateStmt.setString(1, hashed);
-                            updateStmt.setString(2, id);
-                            int updated = updateStmt.executeUpdate();
-                            return updated > 0;
-                        }
-                    } else {
-                        return false;
-                    }
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return updateLoginPassword(id, newPassword, connection);
                 }
+                return false;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "비밀번호 초기화 중 DB 오류", e);
-            throw e;
+            throw logAndWrap("비밀번호 초기화 중 DB 오류", e);
         }
     }
     
@@ -347,39 +342,39 @@ public class UserDAO {
      * @throws SQLException DB 오류 발생 시
      */
     public boolean changePassword(String userId, String oldPassword, String newPassword) throws SQLException {
-        String fetchSql = "SELECT password FROM login WHERE userId = ?";
-        String updateSql = "UPDATE login SET password = ? WHERE userId = ?";
-
         Connection conn = dao.getConnection();
         if (conn == null) throw new SQLException("데이터베이스 연결에 실패했습니다.");
         ensurePasswordColumnLength(conn);
 
-        try (Connection connection = conn) {
-            try (PreparedStatement fetchStmt = connection.prepareStatement(fetchSql)) {
-                fetchStmt.setString(1, userId);
-                try (ResultSet rs = fetchStmt.executeQuery()) {
-                    if (rs.next()) {
-                        String hash = rs.getString("password");
-                        if (hash != null && BCrypt.checkpw(oldPassword, hash)) {
-                            try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
-                                String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-                                updateStmt.setString(1, hashed);
-                                updateStmt.setString(2, userId);
-                                int updated = updateStmt.executeUpdate();
-                                return updated > 0;
-                            }
-                        } else {
-                            return false;
-                        }
-                    } else {
-                        return false;
+        try (Connection connection = conn;
+             PreparedStatement fetchStmt = connection.prepareStatement(FETCH_LOGIN_PASSWORD_SQL)) {
+            fetchStmt.setString(1, userId);
+            try (ResultSet rs = fetchStmt.executeQuery()) {
+                if (rs.next()) {
+                    String hash = rs.getString("password");
+                    if (hash != null && BCrypt.checkpw(oldPassword, hash)) {
+                        return updateLoginPassword(userId, newPassword, connection);
                     }
                 }
+                return false;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "비밀번호 변경 중 DB 오류", e);
-            throw e;
+            throw logAndWrap("비밀번호 변경 중 DB 오류", e);
         }
+    }
+
+    private boolean updateLoginPassword(String userId, String newPassword, Connection connection) throws SQLException {
+        try (PreparedStatement updateStmt = connection.prepareStatement(UPDATE_LOGIN_PASSWORD_SQL)) {
+            String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+            updateStmt.setString(1, hashed);
+            updateStmt.setString(2, userId);
+            return updateStmt.executeUpdate() > 0;
+        }
+    }
+
+    private SQLException logAndWrap(String message, SQLException e) {
+        logger.log(Level.SEVERE, message, e);
+        return new SQLException(message, e);
     }
 
     private void ensurePasswordColumnLength(Connection connection) {
@@ -435,5 +430,21 @@ public class UserDAO {
             }
         }
         return -1;
+    }
+
+    private void rollbackQuietly(Connection conn) {
+        try {
+            conn.rollback();
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "롤백 실패", ex);
+        }
+    }
+
+    private void restoreAutoCommit(Connection conn) {
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "AutoCommit 원상복구 실패", e);
+        }
     }
 }

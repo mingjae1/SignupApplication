@@ -135,7 +135,7 @@ public class LectureDAO {
     public List<MLecture> getAllLectures() {
         List<MLecture> lectures = new ArrayList<>();
 
-        String sql = "SELECT * FROM lecture ORDER BY id";
+        String sql = "SELECT id, name, professor, credit, time, department_id FROM lecture ORDER BY id";
 
         Connection conn = dao.getConnection();
         if (conn == null) return lectures;

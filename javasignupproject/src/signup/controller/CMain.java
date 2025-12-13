@@ -20,12 +20,13 @@ import signup.view.VMain;
 import java.awt.event.ActionEvent;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.logging.Logger;
 
 public class CMain {
 
     private VMain vMain;
     private MMain mMain;
-    private CSearch cSearch; 
+    private CSearch cSearch;
     private CRegister cRegister;
     private CPreRegister cPreRegister;
     private CSchedule cSchedule;
@@ -34,18 +35,17 @@ public class CMain {
     private Deque<String> previousStack;
     private Deque<String> forwardStack; 
     private String currentPanel;
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CMain.class.getName());
+    private static final Logger logger = Logger.getLogger(CMain.class.getName());
     
-    public CMain(VMain vMain, MMain mMain, UserDAO userDAO, 
-                 CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule, CAdmin cAdmin) {
+    public CMain(VMain vMain, MMain mMain, UserDAO userDAO, ControllerBundle controllers) {
         this.vMain = vMain;
         this.mMain = mMain;
         this.userDAO = userDAO;
-        this.cSearch = cSearch;
-        this.cRegister = cRegister;
-        this.cPreRegister = cPreRegister;
-        this.cSchedule = cSchedule;
-        this.cAdmin = cAdmin;
+        this.cSearch = controllers.search;
+        this.cRegister = controllers.register;
+        this.cPreRegister = controllers.preRegister;
+        this.cSchedule = controllers.schedule;
+        this.cAdmin = controllers.admin;
 
         this.previousStack = new ArrayDeque<>();
         this.forwardStack = new ArrayDeque<>();
@@ -220,7 +220,8 @@ public class CMain {
         String confirmPw = vMain.getConfirmPasswordInput();
         
         try {
-            if (!validatePasswordInput(oldPw, newPw, confirmPw)) {
+            // Validate password input
+            if (!validatePasswordInput(newPw, confirmPw)) {
                 return;
             }
             
@@ -240,33 +241,26 @@ public class CMain {
     /**
      * 비밀번호 입력값을 유효성 검사합니다.
      */
-    private boolean validatePasswordInput(String oldPw, String newPw, String confirmPw) {
+    private boolean validatePasswordInput(String newPw, String confirmPw) {
+        // Check if password is empty
         if (ControllerConstants.isEmpty(newPw)) {
             vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_EMPTY, ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
+        // Check if new password and confirmation password match
         if (!ControllerConstants.matches(newPw, confirmPw)) {
             vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_NOT_MATCH, ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
+        // Check if password meets security policy
         if (!ControllerConstants.isValidPassword(newPw)) {
             vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_POLICY, ControllerConstants.TITLE_SECURITY_ERROR);
             return false;
         }
         
         return true;
-    }
-    
-    /**
-     * 비밀번호 유효성을 검사합니다.
-     * 영문자 1개 이상, 숫자 1개 이상, 특수문자 1개 이상, 최소 8자
-     */
-    private boolean isValidPassword(String pw) {
-        if (pw == null) return false;
-        String pattern = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
-        return pw.matches(pattern);
     }
     
     public void refreshUserInfo() {

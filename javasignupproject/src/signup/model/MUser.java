@@ -18,8 +18,10 @@ public class MUser {
     private String campus;      // 캠퍼스 이름
     private String college;     // 단과대학 이름
     private String department;  // 학과 이름
-    
+    private String password;
+
     public MUser() {}
+    // 기본 생성자는 JDBC 매퍼 및 직렬화 프레임워크에서 필수로 사용되므로 비워둡니다.
 
     // --- 각 필드에 대한 Getter와 Setter ---
     
@@ -56,4 +58,6 @@ public class MUser {
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }
 
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

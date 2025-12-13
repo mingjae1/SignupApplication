@@ -114,7 +114,6 @@ public class CSchedule {
                 ViewConstants.showInfoMessage(vSchedule, "시간표가 저장되었습니다!\n" + fileToSave.getAbsolutePath(), ControllerConstants.TITLE_COMPLETE);
                 
             } catch (IOException ex) {
-                ex.printStackTrace();
                 ViewConstants.showErrorMessage(vSchedule, "저장 중 오류가 발생했습니다.", ControllerConstants.TITLE_ERROR);
             }
         }

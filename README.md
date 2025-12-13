@@ -52,7 +52,7 @@ USE lms_data;
 source LMS_data.sql;
 
 # 3. 데이터베이스 연결 설정
-echo "db.password=YOUR_MYSQL_PASSWORD" > config.properties
+echo "db.password=your_mysql_root_password" > config.properties
 
 # 4. 애플리케이션 실행
 ./gradlew run
@@ -241,10 +241,10 @@ exit;
 
 #### 3. 데이터베이스 연결 설정
 
-`javasignupproject` 디렉토리에 `config.properties` 파일을 생성하고 MySQL 비밀번호를 입력합니다:
+`javasignupproject` 디렉토리에 `config.properties` 파일을 생성하고 MySQL root 비밀번호를 입력합니다:
 
 ```properties
-db.password=YOUR_MYSQL_PASSWORD
+db.password=your_mysql_root_password
 ```
 
 > ⚠️ **보안 주의**: `config.properties`는 `.gitignore`에 포함되어 Git에 커밋되지 않습니다.

@@ -6,12 +6,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import signup.constants.AppConstants;
+import signup.constants.ControllerConstants;
 import signup.constants.StatusConstants;
+import signup.constants.ViewConstants;
 import signup.dao.LectureDAO;
 import signup.dao.SaveDAO;
 import signup.dao.UserDAO;
@@ -91,7 +92,7 @@ public class CSearch {
     private void handleSearch(ActionEvent e) {
         String userId = mMain.getCurrentUserId();
         if (userId == null) {
-            JOptionPane.showMessageDialog(vSearch, "로그인이 필요합니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSearch, "로그인이 필요합니다.", ControllerConstants.TITLE_ERROR);
             return;
         }
 
@@ -128,11 +129,11 @@ public class CSearch {
         int selectedRow = table.getSelectedRow();
         
         if (userId == null) {
-            JOptionPane.showMessageDialog(vSearch, "로그인이 필요합니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSearch, "로그인이 필요합니다.", ControllerConstants.TITLE_ERROR);
             return;
         }
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(vSearch, "먼저 강의를 선택하세요.", "알림", JOptionPane.INFORMATION_MESSAGE);
+            ViewConstants.showInfoMessage(vSearch, "먼저 강의를 선택하세요.", ControllerConstants.TITLE_CONFIRMATION);
             return;
         }
 
@@ -145,7 +146,7 @@ public class CSearch {
             int resultCode = saveDAO.addLecture(userId, lectureId, status, newCredits);
             handleSaveResult(resultCode, lectureName, status);
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(vSearch, "강의 코드를 숫자로 변환하는 데 실패했습니다.", "시스템 오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSearch, "강의 코드를 숫자로 변환하는 데 실패했습니다.", ControllerConstants.TITLE_ERROR);
         }
     }
     
@@ -179,29 +180,29 @@ public class CSearch {
         
         switch (resultCode) {
         case AppConstants.DB_SUCCESS:
-            JOptionPane.showMessageDialog(vSearch, 
+            ViewConstants.showInfoMessage(vSearch, 
                 "[" + lectureName + "]\n" + messageType + " 되었습니다.", 
-                "성공", JOptionPane.INFORMATION_MESSAGE);
+                ControllerConstants.TITLE_COMPLETE);
             break;
         case AppConstants.DB_ERROR_CREDIT_EXCEEDED:
-            JOptionPane.showMessageDialog(vSearch, 
-                "최대 " + messageType + " 학점(" + AppConstants.MAX_CREDITS + "학점)을 초과할 수 없습니다.",
-                "학점 초과", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSearch, 
+                ControllerConstants.ERROR_CREDIT_EXCEEDED,
+                ControllerConstants.TITLE_ERROR);
             break;
         case AppConstants.DB_ERROR_DUPLICATE:
-            JOptionPane.showMessageDialog(vSearch, 
-                "이미 " + messageType + " 내역에 존재하는 과목입니다.", 
-                "알림", JOptionPane.WARNING_MESSAGE);
+            ViewConstants.showErrorMessage(vSearch, 
+                ControllerConstants.ERROR_DUPLICATE_LECTURE, 
+                ControllerConstants.TITLE_CONFIRMATION);
             break;
         case AppConstants.DB_ERROR_GENERAL:
-            JOptionPane.showMessageDialog(vSearch, 
-                messageType + " 중 DB 오류가 발생했습니다.", 
-                "오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSearch, 
+                ControllerConstants.ERROR_DB_CONNECTION, 
+                ControllerConstants.TITLE_ERROR);
             break;
         default:
-            JOptionPane.showMessageDialog(vSearch, 
-                messageType + " 중 알 수 없는 오류가 발생했습니다. (Code: " + resultCode + ")", 
-                "오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSearch, 
+                "알 수 없는 오류가 발생했습니다. (Code: " + resultCode + ")", 
+                ControllerConstants.TITLE_ERROR);
             break;
         }
     }

@@ -83,6 +83,7 @@ public class RMain {
         this.cPreRegister = new CPreRegister(this.vPreRegister, this.mMain, this.saveDAO);
         this.cAdmin = new CAdmin(this.vAdmin, this.lectureDAO);
         this.cMain = new CMain(this.vMain, this.mMain, this.userDAO, this.cSearch, this.cRegister, this.cPreRegister, this.cSchedule, this.cAdmin);
+        this.vMain.setMainController(this.cMain);
         this.cLogin = new CLogin(this.vMain, this.vLogin, this.mMain, this.userDAO, this.cSearch, this.cAdmin);
         new CSignup(this.vMain, this.vSignup, this.lectureDAO, this.userDAO);
         

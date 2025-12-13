@@ -6,10 +6,10 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.JOptionPane;
-
 import signup.constants.AppConstants;
+import signup.constants.ControllerConstants;
 import signup.constants.PanelNames;
+import signup.constants.ViewConstants;
 import signup.dao.UserDAO; 
 import signup.model.MMain;
 import signup.view.VLogin;
@@ -60,70 +60,70 @@ public class CLogin {
             if (loginUser != null) {
                 mMain.setCurrentUserId(id);
                 
-                if ("admin".equals(loginUser.getRole())) {
-                    JOptionPane.showMessageDialog(vLogin, "관리자 모드로 로그인합니다.", "관리자 로그인", JOptionPane.INFORMATION_MESSAGE);
-                    cMain.setAdminMode(true);
-                } else {
-                    JOptionPane.showMessageDialog(vLogin, loginUser.getName() + "님, 환영합니다!", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
-                    cMain.setAdminMode(false);
-                }
+                String message = "admin".equals(loginUser.getRole()) 
+                    ? loginUser.getName() + "님, 관리자 모드로 로그인합니다!" 
+                    : loginUser.getName() + "님, 환영합니다!";
+                String title = "admin".equals(loginUser.getRole()) 
+                    ? ControllerConstants.TITLE_LOGIN_COMPLETE_ADMIN 
+                    : ControllerConstants.SUCCESS_LOGIN;
+                
+                ViewConstants.showInfoMessage(vLogin, message, title);
+                cMain.setAdminMode("admin".equals(loginUser.getRole()));
+                
                 vLogin.clearFields();
                 this.cMain.resetNavigation("searchPanel");
                 this.cSearch.loadInitialCollegeData();
                 this.cMain.refreshUserInfo();
-                vMain.setSize(AppConstants.MAIN_WINDOW_WIDTH, AppConstants.MAIN_WINDOW_HEIGHT);
-                vMain.setLocationRelativeTo(null);
+                ViewConstants.resizeFrame(vMain, AppConstants.MAIN_WINDOW_WIDTH, AppConstants.MAIN_WINDOW_HEIGHT);
             } else {
-                JOptionPane.showMessageDialog(vLogin, 
-                    "아이디 혹은 비밀번호가 틀렸습니다.", 
-                    "로그인 실패", 
-                    JOptionPane.ERROR_MESSAGE);
+                ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_LOGIN_FAILED, 
+                    ControllerConstants.TITLE_LOGIN_FAILED);
                 vLogin.getPasswordField().setText("");
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(vLogin, 
-                "알 수 없는 오류입니다. 나중에 다시 시도해주세요. (DB 오류)", 
-                "로그인 오류", 
-                JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_LOGIN_UNKNOWN, 
+                ControllerConstants.TITLE_LOGIN_ERROR);
             vLogin.getPasswordField().setText("");
             logger.log(Level.SEVERE, "로그인 DB 오류", ex);
         } finally {
-            // Clear password from memory for security
             java.util.Arrays.fill(passwordChars, '0');
         }
     }
     
     /**
-     * 비밀번호 초기화 처리: 사용자로부터 이름, 아이디, 학번을 입력받아 일치하면 초기 비밀번호(1234)로 변경
+     * 비밀번호 초기화 처리
      */
     private void handleResetPassword(ActionEvent e) {
-        String id = javax.swing.JOptionPane.showInputDialog(vLogin, "아이디를 입력하세요:", "비밀번호 초기화", javax.swing.JOptionPane.QUESTION_MESSAGE);
-        if (id == null || id.trim().isEmpty()) return; // 취소 또는 빈값
+        String id = ViewConstants.showInputDialog(vLogin, "아이디를 입력하세요:", ControllerConstants.TITLE_PASSWORD_RESET);
+        if (ControllerConstants.isEmpty(id)) return;
 
-        String name = javax.swing.JOptionPane.showInputDialog(vLogin, "이름을 입력하세요:", "비밀번호 초기화", javax.swing.JOptionPane.QUESTION_MESSAGE);
-        if (name == null || name.trim().isEmpty()) return;
+        String name = ViewConstants.showInputDialog(vLogin, "이름을 입력하세요:", ControllerConstants.TITLE_PASSWORD_RESET);
+        if (ControllerConstants.isEmpty(name)) return;
 
-        String codeStr = javax.swing.JOptionPane.showInputDialog(vLogin, "학번(숫자)을 입력하세요:", "비밀번호 초기화", javax.swing.JOptionPane.QUESTION_MESSAGE);
-        if (codeStr == null || codeStr.trim().isEmpty()) return;
+        String codeStr = ViewConstants.showInputDialog(vLogin, "학번(숫자)을 입력하세요:", ControllerConstants.TITLE_PASSWORD_RESET);
+        if (ControllerConstants.isEmpty(codeStr)) return;
 
-        int code;
-        try {
-            code = Integer.parseInt(codeStr.trim());
-        } catch (NumberFormatException ex) {
-            javax.swing.JOptionPane.showMessageDialog(vLogin, "학번은 숫자여야 합니다.", "입력 오류", javax.swing.JOptionPane.ERROR_MESSAGE);
+        if (!ControllerConstants.isNumeric(codeStr)) {
+            ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_INPUT_NUMBER, ControllerConstants.TITLE_INPUT_ERROR);
+            return;
+        }
+
+        Integer code = ControllerConstants.tryParseInt(codeStr);
+        if (code == null) {
+            ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_INPUT_NUMBER, ControllerConstants.TITLE_INPUT_ERROR);
             return;
         }
 
         try {
-            boolean ok = userDAO.resetPasswordIfMatch(id.trim(), name.trim(), code, "1234");
+            boolean ok = userDAO.resetPasswordIfMatch(id.trim(), name.trim(), code, ControllerConstants.INITIAL_PASSWORD);
             if (ok) {
-                javax.swing.JOptionPane.showMessageDialog(vLogin, "비밀번호가 초기화되었습니다. 초기 비밀번호: 1234", "초기화 완료", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                ViewConstants.showInfoMessage(vLogin, ControllerConstants.SUCCESS_PASSWORD_RESET, ControllerConstants.TITLE_RESET_COMPLETE);
             } else {
-                javax.swing.JOptionPane.showMessageDialog(vLogin, "입력하신 정보와 일치하는 사용자를 찾을 수 없습니다.", "초기화 실패", javax.swing.JOptionPane.ERROR_MESSAGE);
+                ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_RESET_PASSWORD_NOT_FOUND, ControllerConstants.TITLE_RESET_FAILED);
             }
         } catch (SQLException ex) {
-            javax.swing.JOptionPane.showMessageDialog(vLogin, "비밀번호 초기화 중 DB 오류가 발생했습니다.", "오류", javax.swing.JOptionPane.ERROR_MESSAGE);
-            logger.log(java.util.logging.Level.SEVERE, "비밀번호 초기화 DB 오류", ex);
+            ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_RESET_PASSWORD_DB, ControllerConstants.TITLE_ERROR);
+            logger.log(Level.SEVERE, "비밀번호 초기화 DB 오류", ex);
         }
     }
     

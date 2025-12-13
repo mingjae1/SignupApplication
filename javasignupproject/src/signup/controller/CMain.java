@@ -9,7 +9,9 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import signup.constants.AppConstants;
+import signup.constants.ControllerConstants;
 import signup.constants.PanelNames;
+import signup.constants.ViewConstants;
 import signup.dao.UserDAO;
 import signup.model.MMain;
 import signup.model.MUser;
@@ -32,6 +34,7 @@ public class CMain {
     private Deque<String> previousStack;
     private Deque<String> forwardStack; 
     private String currentPanel;
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CMain.class.getName());
     
     public CMain(VMain vMain, MMain mMain, UserDAO userDAO, 
                  CSearch cSearch, CRegister cRegister, CPreRegister cPreRegister, CSchedule cSchedule, CAdmin cAdmin) {
@@ -72,6 +75,7 @@ public class CMain {
         this.vMain.getBtnSideAdmin().addActionListener(e -> this.cAdmin.showAdminDialog());
         this.vMain.getBtnSideTimeTable().addActionListener(e -> this.cSchedule.showSchedule());
         this.vMain.getBtnSideMyInfo().addActionListener(this::handleMyInfo);
+        this.vMain.getBtnSideClock().addActionListener(this::handleClockToggle);
         this.vMain.getBtnSideTheme().addActionListener(this::handleThemeChange);
 
         updateNavigationButtons();
@@ -153,8 +157,7 @@ public class CMain {
         mMain.setCurrentUserId(null);
         vMain.setMyNameLabel("");
         setAdminMode(false);
-        vMain.setSize(AppConstants.LOGIN_WINDOW_WIDTH, AppConstants.LOGIN_WINDOW_HEIGHT);
-        vMain.setLocationRelativeTo(null);
+        ViewConstants.resizeFrame(vMain, AppConstants.LOGIN_WINDOW_WIDTH, AppConstants.LOGIN_WINDOW_HEIGHT);
         vMain.contentPanel(PanelNames.LOGIN_PANEL);
         previousStack.clear();
         forwardStack.clear();
@@ -171,9 +174,14 @@ public class CMain {
             }
             FlatLaf.updateUI();
             SwingUtilities.updateComponentTreeUI(vMain);
+            vMain.refreshClockTheme(); // 시계 팝업도 테마 변경 적용
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             JOptionPane.showMessageDialog(vMain, "테마 변경 중 오류가 발생했습니다: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void handleClockToggle(ActionEvent e) {
+        vMain.toggleClockPopup();
     }
 
     private void handleMyInfo(ActionEvent e) {
@@ -183,86 +191,83 @@ public class CMain {
         MUser user = userDAO.getUserInfo(userId);
         
         if (user != null) {
-            // 사용자 정보 표시와 함께 비밀번호 변경 다이얼로그 제공
-            javax.swing.JPanel panel = new javax.swing.JPanel();
-            panel.setLayout(new java.awt.BorderLayout());
+            // VMain에서 사용자 정보 표시
+            vMain.showUserInfoDialog(
+                user.getName(),
+                user.getCode(),
+                user.getUserid(),
+                user.getEmail(),
+                user.getCampus(),
+                user.getCollege(),
+                user.getDepartment()
+            );
+        }
+    }
+    
+    /**
+     * 비밀번호 변경 처리 (VMain의 비밀번호 변경 버튼 클릭 시 호출)
+     */
+    public void handlePasswordChange() {
+        String userId = mMain.getCurrentUserId();
+        if (userId == null) return;
+        
+        if (!vMain.showPasswordChangeDialog()) {
+            return;
+        }
+        
+        String oldPw = vMain.getCurrentPasswordInput();
+        String newPw = vMain.getNewPasswordInput();
+        String confirmPw = vMain.getConfirmPasswordInput();
+        
+        try {
+            if (!validatePasswordInput(oldPw, newPw, confirmPw)) {
+                return;
+            }
             
-            String infoHtml = "<html><body style='width: 280px'>" +
-                              "<h2>내 정보</h2><hr>" +
-                              "<b>이름:</b> " + user.getName() + "<br>" +
-                              "<b>학번:</b> " + user.getCode() + "<br>" +
-                              "<b>ID:</b> " + user.getUserid() + "<br>" +
-                              "<b>이메일:</b> " + user.getEmail() + "<br><br>" +
-                              "<b>소속:</b><br>" + user.getCampus() + " / " + user.getCollege() + "<br>" +
-                              user.getDepartment() + "</body></html>";
+            boolean changed = userDAO.changePassword(userId, oldPw, newPw);
             
-            javax.swing.JLabel infoLabel = new javax.swing.JLabel(infoHtml);
-            panel.add(infoLabel, java.awt.BorderLayout.NORTH);
-            
-            // 비밀번호 변경 버튼
-            javax.swing.JButton changePwBtn = new javax.swing.JButton("비밀번호 변경");
-            changePwBtn.addActionListener(ae -> {
-                // 작은 폼으로 현재비밀번호, 새비밀번호, 확인 입력
-                javax.swing.JPasswordField currentPf = new javax.swing.JPasswordField();
-                javax.swing.JPasswordField newPf = new javax.swing.JPasswordField();
-                javax.swing.JPasswordField confirmPf = new javax.swing.JPasswordField();
-                
-                javax.swing.JPanel pwPanel = new javax.swing.JPanel(new java.awt.GridLayout(0,1,5,5));
-                pwPanel.add(new javax.swing.JLabel("현재 비밀번호:")); pwPanel.add(currentPf);
-                pwPanel.add(new javax.swing.JLabel("새 비밀번호:")); pwPanel.add(newPf);
-                pwPanel.add(new javax.swing.JLabel("새 비밀번호 확인:")); pwPanel.add(confirmPf);
-                
-                int option = JOptionPane.showConfirmDialog(vMain, pwPanel, "비밀번호 변경", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-                if (option != JOptionPane.OK_OPTION) return;
-                
-                String oldPw = new String(currentPf.getPassword());
-                String newPw = new String(newPf.getPassword());
-                String confirmPw = new String(confirmPf.getPassword());
-                
-                // 간단한 검증
-                if (newPw == null || newPw.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(vMain, "새 비밀번호를 입력하세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                if (!newPw.equals(confirmPw)) {
-                    JOptionPane.showMessageDialog(vMain, "새 비밀번호와 확인이 일치하지 않습니다.", "입력 오류", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                // 비밀번호 정책: 영문자 1개 이상, 숫자 1개 이상, 특수문자 1개 이상, 길이 8자 이상
-                if (!isValidPassword(newPw)) {
-                    String policyMsg = "비밀번호는 영어(영문자), 숫자, 특수문자 각각 1개 이상 포함하고 최소 8자여야 합니다.";
-                    JOptionPane.showMessageDialog(vMain, policyMsg, "보안 정책 위반", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
-                try {
-                    boolean changed = userDAO.changePassword(user.getUserid(), oldPw, newPw);
-                    if (changed) {
-                        JOptionPane.showMessageDialog(vMain, "비밀번호가 변경되었습니다.", "완료", JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(vMain, "현재 비밀번호가 올바르지 않습니다.", "변경 실패", JOptionPane.ERROR_MESSAGE);
-                    }
-                } catch (java.sql.SQLException ex) {
-                    JOptionPane.showMessageDialog(vMain, "비밀번호 변경 중 DB 오류가 발생했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
-                    java.util.logging.Logger.getLogger(CMain.class.getName()).log(java.util.logging.Level.SEVERE, "비밀번호 변경 오류", ex);
-                } finally {
-                    // 민감정보 메모리 정리
-                    java.util.Arrays.fill(currentPf.getPassword(), '0');
-                    java.util.Arrays.fill(newPf.getPassword(), '0');
-                    java.util.Arrays.fill(confirmPf.getPassword(), '0');
-                }
-            });
-            
-            // 비밀번호 유효성 검사 헬퍼
-            // 영문자 1개 이상, 숫자 1개 이상, 특수문자 1개 이상, 최소 8자
-            
-            javax.swing.JPanel btnPanel = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-            btnPanel.add(changePwBtn);
-            panel.add(btnPanel, java.awt.BorderLayout.SOUTH);
-            
-            JOptionPane.showMessageDialog(vMain, panel, "학적 사항 / 비밀번호", JOptionPane.INFORMATION_MESSAGE);
-         }
-     }
+            if (changed) {
+                vMain.showInfoMessage(ControllerConstants.SUCCESS_PASSWORD_CHANGED, ControllerConstants.TITLE_COMPLETE);
+            } else {
+                vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_MISMATCH, ControllerConstants.TITLE_LOGIN_FAILED);
+            }
+        } catch (java.sql.SQLException ex) {
+            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_CHANGE_DB, ControllerConstants.TITLE_ERROR);
+            logger.log(java.util.logging.Level.SEVERE, "비밀번호 변경 오류", ex);
+        }
+    }
+    
+    /**
+     * 비밀번호 입력값을 유효성 검사합니다.
+     */
+    private boolean validatePasswordInput(String oldPw, String newPw, String confirmPw) {
+        if (ControllerConstants.isEmpty(newPw)) {
+            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_EMPTY, ControllerConstants.TITLE_INPUT_ERROR);
+            return false;
+        }
+        
+        if (!ControllerConstants.matches(newPw, confirmPw)) {
+            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_NOT_MATCH, ControllerConstants.TITLE_INPUT_ERROR);
+            return false;
+        }
+        
+        if (!ControllerConstants.isValidPassword(newPw)) {
+            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_POLICY, ControllerConstants.TITLE_SECURITY_ERROR);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 비밀번호 유효성을 검사합니다.
+     * 영문자 1개 이상, 숫자 1개 이상, 특수문자 1개 이상, 최소 8자
+     */
+    private boolean isValidPassword(String pw) {
+        if (pw == null) return false;
+        String pattern = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
+        return pw.matches(pattern);
+    }
     
     public void refreshUserInfo() {
         String userId = mMain.getCurrentUserId();
@@ -279,11 +284,5 @@ public class CMain {
     private void updateNavigationButtons() {
         vMain.getBeforeButton().setEnabled(!previousStack.isEmpty());
         vMain.getAfterButton().setEnabled(!forwardStack.isEmpty());
-    }
-    
-    private boolean isValidPassword(String pw) {
-        if (pw == null) return false;
-        String pattern = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
-        return pw.matches(pattern);
     }
 }

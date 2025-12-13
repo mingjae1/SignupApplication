@@ -6,10 +6,11 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import signup.constants.ControllerConstants;
+import signup.constants.ViewConstants;
 import signup.dao.LectureDAO;
 import signup.model.MLecture;
 import signup.view.VAdmin;
@@ -47,7 +48,7 @@ public class CAdmin {
 
     public void showAdminDialog() {
         loadAllLectures(); // 데이터 최신화
-        vAdmin.setVisible(true); // 모달 창 띄우기 (여기서 코드 대기)
+        ViewConstants.showModal(vAdmin); // View 상태 변경은 ViewConstants를 통해
     }
     
     // 모든 강의 데이터를 테이블에 로드
@@ -77,14 +78,14 @@ public class CAdmin {
             
             if (lectureDAO.insertLecture(formData.id, formData.name, formData.prof, 
                                          formData.credit, formData.time, formData.deptId)) {
-                JOptionPane.showMessageDialog(vAdmin, "강의가 추가되었습니다.");
+                ViewConstants.showInfoMessage(vAdmin, "강의가 추가되었습니다.", ControllerConstants.TITLE_COMPLETE);
                 loadAllLectures();
                 vAdmin.clearForm();
             } else {
-                JOptionPane.showMessageDialog(vAdmin, "추가 실패 (중복된 ID 등)", "오류", JOptionPane.ERROR_MESSAGE);
+                ViewConstants.showErrorMessage(vAdmin, "추가 실패 (중복된 ID 등)", ControllerConstants.TITLE_ERROR);
             }
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(vAdmin, "ID, 학점, 학과ID는 숫자여야 합니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
+            ViewConstants.showErrorMessage(vAdmin, "ID, 학점, 학과ID는 숫자여야 합니다.", ControllerConstants.TITLE_INPUT_ERROR);
         }
     }
 
@@ -94,14 +95,14 @@ public class CAdmin {
 
             if (lectureDAO.updateLecture(formData.id, formData.name, formData.prof, 
                                         formData.credit, formData.time, formData.deptId)) {
-                JOptionPane.showMessageDialog(vAdmin, "강의 정보가 수정되었습니다.");
+                ViewConstants.showInfoMessage(vAdmin, "강의 정보가 수정되었습니다.", ControllerConstants.TITLE_COMPLETE);
                 loadAllLectures();
                 vAdmin.clearForm();
             } else {
-                JOptionPane.showMessageDialog(vAdmin, "수정 실패 (존재하지 않는 ID)", "오류", JOptionPane.ERROR_MESSAGE);
+                ViewConstants.showErrorMessage(vAdmin, "수정 실패 (존재하지 않는 ID)", ControllerConstants.TITLE_ERROR);
             }
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(vAdmin, "숫자 입력 형식을 확인하세요.", "입력 오류", JOptionPane.WARNING_MESSAGE);
+            ViewConstants.showErrorMessage(vAdmin, "숫자 입력 형식을 확인하세요.", ControllerConstants.TITLE_INPUT_ERROR);
         }
     }
     
@@ -141,21 +142,22 @@ public class CAdmin {
     private void handleDelete(ActionEvent e) {
         String idStr = vAdmin.getTfId().getText();
         if (idStr.isEmpty()) {
-            JOptionPane.showMessageDialog(vAdmin, "삭제할 강의를 선택(클릭)하세요.");
+            ViewConstants.showInfoMessage(vAdmin, "삭제할 강의를 선택(클릭)하세요.", ControllerConstants.TITLE_CONFIRMATION);
             return;
         }
         
-        int confirm = JOptionPane.showConfirmDialog(vAdmin, 
-                "정말 삭제하시겠습니까? (ID: " + idStr + ")", "삭제 확인", JOptionPane.YES_NO_OPTION);
+        int confirm = javax.swing.JOptionPane.showConfirmDialog(vAdmin, 
+                "정말 삭제하시겠습니까? (ID: " + idStr + ")", ControllerConstants.TITLE_CONFIRMATION, 
+                javax.swing.JOptionPane.YES_NO_OPTION);
         
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (confirm == javax.swing.JOptionPane.YES_OPTION) {
             int id = Integer.parseInt(idStr);
             if (lectureDAO.deleteLecture(id)) {
-                JOptionPane.showMessageDialog(vAdmin, "삭제되었습니다.");
+                ViewConstants.showInfoMessage(vAdmin, "삭제되었습니다.", ControllerConstants.TITLE_COMPLETE);
                 loadAllLectures();
                 vAdmin.clearForm();
             } else {
-                JOptionPane.showMessageDialog(vAdmin, "삭제 실패", "오류", JOptionPane.ERROR_MESSAGE);
+                ViewConstants.showErrorMessage(vAdmin, "삭제 실패", ControllerConstants.TITLE_ERROR);
             }
         }
     }

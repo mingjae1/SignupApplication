@@ -8,12 +8,13 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import signup.constants.AppConstants;
+import signup.constants.ControllerConstants;
 import signup.constants.StatusConstants;
+import signup.constants.ViewConstants;
 import signup.dao.SaveDAO;
 import signup.model.MLecture;
 import signup.model.MMain;
@@ -110,11 +111,11 @@ public class CSchedule {
                 // 5. 파일로 저장
                 ImageIO.write(image, "png", fileToSave);
                 
-                JOptionPane.showMessageDialog(vSchedule, "시간표가 저장되었습니다!\n" + fileToSave.getAbsolutePath(), "저장 완료", JOptionPane.INFORMATION_MESSAGE);
+                ViewConstants.showInfoMessage(vSchedule, "시간표가 저장되었습니다!\n" + fileToSave.getAbsolutePath(), ControllerConstants.TITLE_COMPLETE);
                 
             } catch (IOException ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(vSchedule, "저장 중 오류가 발생했습니다.", "실패", JOptionPane.ERROR_MESSAGE);
+                ViewConstants.showErrorMessage(vSchedule, "저장 중 오류가 발생했습니다.", ControllerConstants.TITLE_ERROR);
             }
         }
     }

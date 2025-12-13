@@ -2,11 +2,12 @@ package signup.controller;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JPanel;
 
+import signup.constants.ControllerConstants;
 import signup.constants.StatusConstants;
+import signup.constants.ViewConstants;
 import signup.model.MLecture;
 import signup.model.MMain;
 import signup.dao.SaveDAO;
@@ -43,12 +44,12 @@ public abstract class CListController {
         int selectedRow = listTable.getSelectedRow();
 
         if (userId == null) {
-            JOptionPane.showMessageDialog(viewPanel, "로그인이 필요합니다.", "오류", JOptionPane.WARNING_MESSAGE);
+            ViewConstants.showErrorMessage(viewPanel, "로그인이 필요합니다.", ControllerConstants.TITLE_ERROR);
             return;
         }
         if (selectedRow == -1) {
             String action = StatusConstants.REGISTER.equals(status) ? "취소할" : "삭제할";
-            JOptionPane.showMessageDialog(viewPanel, action + " 강의를 선택하세요.", "알림", JOptionPane.INFORMATION_MESSAGE);
+            ViewConstants.showInfoMessage(viewPanel, action + " 강의를 선택하세요.", ControllerConstants.TITLE_CONFIRMATION);
             return;
         }
 
@@ -60,15 +61,15 @@ public abstract class CListController {
             boolean success = this.saveDAO.removeLecture(userId, lectureId, this.status);
     
             if (success) {
-                String action = StatusConstants.REGISTER.equals(status) ? "신청이 취소" : "목록에서 삭제";
-                JOptionPane.showMessageDialog(viewPanel, "[" + lectureName + "] " + action + "되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-                refreshTable(); 
+                String action = StatusConstants.REGISTER.equals(status) ? ControllerConstants.SUCCESS_LECTURE_CANCEL : ControllerConstants.SUCCESS_LECTURE_SAVE;
+                ViewConstants.showInfoMessage(viewPanel, "[" + lectureName + "] " + action, ControllerConstants.TITLE_COMPLETE);
+                refreshTable();
             } else {
                 String action = StatusConstants.REGISTER.equals(status) ? "신청 취소" : "삭제";
-                JOptionPane.showMessageDialog(viewPanel, action + " 실패 (DB 오류)", "오류", JOptionPane.ERROR_MESSAGE);
+                ViewConstants.showErrorMessage(viewPanel, action + " 실패 (DB 오류)", ControllerConstants.TITLE_ERROR);
             }
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(viewPanel, "강의 코드를 숫자로 변환하는 데 실패했습니다.", "시스템 오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(viewPanel, "강의 코드를 숫자로 변환하는 데 실패했습니다.", ControllerConstants.TITLE_ERROR);
         }
     }
     

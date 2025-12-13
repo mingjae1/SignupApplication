@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -14,11 +16,14 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
 import signup.constants.PanelNames;
+import signup.constants.ViewConstants;
 
 /**
  * 프로그램의 메인 프레임(JFrame) 클래스입니다.
@@ -51,48 +56,53 @@ public class VMain extends JFrame {
     private JButton btnSidePreRegister;    // 미리담기 내역
     private JButton btnSideTimeTable; // 시간표
     private JButton btnSideMyInfo;    // 내 정보
+    private JButton btnSideClock;     // 시계
     private JButton btnSideTheme;     // 테마 변경
     private JButton btnSideAdmin;     // 강의 관리 (관리자 전용)
     
-    // (참고: 테마 변경용 콤보박스는 사이드바 버튼 토글 방식으로 대체됨)
-    private JComboBox<String> themeCombo; 
+    // --- 시계 팝업 ---
+    private JFrame clockFrame;
+    private JLabel clockLabel;
+    private JLabel dateLabel;
+    private javax.swing.Timer clockTimer;
     
-    private static final String fontSansSerif = "SansSerif";
+    // --- 컨트롤러 참조 (내 정보 다이얼로그에서 사용) ---
+    private signup.controller.CMain cMain;
+    
+    // (참고: 테마 변경용 콤보박스는 사이드바 버튼 토글 방식으로 대체됨)
+    private JComboBox<String> themeCombo;
     
     /**
      * VMain 프레임 및 내부 컴포넌트를 생성하고 레이아웃을 초기화합니다.
      */
     public VMain() {
-        setTitle("수강신청 프로그램");
-        setSize(420, 320); // 넉넉한 해상도
+        setTitle(ViewConstants.TEXT_PROGRAM_TITLE);
+        setSize(420, 320);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // 화면 중앙 시작
+        setLocationRelativeTo(null);
         
-        // 1. 메인 레이아웃 설정
         cardLayout = new CardLayout();
         mainCardPanel = new JPanel(cardLayout);
-        
-        // 2. 메인 컨텐츠 패널 (로그인 후 화면)
         mainContentPanel = new JPanel(new BorderLayout());
         
-        // --- 상단 헤더 초기화 ---
         initHeader();
-        
-        // --- 좌측 사이드바 초기화 ---
         initSidebar();
         
-        // --- 중앙 컨텐츠 영역 초기화 ---
         contentCardLayout = new CardLayout();
         contentPanel = new JPanel(contentCardLayout);
         
         mainContentPanel.add(contentPanel, BorderLayout.CENTER);
         mainCardPanel.add(mainContentPanel, PanelNames.MAIN_CONTENT_PANEL);
         
-        // 3. 프레임에 메인 패널 추가
         this.add(mainCardPanel);
-        
-        // (컨트롤러 호환용 히든 콤보박스 - 실제로는 안 보임)
         themeCombo = new JComboBox<>(new String[]{"다크 테마", "라이트 테마"});
+        
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                stopClockTimer();
+            }
+        });
     }
     
     /**
@@ -100,44 +110,40 @@ public class VMain extends JFrame {
      */
     private void initHeader() {
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBorder(new EmptyBorder(5, 10, 5, 10));
-        headerPanel.setPreferredSize(new Dimension(getWidth(), 50));
+        headerPanel.setBorder(ViewConstants.createEmptyBorder(5, 10, 5, 10));
+        headerPanel.setPreferredSize(ViewConstants.HEADER_SIZE);
         
-        // A. 좌측: 메뉴 토글 및 네비게이션
-        JPanel leftHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        // 좌측: 메뉴 토글 및 네비게이션
+        JPanel leftHeader = ViewConstants.createStandardPanel(
+            ViewConstants.createFlowLayout(FlowLayout.LEFT, 10, 5));
         
-        btnMenuToggle = new JButton("☰");
-        btnMenuToggle.setFont(new Font(fontSansSerif, Font.BOLD, 18));
+        btnMenuToggle = new JButton(ViewConstants.TEXT_MENU_TOGGLE);
+        btnMenuToggle.setFont(new Font(ViewConstants.FONT_SANS_SERIF, Font.BOLD, 18));
         btnMenuToggle.setFocusPainted(false);
         
-        btnBack = new JButton("◀");
-        btnNext = new JButton("▶");
-        btnRefresh = new JButton("새로고침");
+        btnBack = ViewConstants.createHeaderButton(ViewConstants.TEXT_BACK);
+        btnNext = ViewConstants.createHeaderButton(ViewConstants.TEXT_NEXT);
+        btnRefresh = ViewConstants.createHeaderButton(ViewConstants.TEXT_REFRESH);
         
         leftHeader.add(btnMenuToggle);
-        leftHeader.add(new JLabel("  |  ")); 
+        leftHeader.add(new JLabel(ViewConstants.TEXT_SEPARATOR));
         leftHeader.add(btnBack);
         leftHeader.add(btnNext);
         leftHeader.add(btnRefresh);
         
-        // B. 우측: 유저 정보 및 로그아웃
-        JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        lblUserName = new JLabel("");
-        lblUserName.setFont(new Font(fontSansSerif, Font.BOLD, 14));
-        btnLogout = new JButton("로그아웃");
+        // 우측: 유저 정보 및 로그아웃
+        JPanel rightHeader = ViewConstants.createStandardPanel(
+            ViewConstants.createFlowLayout(FlowLayout.RIGHT, 10, 5));
+        lblUserName = ViewConstants.createHeaderLabel("");
+        btnLogout = ViewConstants.createHeaderButton(ViewConstants.TEXT_LOGOUT);
         
         rightHeader.add(lblUserName);
-        rightHeader.add(new JLabel("  "));
+        rightHeader.add(new JLabel(ViewConstants.TEXT_SPACE));
         rightHeader.add(btnLogout);
         
         headerPanel.add(leftHeader, BorderLayout.WEST);
         headerPanel.add(rightHeader, BorderLayout.EAST);
-        
-        // 헤더 하단 구분선
-        headerPanel.setBorder(BorderFactory.createCompoundBorder(
-                new EmptyBorder(0, 0, 0, 0),
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY)
-        ));
+        headerPanel.setBorder(ViewConstants.createSeparatorBorder());
         
         mainContentPanel.add(headerPanel, BorderLayout.NORTH);
     }
@@ -146,23 +152,22 @@ public class VMain extends JFrame {
      * 좌측 사이드바(메뉴 리스트)를 생성하고 배치합니다.
      */
     private void initSidebar() {
-        sidebarPanel = new JPanel();
-        sidebarPanel.setLayout(new BorderLayout());
-        sidebarPanel.setPreferredSize(new Dimension(200, getHeight()));
-        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY)); // 오른쪽 구분선
+        sidebarPanel = new JPanel(new BorderLayout());
+        sidebarPanel.setPreferredSize(ViewConstants.SIDEBAR_SIZE);
+        sidebarPanel.setBorder(ViewConstants.createVerticalSeparatorBorder());
         
-        // 메뉴 버튼 컨테이너 (GridLayout)
-        JPanel menuContainer = new JPanel(new GridLayout(0, 1, 0, 5));
-        menuContainer.setBorder(new EmptyBorder(10, 10, 10, 10));
+        JPanel menuContainer = ViewConstants.createStandardPanel(
+            ViewConstants.createGridLayout(0, 1, 0, 5));
+        menuContainer.setBorder(ViewConstants.createEmptyBorder(10, 10, 10, 10));
         
-        // 버튼 생성
-        btnSideSearch = createSidebarButton("🔍  강좌 검색");
-        btnSideRegister = createSidebarButton("📝  수강신청 내역");
-        btnSidePreRegister = createSidebarButton("🛒  미리담기 내역");
-        btnSideTimeTable = createSidebarButton("📅  시간표");
-        btnSideMyInfo = createSidebarButton("👤  내 정보");
-        btnSideTheme = createSidebarButton("🌗  테마 변경");
-        btnSideAdmin = createSidebarButton("⚙️  강의 관리");
+        btnSideSearch = ViewConstants.createSidebarButton(ViewConstants.TEXT_SEARCH);
+        btnSideRegister = ViewConstants.createSidebarButton(ViewConstants.TEXT_REGISTER);
+        btnSidePreRegister = ViewConstants.createSidebarButton(ViewConstants.TEXT_PREREGISTER);
+        btnSideTimeTable = ViewConstants.createSidebarButton(ViewConstants.TEXT_TIMETABLE);
+        btnSideMyInfo = ViewConstants.createSidebarButton(ViewConstants.TEXT_MY_INFO);
+        btnSideClock = ViewConstants.createSidebarButton(ViewConstants.TEXT_CLOCK);
+        btnSideTheme = ViewConstants.createSidebarButton(ViewConstants.TEXT_THEME);
+        btnSideAdmin = ViewConstants.createSidebarButton(ViewConstants.TEXT_ADMIN);
         btnSideAdmin.setVisible(false);
         
         menuContainer.add(btnSideSearch);
@@ -170,26 +175,14 @@ public class VMain extends JFrame {
         menuContainer.add(btnSidePreRegister);
         menuContainer.add(btnSideTimeTable);
         menuContainer.add(btnSideMyInfo);
-        menuContainer.add(new JLabel(" ")); // 공백
+        menuContainer.add(new JLabel(ViewConstants.TEXT_SPACE));
+        menuContainer.add(btnSideClock);
         menuContainer.add(btnSideTheme);
-        menuContainer.add(new JLabel(" ")); // 공백
+        menuContainer.add(new JLabel(ViewConstants.TEXT_SPACE));
         menuContainer.add(btnSideAdmin);
-        // 위쪽 정렬을 위해 상단에 배치
+        
         sidebarPanel.add(menuContainer, BorderLayout.NORTH);
-
         mainContentPanel.add(sidebarPanel, BorderLayout.WEST);
-    }
-    
-    /**
-     * 사이드바 버튼 스타일을 적용하는 헬퍼 메서드
-     */
-    private JButton createSidebarButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setFont(new Font(fontSansSerif, Font.PLAIN, 14));
-        btn.setPreferredSize(new Dimension(180, 45));
-        btn.setFocusPainted(false);
-        return btn;
     }
     
     /**
@@ -197,6 +190,117 @@ public class VMain extends JFrame {
      */
     public void toggleSidebar() {
         sidebarPanel.setVisible(!sidebarPanel.isVisible());
+    }
+    
+    /**
+     * 시계 팝업을 초기화합니다.
+     */
+    public void initClockPopup() {
+        if (clockFrame != null) {
+            return;
+        }
+        
+        clockFrame = new JFrame(ViewConstants.TEXT_CLOCK_TITLE);
+        clockFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        clockFrame.setResizable(false);
+        clockFrame.setAlwaysOnTop(true);
+        clockFrame.setLayout(new BorderLayout());
+        
+        clockLabel = new JLabel();
+        clockLabel.setFont(new Font(ViewConstants.FONT_DIGITAL, Font.BOLD, ViewConstants.FONT_SIZE_CLOCK));
+        clockLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        clockLabel.setVerticalAlignment(SwingConstants.CENTER);
+        clockLabel.setBorder(ViewConstants.createEmptyBorder(
+            ViewConstants.PADDING_LARGE, ViewConstants.PADDING_LARGE, 
+            ViewConstants.PADDING_LARGE, ViewConstants.PADDING_LARGE));
+        clockLabel.setForeground(ViewConstants.COLOR_PRIMARY);
+        
+        dateLabel = new JLabel();
+        dateLabel.setFont(new Font(ViewConstants.FONT_SANS_SERIF, Font.PLAIN, ViewConstants.FONT_SIZE_DATE));
+        dateLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        dateLabel.setBorder(ViewConstants.createEmptyBorder(
+            ViewConstants.PADDING_MEDIUM, ViewConstants.PADDING_MEDIUM, 
+            ViewConstants.PADDING_MEDIUM, ViewConstants.PADDING_MEDIUM));
+        dateLabel.setForeground(ViewConstants.COLOR_SECONDARY);
+        
+        JPanel panel = ViewConstants.createStandardPanel(new BorderLayout());
+        panel.setBackground(ViewConstants.COLOR_WHITE);
+        panel.add(clockLabel, BorderLayout.CENTER);
+        panel.add(dateLabel, BorderLayout.SOUTH);
+        
+        clockFrame.add(panel);
+        clockFrame.setSize(ViewConstants.CLOCK_POPUP_SIZE);
+        
+        int x = getX() + getWidth() - clockFrame.getWidth() - ViewConstants.CLOCK_X_OFFSET;
+        int y = getY() + ViewConstants.CLOCK_Y_OFFSET;
+        clockFrame.setLocation(x, y);
+        
+        clockTimer = new Timer(ViewConstants.CLOCK_UPDATE_INTERVAL, e -> updateClockDisplay());
+        updateClockDisplay();
+        clockTimer.start();
+    }
+    
+    /**
+     * 시계 표시를 업데이트합니다.
+     */
+    private void updateClockDisplay() {
+        SimpleDateFormat timeFormat = new SimpleDateFormat(ViewConstants.DATE_FORMAT_TIME);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(ViewConstants.DATE_FORMAT_FULL);
+        
+        String currentTime = timeFormat.format(new Date());
+        String currentDate = dateFormat.format(new Date());
+        
+        if (clockLabel != null) {
+            clockLabel.setText(currentTime);
+        }
+        if (dateLabel != null) {
+            dateLabel.setText(currentDate);
+        }
+    }
+    
+    /**
+     * 시계 팝업을 토글합니다.
+     */
+    public void toggleClockPopup() {
+        if (clockFrame == null) {
+            initClockPopup();
+        }
+        clockFrame.setVisible(!clockFrame.isVisible());
+    }
+    
+    /**
+     * 시계 타이머를 중지합니다.
+     */
+    public void stopClockTimer() {
+        if (clockTimer != null) {
+            clockTimer.stop();
+        }
+        if (clockFrame != null) {
+            clockFrame.dispose();
+        }
+    }
+    
+    /**
+     * 시계 팝업을 테마 변경에 따라 업데이트합니다.
+     */
+    public void refreshClockTheme() {
+        if (clockFrame == null || !clockFrame.isVisible()) {
+            return; // 시계가 표시되지 않으면 업데이트 불필요
+        }
+        
+        // 현재 시계 프레임의 위치 저장
+        int x = clockFrame.getX();
+        int y = clockFrame.getY();
+        
+        // 시계 팝업 재생성
+        if (clockFrame != null) {
+            clockFrame.dispose();
+            clockFrame = null;
+        }
+        
+        initClockPopup();
+        clockFrame.setLocation(x, y);
+        clockFrame.setVisible(true);
     }
 
     /**
@@ -233,6 +337,99 @@ public class VMain extends JFrame {
         lblUserName.setText(name == null ? "" : name + "님");
     }
     
+    /**
+     * 사용자 정보 표시 다이얼로그를 보여줍니다.
+     */
+    public void showUserInfoDialog(String name, int code, String userid, String email, 
+                                    String campus, String college, String department) {
+        String infoHtml = "<html><body style='width: 280px'>" +
+                          "<h2>내 정보</h2><hr>" +
+                          "<b>이름:</b> " + name + "<br>" +
+                          "<b>학번:</b> " + code + "<br>" +
+                          "<b>ID:</b> " + userid + "<br>" +
+                          "<b>이메일:</b> " + email + "<br><br>" +
+                          "<b>소속:</b><br>" + campus + " / " + college + "<br>" +
+                          department + "</body></html>";
+        
+        JPanel panel = ViewConstants.createStandardPanel(new BorderLayout());
+        JLabel infoLabel = new JLabel(infoHtml);
+        panel.add(infoLabel, BorderLayout.NORTH);
+        
+        JButton changePwBtn = ViewConstants.createHeaderButton(ViewConstants.TEXT_PASSWORD_CHANGE);
+        changePwBtn.addActionListener(e -> {
+            if (cMain != null) {
+                cMain.handlePasswordChange();
+            }
+        });
+        JPanel btnPanel = ViewConstants.createStandardPanel(
+            ViewConstants.createFlowLayout(FlowLayout.RIGHT, 0, 0));
+        btnPanel.add(changePwBtn);
+        panel.add(btnPanel, BorderLayout.SOUTH);
+        
+        javax.swing.JOptionPane.showMessageDialog(this, panel, ViewConstants.TEXT_MY_INFO_TITLE, 
+            javax.swing.JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    /**
+     * 비밀번호 변경 다이얼로그를 보여줍니다.
+     */
+    public boolean showPasswordChangeDialog() {
+        JPasswordField currentPf = new JPasswordField();
+        JPasswordField newPf = new JPasswordField();
+        JPasswordField confirmPf = new JPasswordField();
+        
+        JPanel pwPanel = ViewConstants.createStandardPanel(
+            ViewConstants.createGridLayout(0, 1, 5, 5));
+        pwPanel.add(new JLabel(ViewConstants.TEXT_CURRENT_PASSWORD));
+        pwPanel.add(currentPf);
+        pwPanel.add(new JLabel(ViewConstants.TEXT_NEW_PASSWORD));
+        pwPanel.add(newPf);
+        pwPanel.add(new JLabel(ViewConstants.TEXT_CONFIRM_PASSWORD));
+        pwPanel.add(confirmPf);
+        
+        int option = javax.swing.JOptionPane.showConfirmDialog(
+            this, pwPanel, ViewConstants.TEXT_PASSWORD_CHANGE,
+            javax.swing.JOptionPane.OK_CANCEL_OPTION,
+            javax.swing.JOptionPane.PLAIN_MESSAGE
+        );
+        
+        if (option == javax.swing.JOptionPane.OK_OPTION) {
+            currentPasswordInput = new String(currentPf.getPassword());
+            newPasswordInput = new String(newPf.getPassword());
+            confirmPasswordInput = new String(confirmPf.getPassword());
+            
+            java.util.Arrays.fill(currentPf.getPassword(), '0');
+            java.util.Arrays.fill(newPf.getPassword(), '0');
+            java.util.Arrays.fill(confirmPf.getPassword(), '0');
+            
+            return true;
+        }
+        return false;
+    }
+    
+    // 비밀번호 입력값을 임시 저장하는 필드
+    private String currentPasswordInput;
+    private String newPasswordInput;
+    private String confirmPasswordInput;
+    
+    public String getCurrentPasswordInput() { return currentPasswordInput; }
+    public String getNewPasswordInput() { return newPasswordInput; }
+    public String getConfirmPasswordInput() { return confirmPasswordInput; }
+    
+    /**
+     * 오류 메시지를 표시합니다.
+     */
+    public void showErrorMessage(String message, String title) {
+        ViewConstants.showErrorMessage(this, message, title);
+    }
+    
+    /**
+     * 정보 메시지를 표시합니다.
+     */
+    public void showInfoMessage(String message, String title) {
+        ViewConstants.showInfoMessage(this, message, title);
+    }
+    
     // --- Getters ---
     public JButton getMenuToggleButton() { return btnMenuToggle; }
     public JButton getBeforeButton() { return btnBack; }
@@ -245,6 +442,7 @@ public class VMain extends JFrame {
     public JButton getBtnSidePreRegister() { return btnSidePreRegister; }
     public JButton getBtnSideTimeTable() { return btnSideTimeTable; }
     public JButton getBtnSideMyInfo() { return btnSideMyInfo; }
+    public JButton getBtnSideClock() { return btnSideClock; }
     public JButton getBtnSideTheme() { return btnSideTheme; }
     public JButton getBtnSideAdmin() { return btnSideAdmin; }
     
@@ -255,4 +453,11 @@ public class VMain extends JFrame {
     public JButton getRegisterbt() { return btnSideRegister; }
     public JButton getPreRegisterbt() { return btnSidePreRegister; }
     public JButton getScheduleButton() { return btnSideTimeTable; }
+    
+    /**
+     * CMain 컨트롤러를 설정합니다. (내 정보 다이얼로그에서 사용)
+     */
+    public void setMainController(signup.controller.CMain cMain) {
+        this.cMain = cMain;
+    }
 }

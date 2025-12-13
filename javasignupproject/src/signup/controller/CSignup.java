@@ -6,10 +6,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
 
 import signup.constants.AppConstants;
+import signup.constants.ControllerConstants;
 import signup.constants.PanelNames;
+import signup.constants.ViewConstants;
 import signup.dao.UserDAO;
 import signup.dao.LectureDAO;
 import signup.model.MUser;
@@ -161,31 +162,30 @@ public class CSignup {
         user.setCode(studentId);
         
         if (userDAO.isUserIdDuplicate(user.getUserid())) {
-            JOptionPane.showMessageDialog(vSignup, "이미 사용 중인 아이디입니다.", "가입 오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, "이미 사용 중인 아이디입니다.", ControllerConstants.TITLE_ERROR);
             return;
         }
         
         if (userDAO.isStudentIdDuplicate(user.getCode())) { 
-            JOptionPane.showMessageDialog(vSignup, "이미 가입된 학번입니다.", "가입 오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, "이미 가입된 학번입니다.", ControllerConstants.TITLE_ERROR);
             return; 
         }
 
         boolean isSuccess = userDAO.addUser(user, password);
 
         if (isSuccess) {
-            JOptionPane.showMessageDialog(vSignup, name + "님, 회원가입이 성공적으로 완료되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
+            ViewConstants.showInfoMessage(vSignup, name + "님, 회원가입이 성공적으로 완료되었습니다.", ControllerConstants.TITLE_COMPLETE);
             vSignup.clearFields();
-            vMain.setSize(420, 320);
+            ViewConstants.resizeFrame(vMain, 420, 320);
             vMain.contentPanel(PanelNames.LOGIN_PANEL);
         } else {
-            JOptionPane.showMessageDialog(vSignup, "회원가입 중 오류가 발생했습니다. (DB 오류)", "오류", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, "회원가입 중 오류가 발생했습니다. (DB 오류)", ControllerConstants.TITLE_ERROR);
         }
     }
 
     private void handleCancel(ActionEvent e) {
         vSignup.clearFields();
-        vMain.setSize(380, 280);
-        vMain.setLocationRelativeTo(null);
+        ViewConstants.resizeFrame(vMain, 380, 280);
         vMain.contentPanel(PanelNames.LOGIN_PANEL);
     }
     
@@ -215,64 +215,63 @@ public class CSignup {
     private boolean validateInput(MUser user, String studentId, String password, String passwordConfirm) {
         // 1. 필수 필드 입력 확인
         if (!isAllFieldsFilled(user, studentId, password)) {
-            JOptionPane.showMessageDialog(vSignup, "모든 정보를 입력/선택해주세요.", "정보누락", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, "모든 정보를 입력/선택해주세요.", ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // 2. 이메일 형식 검증
-        if (!EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
-            JOptionPane.showMessageDialog(vSignup, "올바른 이메일 형식이 아닙니다.", "이메일 오류", JOptionPane.ERROR_MESSAGE);
+        if (!ControllerConstants.isValidEmail(user.getEmail())) {
+            ViewConstants.showErrorMessage(vSignup, "올바른 이메일 형식이 아닙니다.", ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
 
         // 3. 학번 형식 검증 (숫자 8자리)
         if (!STUDENT_CODE_PATTERN.matcher(studentId).matches()) {
-            JOptionPane.showMessageDialog(vSignup, 
+            ViewConstants.showErrorMessage(vSignup, 
                 "올바르지 않은 학번입니다. (숫자 " + AppConstants.STUDENT_CODE_LENGTH + "자리)", 
-                "학번오류", JOptionPane.ERROR_MESSAGE);
+                ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // 4. 아이디 길이 검증
         if (!isUserIdLengthValid(user.getUserid())) {
-            JOptionPane.showMessageDialog(vSignup, 
+            ViewConstants.showErrorMessage(vSignup, 
                 "아이디는 " + AppConstants.MIN_USER_ID_LENGTH + "~" + AppConstants.MAX_USER_ID_LENGTH + "자 이내여야 합니다.", 
-                "아이디수제한", JOptionPane.ERROR_MESSAGE);
+                ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // 5. 비밀번호 일치 확인
         if (!password.equals(passwordConfirm)) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호가 일치하지 않습니다.", "비번확인불일치", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, ControllerConstants.ERROR_PASSWORD_NOT_MATCH, ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // 6. 비밀번호 길이 검증
         if (!isPasswordLengthValid(password)) {
-            JOptionPane.showMessageDialog(vSignup, 
+            ViewConstants.showErrorMessage(vSignup, 
                 "비밀번호는 " + AppConstants.MIN_PASSWORD_LENGTH + "~" + AppConstants.MAX_PASSWORD_LENGTH + "자 이내여야 합니다.", 
-                "비번수제한", JOptionPane.ERROR_MESSAGE);
+                ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
 
         // 7. 비밀번호 한글 금지
         if (HAS_KOREAN_PATTERN.matcher(password).find()) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호에 한글을 포함할 수 없습니다.", "비번한글", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, "비밀번호에 한글을 포함할 수 없습니다.", ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // 8. 비밀번호 공백 금지
         if (password.contains(" ")) {
-            JOptionPane.showMessageDialog(vSignup, "비밀번호에 공백을 포함할 수 없습니다.", "비번공백", JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, "비밀번호에 공백을 포함할 수 없습니다.", ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // 9. 비밀번호 필수 요소 검증 (영문, 숫자, 특수문자)
         if (!hasRequiredPasswordElements(password)) {
-            JOptionPane.showMessageDialog(vSignup, 
-                "비밀번호는 영어, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.", 
-                "조건불충족", 
-                JOptionPane.ERROR_MESSAGE);
+            ViewConstants.showErrorMessage(vSignup, 
+                ControllerConstants.ERROR_PASSWORD_POLICY, 
+                ControllerConstants.TITLE_SECURITY_ERROR);
             return false;
         }
         

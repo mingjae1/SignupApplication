@@ -209,7 +209,7 @@ public class CSignup {
         }
         
         if (!password.equals(passwordConfirm)) {
-            ViewConstants.showErrorMessage(vSignup, ControllerConstants.ERROR_PASSWORD_NOT_MATCH, ControllerConstants.TITLE_INPUT_ERROR);
+            ViewConstants.showErrorMessage(vSignup, ControllerConstants.ERROR_SECRET_CONFIRM_MISMATCH, ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
@@ -231,8 +231,8 @@ public class CSignup {
         }
         
         if (!hasRequiredPasswordElements(password)) {
-            ViewConstants.showErrorMessage(vSignup, 
-                ControllerConstants.ERROR_PASSWORD_POLICY, 
+            ViewConstants.showErrorMessage(vSignup,
+                ControllerConstants.ERROR_SECRET_POLICY,
                 ControllerConstants.TITLE_SECURITY_ERROR);
             return false;
         }

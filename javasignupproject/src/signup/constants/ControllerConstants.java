@@ -27,14 +27,14 @@ public final class ControllerConstants {
     public static final String ERROR_LOGIN_FAILED = "아이디 혹은 비밀번호가 틀렸습니다.";
     public static final String ERROR_LOGIN_UNKNOWN = "알 수 없는 오류입니다. 나중에 다시 시도해주세요. (DB 오류)";
     public static final String ERROR_DB_CONNECTION = "데이터베이스 연결에 실패했습니다.";
-    public static final String ERROR_PASSWORD_CHANGE_DB = "비밀번호 변경 중 DB 오류가 발생했습니다.";
-    public static final String ERROR_PASSWORD_MISMATCH = "현재 비밀번호가 올바르지 않습니다.";
-    public static final String ERROR_PASSWORD_EMPTY = "새 비밀번호를 입력하세요.";
-    public static final String ERROR_PASSWORD_NOT_MATCH = "새 비밀번호와 확인이 일치하지 않습니다.";
-    public static final String ERROR_PASSWORD_POLICY = "비밀번호는 영어(영문자), 숫자, 특수문자 각각 1개 이상 포함하고 최소 8자여야 합니다.";
+    public static final String ERROR_SECRET_CHANGE_DB = "비밀번호 변경 중 DB 오류가 발생했습니다.";
+    public static final String ERROR_SECRET_MISMATCH = "현재 비밀번호가 올바르지 않습니다.";
+    public static final String ERROR_SECRET_EMPTY = "새 비밀번호를 입력하세요.";
+    public static final String ERROR_SECRET_CONFIRM_MISMATCH = "새 비밀번호와 확인이 일치하지 않습니다.";
+    public static final String ERROR_SECRET_POLICY = "비밀번호는 영어(영문자), 숫자, 특수문자 각각 1개 이상 포함하고 최소 8자여야 합니다.";
     public static final String ERROR_INPUT_NUMBER = "학번은 숫자여야 합니다.";
-    public static final String ERROR_RESET_PASSWORD_NOT_FOUND = "입력하신 정보와 일치하는 사용자를 찾을 수 없습니다.";
-    public static final String ERROR_RESET_PASSWORD_DB = "비밀번호 초기화 중 DB 오류가 발생했습니다.";
+    public static final String ERROR_RESET_SECRET_NOT_FOUND = "입력하신 정보와 일치하는 사용자를 찾을 수 없습니다.";
+    public static final String ERROR_RESET_SECRET_DB = "비밀번호 초기화 중 DB 오류가 발생했습니다.";
     public static final String ERROR_CREDIT_EXCEEDED = "신청 가능한 학점을 초과했습니다.";
     public static final String ERROR_DUPLICATE_LECTURE = "이미 신청한 강의입니다.";
     
@@ -42,8 +42,8 @@ public final class ControllerConstants {
     public static final String SUCCESS_LOGIN = "로그인 성공";
     public static final String TITLE_LOGIN_COMPLETE_ADMIN = "관리자 로그인";
     public static final String SUCCESS_ADMIN_LOGIN = "관리자 로그인";
-    public static final String SUCCESS_PASSWORD_CHANGED = "비밀번호가 변경되었습니다.";
-    public static final String SUCCESS_PASSWORD_RESET = "비밀번호가 초기화되었습니다. 초기 비밀번호가 재발급되었습니다.";
+    public static final String SUCCESS_SECRET_CHANGED = "비밀번호가 변경되었습니다.";
+    public static final String SUCCESS_SECRET_RESET = "비밀번호가 초기화되었습니다. 초기 비밀번호가 재발급되었습니다.";
     public static final String SUCCESS_LECTURE_SIGNUP = "수강신청이 완료되었습니다.";
     public static final String SUCCESS_LECTURE_CANCEL = "수강신청이 취소되었습니다.";
     public static final String SUCCESS_LECTURE_SAVE = "강의가 저장되었습니다.";
@@ -51,8 +51,8 @@ public final class ControllerConstants {
     // ==================== 다이얼로그 타이틀 ====================
     public static final String TITLE_LOGIN_FAILED = "로그인 실패";
     public static final String TITLE_LOGIN_ERROR = "로그인 오류";
-    public static final String TITLE_PASSWORD_CHANGE = "비밀번호 변경";
-    public static final String TITLE_PASSWORD_RESET = "비밀번호 초기화";
+    public static final String TITLE_SECRET_CHANGE = "비밀번호 변경";
+    public static final String TITLE_SECRET_RESET = "비밀번호 초기화";
     public static final String TITLE_INPUT_ERROR = "입력 오류";
     public static final String TITLE_RESET_FAILED = "초기화 실패";
     public static final String TITLE_RESET_COMPLETE = "초기화 완료";
@@ -62,7 +62,7 @@ public final class ControllerConstants {
     public static final String TITLE_SECURITY_ERROR = "보안 정책 위반";
     
     // ==================== 초기값 ====================
-    public static final String INITIAL_PASSWORD_KEY = "controller.initial.password";
+    public static final String INITIAL_SECRET_KEY = "controller.initial.secret";
     
     // ==================== 검증 메서드 ====================
     

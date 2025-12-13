@@ -125,13 +125,13 @@ public class CLogin {
      * - 실패 또는 DB 오류 시 사용자에게 에러 메시지 출력.
      */
     private void handleResetPassword(ActionEvent e) {
-        String id = ViewConstants.showInputDialog(vLogin, "아이디를 입력하세요:", ControllerConstants.TITLE_PASSWORD_RESET);
+        String id = ViewConstants.showInputDialog(vLogin, "아이디를 입력하세요:", ControllerConstants.TITLE_SECRET_RESET);
         if (ControllerConstants.isEmpty(id)) return;
 
-        String name = ViewConstants.showInputDialog(vLogin, "이름을 입력하세요:", ControllerConstants.TITLE_PASSWORD_RESET);
+        String name = ViewConstants.showInputDialog(vLogin, "이름을 입력하세요:", ControllerConstants.TITLE_SECRET_RESET);
         if (ControllerConstants.isEmpty(name)) return;
 
-        String codeStr = ViewConstants.showInputDialog(vLogin, "학번(숫자)을 입력하세요:", ControllerConstants.TITLE_PASSWORD_RESET);
+        String codeStr = ViewConstants.showInputDialog(vLogin, "학번(숫자)을 입력하세요:", ControllerConstants.TITLE_SECRET_RESET);
         if (ControllerConstants.isEmpty(codeStr)) return;
 
         if (!ControllerConstants.isNumeric(codeStr)) {
@@ -147,15 +147,15 @@ public class CLogin {
 
         try {
             String initialPassword = ConfigLoader.getInstance()
-                .getProperty(ControllerConstants.INITIAL_PASSWORD_KEY, "");
+                .getProperty(ControllerConstants.INITIAL_SECRET_KEY, "");
             boolean ok = userDAO.resetPasswordIfMatch(id.trim(), name.trim(), code, initialPassword);
             if (ok) {
-                ViewConstants.showInfoMessage(vLogin, ControllerConstants.SUCCESS_PASSWORD_RESET, ControllerConstants.TITLE_RESET_COMPLETE);
+                ViewConstants.showInfoMessage(vLogin, ControllerConstants.SUCCESS_SECRET_RESET, ControllerConstants.TITLE_RESET_COMPLETE);
             } else {
-                ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_RESET_PASSWORD_NOT_FOUND, ControllerConstants.TITLE_RESET_FAILED);
+                ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_RESET_SECRET_NOT_FOUND, ControllerConstants.TITLE_RESET_FAILED);
             }
         } catch (SQLException ex) {
-            ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_RESET_PASSWORD_DB, ControllerConstants.TITLE_ERROR);
+            ViewConstants.showErrorMessage(vLogin, ControllerConstants.ERROR_RESET_SECRET_DB, ControllerConstants.TITLE_ERROR);
             logger.log(Level.SEVERE, "비밀번호 초기화 DB 오류", ex);
         }
     }

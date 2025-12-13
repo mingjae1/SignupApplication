@@ -228,12 +228,12 @@ public class CMain {
             boolean changed = userDAO.changePassword(userId, oldPw, newPw);
             
             if (changed) {
-                vMain.showInfoMessage(ControllerConstants.SUCCESS_PASSWORD_CHANGED, ControllerConstants.TITLE_COMPLETE);
+                vMain.showInfoMessage(ControllerConstants.SUCCESS_SECRET_CHANGED, ControllerConstants.TITLE_COMPLETE);
             } else {
-                vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_MISMATCH, ControllerConstants.TITLE_LOGIN_FAILED);
+                vMain.showErrorMessage(ControllerConstants.ERROR_SECRET_MISMATCH, ControllerConstants.TITLE_LOGIN_FAILED);
             }
         } catch (java.sql.SQLException ex) {
-            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_CHANGE_DB, ControllerConstants.TITLE_ERROR);
+            vMain.showErrorMessage(ControllerConstants.ERROR_SECRET_CHANGE_DB, ControllerConstants.TITLE_ERROR);
             logger.log(java.util.logging.Level.SEVERE, "비밀번호 변경 오류", ex);
         }
     }
@@ -244,19 +244,19 @@ public class CMain {
     private boolean validatePasswordInput(String newPw, String confirmPw) {
         // Check if password is empty
         if (ControllerConstants.isEmpty(newPw)) {
-            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_EMPTY, ControllerConstants.TITLE_INPUT_ERROR);
+            vMain.showErrorMessage(ControllerConstants.ERROR_SECRET_EMPTY, ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // Check if new password and confirmation password match
         if (!ControllerConstants.matches(newPw, confirmPw)) {
-            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_NOT_MATCH, ControllerConstants.TITLE_INPUT_ERROR);
+            vMain.showErrorMessage(ControllerConstants.ERROR_SECRET_CONFIRM_MISMATCH, ControllerConstants.TITLE_INPUT_ERROR);
             return false;
         }
         
         // Check if password meets security policy
         if (!ControllerConstants.isValidPassword(newPw)) {
-            vMain.showErrorMessage(ControllerConstants.ERROR_PASSWORD_POLICY, ControllerConstants.TITLE_SECURITY_ERROR);
+            vMain.showErrorMessage(ControllerConstants.ERROR_SECRET_POLICY, ControllerConstants.TITLE_SECURITY_ERROR);
             return false;
         }
         

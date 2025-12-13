@@ -37,7 +37,6 @@ public final class ControllerConstants {
     public static final String ERROR_RESET_PASSWORD_DB = "비밀번호 초기화 중 DB 오류가 발생했습니다.";
     public static final String ERROR_CREDIT_EXCEEDED = "신청 가능한 학점을 초과했습니다.";
     public static final String ERROR_DUPLICATE_LECTURE = "이미 신청한 강의입니다.";
-    public static final String ERROR_TIME_CONFLICT = "다른 강의와 시간이 겹칩니다.";
     
     // ==================== 성공 메시지 ====================
     public static final String SUCCESS_LOGIN = "로그인 성공";

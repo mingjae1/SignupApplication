@@ -51,6 +51,8 @@ public class VLogin extends JPanel {
 
         idField = new JTextField();
         idField.setBounds(72, 84, 180, 25);
+        idField.getAccessibleContext().setAccessibleName("ID");
+        idField.getAccessibleContext().setAccessibleDescription("ID 입력");
         loginFormPanel.add(idField);
 
         // PW 입력부
@@ -61,20 +63,25 @@ public class VLogin extends JPanel {
 
         passwordField = new JPasswordField();
         passwordField.setBounds(71, 119, 180, 25);
+        passwordField.getAccessibleContext().setAccessibleName("PW");
+        passwordField.getAccessibleContext().setAccessibleDescription("비밀번호 입력");
         loginFormPanel.add(passwordField);
 
         // 로그인 버튼
         loginButton = ViewConstants.createHeaderButton("로그인");
         loginButton.setBounds(264, 84, 86, 60);
+        loginButton.getAccessibleContext().setAccessibleDescription("로그인");
         loginFormPanel.add(loginButton);
 
         // 하단 버튼
         signupButton = ViewConstants.createHeaderButton("회원가입");
         signupButton.setBounds(72, 166, 97, 30);
+        signupButton.getAccessibleContext().setAccessibleDescription("회원가입");
         loginFormPanel.add(signupButton);
 
         resetpwbutton = ViewConstants.createHeaderButton("비밀번호 초기화");
         resetpwbutton.setBounds(181, 166, 140, 30);
+        resetpwbutton.getAccessibleContext().setAccessibleDescription("비밀번호 초기화");
         loginFormPanel.add(resetpwbutton);
         
         add(loginFormPanel, new GridBagConstraints());

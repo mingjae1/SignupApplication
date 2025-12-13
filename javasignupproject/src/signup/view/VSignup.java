@@ -137,6 +137,8 @@ public class VSignup extends JPanel {
         sNameField.insets = new Insets(5, 5, 5, 5);
         sNameField.gridx = 1; sNameField.gridy = 3;
         leftPanel.add(nameField, sNameField);
+        nameField.getAccessibleContext().setAccessibleName("이름");
+        nameField.getAccessibleContext().setAccessibleDescription("이름 입력");
 
         // 왼쪽: 학번 (y=4)
         JLabel studentIdLabel = new JLabel("학번:");
@@ -167,6 +169,8 @@ public class VSignup extends JPanel {
         sEmailField.insets = new Insets(5, 5, 5, 5);
         sEmailField.gridx = 1; sEmailField.gridy = 5;
         leftPanel.add(emailField, sEmailField);
+        emailField.getAccessibleContext().setAccessibleName("이메일");
+        emailField.getAccessibleContext().setAccessibleDescription("이메일 입력");
         
         // (디자인) 왼쪽 패널의 빈 공간을 채울 더미 라벨 (y=6)
         GridBagConstraints sDummyL = new GridBagConstraints();
@@ -207,6 +211,8 @@ public class VSignup extends JPanel {
         sIdField.gridx = 1; sIdField.gridy = 0;
         sIdField.weightx = 1.0; // 필드가 가로 공간을 채움
         rightPanel.add(idField, sIdField);
+        idField.getAccessibleContext().setAccessibleName("아이디");
+        idField.getAccessibleContext().setAccessibleDescription("아이디 입력");
 
         // 오른쪽: 비밀번호 (y=1)
         JLabel passwordLabel = new JLabel("비밀번호:");
@@ -222,6 +228,8 @@ public class VSignup extends JPanel {
         sPasswordField.insets = new Insets(5, 5, 5, 5);
         sPasswordField.gridx = 1; sPasswordField.gridy = 1;
         rightPanel.add(passwordField, sPasswordField);
+        passwordField.getAccessibleContext().setAccessibleName("비밀번호");
+        passwordField.getAccessibleContext().setAccessibleDescription("비밀번호 입력");
 
         // 오른쪽: 비밀번호 확인 (y=2)
         JLabel passwordConfirmLabel = new JLabel("비밀번호 확인:");
@@ -237,6 +245,8 @@ public class VSignup extends JPanel {
         sPWConfirmField.insets = new Insets(5, 5, 5, 5);
         sPWConfirmField.gridx = 1; sPWConfirmField.gridy = 2;
         rightPanel.add(passwordConfirmField, sPWConfirmField);
+        passwordConfirmField.getAccessibleContext().setAccessibleName("비밀번호 확인");
+        passwordConfirmField.getAccessibleContext().setAccessibleDescription("비밀번호 확인 입력");
         
         // (디자인) 오른쪽 패널의 빈 공간을 채울 더미 라벨 (y=3)
         GridBagConstraints sDummyR = new GridBagConstraints();
@@ -248,6 +258,7 @@ public class VSignup extends JPanel {
         // --- 3. 버튼 패널 (y=2, 2열에 걸쳐 배치) ---
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); // 중앙 정렬
         signupButton = new JButton("가입하기");
+        signupButton.getAccessibleContext().setAccessibleDescription("가입하기");
         cancelButton = new JButton("취소");
         buttonPanel.add(signupButton);
         buttonPanel.add(cancelButton);

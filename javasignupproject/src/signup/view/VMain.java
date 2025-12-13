@@ -351,7 +351,7 @@ public class VMain extends JFrame {
         JLabel infoLabel = new JLabel(infoHtml);
         panel.add(infoLabel, BorderLayout.NORTH);
         
-        JButton changePwBtn = ViewConstants.createHeaderButton(ViewConstants.TEXT_PASSWORD_CHANGE);
+        JButton changePwBtn = ViewConstants.createHeaderButton(ViewConstants.TEXT_SECRET_CHANGE);
         changePwBtn.addActionListener(e -> {
             if (cMain != null) {
                 cMain.handlePasswordChange();
@@ -376,15 +376,15 @@ public class VMain extends JFrame {
         
         JPanel pwPanel = ViewConstants.createStandardPanel(
             ViewConstants.createGridLayout(0, 1, 5, 5));
-        pwPanel.add(new JLabel(ViewConstants.TEXT_CURRENT_PASSWORD));
+        pwPanel.add(new JLabel(ViewConstants.TEXT_CURRENT_SECRET));
         pwPanel.add(currentPf);
-        pwPanel.add(new JLabel(ViewConstants.TEXT_NEW_PASSWORD));
+        pwPanel.add(new JLabel(ViewConstants.TEXT_NEW_SECRET));
         pwPanel.add(newPf);
-        pwPanel.add(new JLabel(ViewConstants.TEXT_CONFIRM_PASSWORD));
+        pwPanel.add(new JLabel(ViewConstants.TEXT_CONFIRM_SECRET));
         pwPanel.add(confirmPf);
         
         int option = javax.swing.JOptionPane.showConfirmDialog(
-            this, pwPanel, ViewConstants.TEXT_PASSWORD_CHANGE,
+            this, pwPanel, ViewConstants.TEXT_SECRET_CHANGE,
             javax.swing.JOptionPane.OK_CANCEL_OPTION,
             javax.swing.JOptionPane.PLAIN_MESSAGE
         );

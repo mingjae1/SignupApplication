@@ -90,10 +90,10 @@ public final class ViewConstants {
     public static final String TEXT_SPACE = " ";
     public static final String TEXT_CLOCK_TITLE = "시계";
     public static final String TEXT_MY_INFO_TITLE = "학적 사항 / 비밀번호";
-    public static final String TEXT_PASSWORD_CHANGE = "비밀번호 변경";
-    public static final String TEXT_CURRENT_PASSWORD = "현재 비밀번호:";
-    public static final String TEXT_NEW_PASSWORD = "새 비밀번호:";
-    public static final String TEXT_CONFIRM_PASSWORD = "새 비밀번호 확인:";
+    public static final String TEXT_SECRET_CHANGE = "비밀번호 변경";
+    public static final String TEXT_CURRENT_SECRET = "현재 비밀번호:";
+    public static final String TEXT_NEW_SECRET = "새 비밀번호:";
+    public static final String TEXT_CONFIRM_SECRET = "새 비밀번호 확인:";
     
     // ==================== 공통 UI 유틸리티 메서드 ====================
     

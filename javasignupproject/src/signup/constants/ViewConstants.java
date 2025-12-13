@@ -1,6 +1,5 @@
 package signup.constants;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -129,8 +128,7 @@ public final class ViewConstants {
      * 표준 패널을 생성합니다.
      */
     public static JPanel createStandardPanel(LayoutManager layout) {
-        JPanel panel = new JPanel(layout);
-        return panel;
+        return new JPanel(layout);
     }
     
     /**

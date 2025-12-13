@@ -10,7 +10,7 @@ import signup.constants.AppConstants;
 import signup.constants.ControllerConstants;
 import signup.constants.PanelNames;
 import signup.constants.ViewConstants;
-import signup.dao.UserDAO; 
+import signup.dao.UserDAO;
 import signup.model.MMain;
 import signup.view.VLogin;
 import signup.view.VMain;
@@ -30,14 +30,14 @@ import signup.model.MUser;
  * - 예외: DB 오류 발생 시 사용자에게 안내 후 로그 기록
  */
 public class CLogin {
-	
+    private static final String ROLE_ADMIN = "admin";
+    
     private VMain vMain;
     private VLogin vLogin;
     private MMain mMain;
     private UserDAO userDAO;
     private CSearch cSearch; 
     private CMain cMain;
-    private CAdmin cAdmin;
     private static final Logger logger = Logger.getLogger(CLogin.class.getName());
     
     /**
@@ -47,15 +47,13 @@ public class CLogin {
      * @param mMain 메인 모델
      * @param userDAO 사용자 DAO (BCrypt 포함)
      * @param cSearch 검색 컨트롤러 (초기 데이터 로딩)
-     * @param cAdmin 관리자 컨트롤러
      */
-    public CLogin(VMain vMain, VLogin vLogin, MMain mMain, UserDAO userDAO, CSearch cSearch, CAdmin cAdmin) {
+    public CLogin(VMain vMain, VLogin vLogin, MMain mMain, UserDAO userDAO, CSearch cSearch) {
         this.vMain = vMain;
         this.vLogin = vLogin;
         this.mMain = mMain; 
         this.userDAO = userDAO;
         this.cSearch = cSearch; 
-        this.cAdmin = cAdmin;
         
         this.vLogin.getLoginButton().addActionListener(this::handleLogin);
         this.vLogin.getSignupButton().addActionListener(e -> {
@@ -84,20 +82,21 @@ public class CLogin {
         String password = new String(passwordChars);
         
         try {
-        	MUser loginUser = this.userDAO.validateUser(id, password);
-        	
+            MUser loginUser = this.userDAO.validateUser(id, password);
+            
             if (loginUser != null) {
                 mMain.setCurrentUserId(id);
                 
-                String message = "admin".equals(loginUser.getRole()) 
+                boolean isAdmin = ROLE_ADMIN.equals(loginUser.getRole());
+                String message = isAdmin 
                     ? loginUser.getName() + "님, 관리자 모드로 로그인합니다!" 
                     : loginUser.getName() + "님, 환영합니다!";
-                String title = "admin".equals(loginUser.getRole()) 
+                String title = isAdmin 
                     ? ControllerConstants.TITLE_LOGIN_COMPLETE_ADMIN 
                     : ControllerConstants.SUCCESS_LOGIN;
                 
                 ViewConstants.showInfoMessage(vLogin, message, title);
-                cMain.setAdminMode("admin".equals(loginUser.getRole()));
+                cMain.setAdminMode(isAdmin);
                 
                 vLogin.clearFields();
                 this.cMain.resetNavigation("searchPanel");

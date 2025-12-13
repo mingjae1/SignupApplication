@@ -21,7 +21,7 @@ public final class ControllerConstants {
         Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
     
     /** 숫자만 검사 */
-    public static final Pattern NUMERIC_PATTERN = Pattern.compile("^[0-9]+$");
+    public static final Pattern NUMERIC_PATTERN = Pattern.compile("^\\d+$");
     
     // ==================== 에러 메시지 ====================
     public static final String ERROR_LOGIN_FAILED = "아이디 혹은 비밀번호가 틀렸습니다.";

@@ -6,6 +6,11 @@ plugins {
     id("org.sonarqube") version "7.0.1.6134"
 }
 
+val mysqlConnectorVersion: String by project
+val flatLafVersion: String by project
+val bcryptVersion: String by project
+val junitBomVersion: String by project
+
 application {
     mainClass.set("signup.RMain")
 }
@@ -51,16 +56,16 @@ repositories {
 // 4. [핵심] 님의 프로젝트가 사용할 .jar 파일 목록 (의존성)
 dependencies {
     // 1. MySQL 커넥터
-    implementation("com.mysql:mysql-connector-j:9.4.0")
+    implementation("com.mysql:mysql-connector-j:$mysqlConnectorVersion")
 
     // 2. FlatLaf (방금 추가한 Look and Feel 스킨)
-    implementation("com.formdev:flatlaf:3.6.2")
+    implementation("com.formdev:flatlaf:$flatLafVersion")
 
     // 3. bcrypt for password hashing
-    implementation("org.mindrot:jbcrypt:0.4")
+    implementation("org.mindrot:jbcrypt:$bcryptVersion")
 
     // 4. JUnit (테스트 및 SonarCloud 커버리지용)
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation(platform("org.junit:junit-bom:$junitBomVersion"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 

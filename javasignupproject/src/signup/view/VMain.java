@@ -2,15 +2,11 @@ package signup.view;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -20,7 +16,6 @@ import javax.swing.JPasswordField;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
-import javax.swing.border.EmptyBorder;
 
 import signup.constants.PanelNames;
 import signup.constants.ViewConstants;
@@ -34,43 +29,43 @@ public class VMain extends JFrame {
     private static final long serialVersionUID = 1L;
     
     // --- 레이아웃 및 패널 ---
-    private CardLayout cardLayout;          // 전체 화면 전환 (로그인 <-> 메인)
-    private JPanel mainCardPanel;           // 전체를 담는 컨테이너
-    private JPanel mainContentPanel;        // 로그인 성공 후 보여지는 메인 화면
-    private CardLayout contentCardLayout;   // 메인 화면 내부 컨텐츠 전환 (검색/신청/담기)
-    private JPanel contentPanel;            // 실제 기능 패널들이 들어가는 곳
+    private transient CardLayout cardLayout;          // 전체 화면 전환 (로그인 <-> 메인)
+    private transient JPanel mainCardPanel;           // 전체를 담는 컨테이너
+    private transient JPanel mainContentPanel;        // 로그인 성공 후 보여지는 메인 화면
+    private transient CardLayout contentCardLayout;   // 메인 화면 내부 컨텐츠 전환 (검색/신청/담기)
+    private transient JPanel contentPanel;            // 실제 기능 패널들이 들어가는 곳
 
     // --- 상단 헤더 컴포넌트 ---
-    private JButton btnMenuToggle; // [≡] 사이드바 토글
-    private JButton btnBack;       // [◀] 이전
-    private JButton btnNext;       // [▶] 다음
-    private JButton btnRefresh;    // [새로고침]
+    private transient JButton btnMenuToggle; // [≡] 사이드바 토글
+    private transient JButton btnBack;       // [◀] 이전
+    private transient JButton btnNext;       // [▶] 다음
+    private transient JButton btnRefresh;    // [새로고침]
     
-    private JLabel lblUserName;    // "OOO님"
-    private JButton btnLogout;     // [로그아웃]
+    private transient JLabel lblUserName;    // "OOO님"
+    private transient JButton btnLogout;     // [로그아웃]
     
     // --- 좌측 사이드바 컴포넌트 ---
-    private JPanel sidebarPanel;
-    private JButton btnSideSearch;    // 강좌 검색
-    private JButton btnSideRegister;  // 수강신청 내역
-    private JButton btnSidePreRegister;    // 미리담기 내역
-    private JButton btnSideTimeTable; // 시간표
-    private JButton btnSideMyInfo;    // 내 정보
-    private JButton btnSideClock;     // 시계
-    private JButton btnSideTheme;     // 테마 변경
-    private JButton btnSideAdmin;     // 강의 관리 (관리자 전용)
+    private transient JPanel sidebarPanel;
+    private transient JButton btnSideSearch;    // 강좌 검색
+    private transient JButton btnSideRegister;  // 수강신청 내역
+    private transient JButton btnSidePreRegister;    // 미리담기 내역
+    private transient JButton btnSideTimeTable; // 시간표
+    private transient JButton btnSideMyInfo;    // 내 정보
+    private transient JButton btnSideClock;     // 시계
+    private transient JButton btnSideTheme;     // 테마 변경
+    private transient JButton btnSideAdmin;     // 강의 관리 (관리자 전용)
     
     // --- 시계 팝업 ---
-    private JFrame clockFrame;
-    private JLabel clockLabel;
-    private JLabel dateLabel;
-    private javax.swing.Timer clockTimer;
+    private transient JFrame clockFrame;
+    private transient JLabel clockLabel;
+    private transient JLabel dateLabel;
+    private transient javax.swing.Timer clockTimer;
     
     // --- 컨트롤러 참조 (내 정보 다이얼로그에서 사용) ---
-    private signup.controller.CMain cMain;
+    private transient signup.controller.CMain cMain;
     
     // (참고: 테마 변경용 콤보박스는 사이드바 버튼 토글 방식으로 대체됨)
-    private JComboBox<String> themeCombo;
+    private transient JComboBox<String> themeCombo;
     
     /**
      * VMain 프레임 및 내부 컴포넌트를 생성하고 레이아웃을 초기화합니다.
@@ -201,7 +196,7 @@ public class VMain extends JFrame {
         }
         
         clockFrame = new JFrame(ViewConstants.TEXT_CLOCK_TITLE);
-        clockFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        clockFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         clockFrame.setResizable(false);
         clockFrame.setAlwaysOnTop(true);
         clockFrame.setLayout(new BorderLayout());
@@ -448,10 +443,6 @@ public class VMain extends JFrame {
     
     // (호환용)
     public JComboBox<String> getThemeCombo() { return themeCombo; }
-    public JButton getMyInfoButton() { return btnSideMyInfo; }
-    public JButton getSearchbt() { return btnSideSearch; }
-    public JButton getRegisterbt() { return btnSideRegister; }
-    public JButton getPreRegisterbt() { return btnSidePreRegister; }
     public JButton getScheduleButton() { return btnSideTimeTable; }
     
     /**
